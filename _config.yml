@@ -1,5 +1,25 @@
-remote_theme: pages-themes/hacker@v0.2.0
+title: Steffen's random thoughts
+email: steffen@scheib.me
+description:
+  This my personal blog, where I post about things that I do and find interesting.
+  All posts and thoughts on this blog are solely my opinion and are not related to my current employer.
+github_username:  sscheib
+github: [metadata]
+
+remote_theme: jekyll/minima@v2.5.1
 plugins:
-- jekyll-remote-theme
-title: Steffen Scheib - personal blog
-description: This is my personal blog. All thoughts and posts are not related to my current or former employer in any way.
+  - jekyll-feed
+  - jekyll-remote-theme
+  - jemoji
+
+header_pages:
+  - index.md
+  - about.md
+
+minima:
+  skin: dark
+  social_links:
+    - { platform: github,  user_url: "https://github.com/sscheib" }
+    - { linkedin: linkedin,  user_url: "https://linkedin.com/in/sscheib" }
+
+author: Steffen Scheib
