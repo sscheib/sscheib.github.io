@@ -2135,7 +2135,7 @@ fusectl on /sys/fs/fuse/connections type fusectl (rw,relatime)
 root@rescue ~ #
 {% endhighlight %}
 
-Before we can chroot into the environment, we need to mount necessary system partitions:
+Before we can chroot into the environment, we need to mount the necessary system partitions:
 {% highlight shell %}
 root@rescue ~ # mount -o bind /dev/ /mnt/dev/
 root@rescue ~ # mount -t devpts devpts /mnt/dev/pts/
