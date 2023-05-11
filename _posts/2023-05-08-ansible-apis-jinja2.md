@@ -30,7 +30,7 @@ This is precisly what idempotency with regards to Ansible is. Ansible compares a
 
 Idempotency enables you to rerun the same automation over and over again and you will always receive the same result. If something changed, you know that somebody or something has messed around with your system and if nothing changes, you can be sure everything is exactly the way it should be.
 
-### .. now, is `community.routeros.api_find_and_modify module` idempotent?!
+### .. now, the is `community.routeros.api_find_and_modify` module idempotent?!
 Apparently, it is. [A small sentence](https://docs.ansible.com/ansible/devel/collections/community/routeros/api_find_and_modify_module.html#notes) in the documentation reveals it:
 > [..] The latter case is needed for idempotency of the task: once the values have been changed, there should be no further match.
 
@@ -276,6 +276,6 @@ Surely, that **must** be it! I went ahead and added `jinja2_native` to the `[def
 
 ***It worked. Finally.***
 
-For why `jinja2_native` is off by default, I can only speculate and would guess for backwards compatibility reasons. Not a bad reasoning, but for my case, it would have been a lot less painful if it was turned on by default ..
+For why `jinja2_native` is off by default, I can only speculate and would guess for backwards compatibility reasons. Not a bad reasoning, but in my case, it would have been a lot less painful if it was turned on by default ..
 
 .. oh well, the next challenge surely won't wait for long. :smile:
