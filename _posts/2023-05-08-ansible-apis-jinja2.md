@@ -2,7 +2,7 @@
 title: Automating APIs with Ansible .. and Jinja2
 ---
 
-The other day I wanted to automate some of my newly aquired MikroTik switches using Ansible and the excellent Ansible collection [community.general.routeros](https://docs.ansible.com/ansible/latest/collections/community/routeros/index.html).
+The other day I wanted to automate some of my newly acquired MikroTik switches using Ansible and the excellent Ansible collection [community.general.routeros](https://docs.ansible.com/ansible/latest/collections/community/routeros/index.html).
 
 With the aforementioned collection you get all sorts of modules and plugins. One of those modules is [community.routeros.api_find_and_modify](https://docs.ansible.com/ansible/latest/collections/community/routeros/api_find_and_modify_module.html#ansible-collections-community-routeros-api-find-and-modify-module) which is - as the name suggests - a module that will find a specific path on any [RouterOS (ROS)](https://help.mikrotik.com/docs/display/ROS/RouterOS) capable device and modify the value, if required. The modules depends on the Python library [librouteros](https://librouteros.readthedocs.io/en/3.2.1/), which talks to the REST API of any ROS device.
 
@@ -26,11 +26,11 @@ With option number 2, you'd obviously change the value of `PermitRootLogin` and 
 
 .. but what about option 1? Would you really change the file **again** and restart or reload the SSHd **again**, although you verified that the appropriate value for `PermitRootLogin` has been set? Of course not.
 
-This is precisly what idempotency with regards to Ansible is. Ansible compares a desired state to an existing state for each task in the play and acts accordingly. If there is nothing to change to achieve the desired state, nothing is changed. In theory (and mostly in practice) this type of transaction (checking whether the desired state is already present) takes up less resources and thus needs less time to apply when compared to an operation that actually changes something.
+This is precisely what idempotency with regards to Ansible is. Ansible compares a desired state to an existing state for each task in the play and acts accordingly. If there is nothing to change to achieve the desired state, nothing is changed. In theory (and mostly in practice) this type of transaction (checking whether the desired state is already present) takes up less resources and thus needs less time to apply when compared to an operation that actually changes something.
 
 Idempotency enables you to rerun the same automation over and over again and you will always receive the same result. If something changed, you know that somebody or something has messed around with your system and if nothing changes, you can be sure everything is exactly the way it should be.
 
-### .. now, the is `community.routeros.api_find_and_modify` module idempotent?!
+### .. now, is the `community.routeros.api_find_and_modify` module idempotent?!
 Apparently, it is. [A small sentence](https://docs.ansible.com/ansible/devel/collections/community/routeros/api_find_and_modify_module.html#notes) in the documentation reveals it:
 > [..] The latter case is needed for idempotency of the task: once the values have been changed, there should be no further match.
 
@@ -185,10 +185,10 @@ TASK [mikrotik_base : Configure service ftp] ***********************************
      ]
  }
 
-changed: [mikrotik-crs326.dev.int.scheib.me -> localhost]
+changed: [mikrotik-crs326.example.com -> localhost]
 {% endhighlight %}
 
-.. wait what?! Why is this a string? Okay, nevermind, let's add a conversion to `int` using `| int` for the `port` value:
+.. wait what?! Why is this a string? Okay, never mind, let's add a conversion to `int` using `| int` for the `port` value:
 {% highlight yaml %}
 {% raw %}
 port: '{{ __t_service.port | int }}'
@@ -266,7 +266,7 @@ All of the tests clearly indicated that {% raw %}`{{ __t_service.port }}`{% endr
 ## Meet `jinja2_native`
 While I almost lost any hope and was *that* close to either open an issue in the [community.routeros' Github](https://github.com/ansible-collections/community.routeros/issues) (which I hesitated because I didn't want to look like an idiot) or simply live with the non-idempotency, I decided to give it a last try after I left that topic alone for a few days.
 
-After a **ton** of looking around the internet, I found a [pull request](https://github.com/ansible/ansible/pull/68560) for Ansible that [fixed](https://github.com/ansible/ansible/issues/46169) the convertion of a JSON string to a dict, where the conversion would corrupt that dict. After looking at the [changelog](https://github.com/ansible/ansible/blob/devel/docs/docsite/rst/porting_guides/porting_guide_core_2.11.rst#playbook), I realized my issue:
+After a **ton** of looking around the internet, I found a [pull request](https://github.com/ansible/ansible/pull/68560) for Ansible that [fixed](https://github.com/ansible/ansible/issues/46169) the conversion of a JSON string to a dict, where the conversion would corrupt that dict. After looking at the [change log](https://github.com/ansible/ansible/blob/devel/docs/docsite/rst/porting_guides/porting_guide_core_2.11.rst#playbook), I realized my issue:
 > The `jinja2_native` setting now does not affect the template module which **implicitly returns strings**. For the template lookup there is a new argument `jinja2_native` (off by default) to control that functionality. The rest of the Jinja2 expressions still operate based on the `jinja2_native` setting.
 
 I looked through the closed PRs to find the one which introduced `jinja2_native`, and there it was: [Allow config to enable native jinja types](https://github.com/ansible/ansible/pull/32738). The [documentation](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#default-jinja2-native) describes `jinja2_native` as follows:

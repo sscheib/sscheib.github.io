@@ -75,7 +75,7 @@ root@rescue ~ #
 </details>
 <br>
 
-At the end we will have partitions, which should look similar to the following output (besides the last partition size, which depends - of course - on the overall disksize):
+At the end we will have partitions, which should look similar to the following output (besides the last partition size, which depends - of course - on the overall disk size):
 {% highlight shell %}
 root@rescue ~ # gdisk -l /dev/sda
 GPT fdisk (gdisk) version 1.0.3
@@ -88,7 +88,7 @@ root@rescue ~ #
 {% endhighlight %}
 
 
-### Optional: Partition another drive to store your (application) data to keep it seperate from the system disk
+### Optional: Partition another drive to store your (application) data to keep it separate from the system disk
 In this case we are just going to partition the whole drive **/dev/sdb** as a single partition using **type 8300**.
 <details>
 <summary><i>Sample</i> output of <b>gdisk</b></summary>
@@ -155,7 +155,7 @@ The goal of this section is to end up with a partition layout using the [Logica
 In order to achieve this we are going to create an encrypted [Linux Unified Key Setup](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) (LUKS) partition on which we will create our LVM.
 The partition table should look ideally similar to the one in the table below. As I am currently setting up a server to use with [Proxmox](https://www.proxmox.com) the sizing might be different from your choice.
 
-I inserted an additional colum where I set an **X** whether the partition is recommended to create on any system or whether the partition is specific for the usage with Proxmox.
+I inserted an additional column where I set an **X** whether the partition is recommended to create on any system or whether the partition is specific for the usage with Proxmox.
 In my case the disk, where my system is going to get installed on (**/dev/sda**) is roughly 420GB big. So it is easily possible at any time to extend the current partition layout or even extend the size of the different point mounts - thanks to LVM!
 
 | mount point       | filesystem type | size | recommended | volume group |
@@ -199,7 +199,7 @@ cryptsetup -s 512 -c aes-xts-plain64 luksFormat /dev/sda3
 {% endhighlight %}
 
 :warning: First, you need to confirm, that **all data on this partition will be lost**.
-After you confirmed it, you will be promted to enter a password for the encryption (please use a **complex** and **unique** password!) and repeat the password. 
+After you confirmed it, you will be prompted to enter a password for the encryption (please use a **complex** and **unique** password!) and repeat the password. 
 
 :warning: Make sure to save the password in your password safe (or remember it :open_mouth: ), otherwise you will not be able to access the system ever again - all data will be lost. **There is no way to recover them**.
 {% highlight shell %}
@@ -233,7 +233,7 @@ root@rescue ~ #
 {% endhighlight %}
 
 ### Optional: Creating LUKS partition for the data partition
-Basically, the same steps as we used for the LUKS parition that holds our system partitions have to be applied for the data partition.
+Basically, the same steps as we used for the LUKS partition that holds our system partitions have to be applied for the data partition.
 The differences are only a few simple things:
 
 * The device is now `/dev/sdb`
@@ -565,20 +565,20 @@ function mount_chroot () {
     echo "Decrypting '${__SYSTEM_CRYPT_DEVICE}' failed!";
     exit 1;
   };
-  echo "Sucessful!"
+  echo "Successful!"
  
   ( [[ -z "${__DATA_CRYPT_DEVICE}" ]] &&
     [[ -z "${__DATA_CRYPT_NAME}" ]]
   ) || {
     echo "Trying to decrypt data crypt device '${__DATA_CRYPT_DEVICE}'"
     cryptsetup luksOpen "${__DATA_CRYPT_DEVICE}" "${__DATA_CRYPT_NAME}" || {
-      echo "Decrypting '${__DATA_CRYPT_DEVIC}' failed!";
+      echo "Decrypting '${__DATA_CRYPT_DEVICE}' failed!";
       exit 1;
     };
-    echo "Sucessful!"
+    echo "Successful!"
   };
  
-  # sleep to prevent that the vg's cant be detected yet
+  # sleep to prevent that the VGs cant be detected yet
   sleep 2
   # detect vgs and switch to them
   vgchange -aay || {
@@ -592,7 +592,7 @@ function mount_chroot () {
     exit 1;
   };
  
-  # mount the root lv and check whether it has been mounted sucessfully
+  # mount the root lv and check whether it has been mounted successfully
   mount "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" "${__DESTINATION_PARENT}"
   mountpoint -q "${__DESTINATION_PARENT}" || {
     echo "Destination root '${__DESTINATION_PARENT}' is not mounted!"
@@ -662,7 +662,7 @@ function mount_chroot () {
   exit 0;
 } #; function mount_chroot ( )
  
-# function to unmount all partitions defined unter __DESTINATION_PARTENT
+# function to unmount all partitions defined under __DESTINATION_PARENT
 # and "close" the VGs and finally close the LUKS partitions
 function umount_chroot () {
   umount -lf "${__DESTINATION_PARENT}"
@@ -735,20 +735,20 @@ function mount_chroot () {
     echo "Decrypting '${__SYSTEM_CRYPT_DEVICE}' failed!";
     exit 1;
   };
-  echo "Sucessful!"
+  echo "Successful!"
  
   ( [[ -z "${__DATA_CRYPT_DEVICE}" ]] &&
     [[ -z "${__DATA_CRYPT_NAME}" ]]
   ) || {
     echo "Trying to decrypt data crypt device '${__DATA_CRYPT_DEVICE}'"
     cryptsetup luksOpen "${__DATA_CRYPT_DEVICE}" "${__DATA_CRYPT_NAME}" || {
-      echo "Decrypting '${__DATA_CRYPT_DEVIC}' failed!";
+      echo "Decrypting '${__DATA_CRYPT_DEVICE}' failed!";
       exit 1;
     };
-    echo "Sucessful!"
+    echo "Successful!"
   };
  
-  # sleep to prevent that the vg's cant be detected yet
+  # sleep to prevent that the VGs cant be detected yet
   sleep 2
   # detect vgs and switch to them
   vgchange -aay || {
@@ -762,7 +762,7 @@ function mount_chroot () {
     exit 1;
   };
  
-  # mount the root lv and check whether it has been mounted sucessfully
+  # mount the root lv and check whether it has been mounted successfully
   mount "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" "${__DESTINATION_PARENT}"
   mountpoint -q "${__DESTINATION_PARENT}" || {
     echo "Destination root '${__DESTINATION_PARENT}' is not mounted!"
@@ -832,7 +832,7 @@ function mount_chroot () {
   exit 0;
 } #; function mount_chroot ( )
  
-# function to unmount all partitions defined unter __DESTINATION_PARTENT
+# function to unmount all partitions defined under __DESTINATION_PARENT
 # and "close" the VGs and finally close the LUKS partitions
 function umount_chroot () {
   umount -lf "${__DESTINATION_PARENT}"
@@ -882,12 +882,12 @@ root@rescue ~ # bash mount.sh mount
 Mounting chroot
 Trying to decrypt system crypt device '/dev/sda3'
 Enter passphrase for /dev/sda3: 
-Sucessful!
+Successful!
   8 logical volume(s) in volume group "vg_system" now active
 root@rescue ~ #
 {% endhighlight %}
 
-Finally you should check whether the script has been sucessfully run and the partitions are mounted to your needs (the last lines are showing the mounted partitions from the script):
+Finally you should check whether the script has been successfully run and the partitions are mounted to your needs (the last lines are showing the mounted partitions from the script):
 {% highlight shell %}
 root@rescue ~ # mount
 proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
@@ -937,7 +937,7 @@ root@rescue ~ #
 
 ### Starting the installation
 Finally we can start the installation of Debian Bullseye within our live system.
-For the installation we are going to use a program called [Debootstrap](https://wiki.debian.org/Debootstrap). Debootstrap is basically used to install a Debian system within a Debian system (our live environment). The lastest version can always be found [package repository of debian.org](http://ftp.debian.org/debian/pool/main/d/debootstrap/) - we need the version, which is packaged using `.deb`.
+For the installation we are going to use a program called [Debootstrap](https://wiki.debian.org/Debootstrap). Debootstrap is basically used to install a Debian system within a Debian system (our live environment). The latest version can always be found [package repository of debian.org](http://ftp.debian.org/debian/pool/main/d/debootstrap/) - we need the version, which is packaged using `.deb`.
 
 Currently the latest version is [1.0.128](http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.128+nmu2_all.deb).
 
@@ -978,7 +978,7 @@ root@rescue /tmp # cat md5sums | cut -d " " -f 3 | xargs md5sum $1 > md5sums.loc
 root@rescue /tmp #
 {% endhighlight %}
 
-Next, we want to search in the file `usr/sbin/debootstrap` for the line `DEBOOTSTRAP_DIR=/usr/share/debootstrap` and prefix `/tmp` infront of the path.
+Next, we want to search in the file `usr/sbin/debootstrap` for the line `DEBOOTSTRAP_DIR=/usr/share/debootstrap` and prefix `/tmp` in front of the path.
 This is necessary in order to run the script from `/tmp` (where we are in the moment).
 
 You can either do it by hand or run following command:
@@ -986,7 +986,7 @@ You can either do it by hand or run following command:
 sed 's@\/usr\/share\/debootstrap@/tmp/usr/share/debootstrap@' -i usr/sbin/debootstrap
 {% endhighlight %}
 
-.. and check afterwards if the change has been done sucessfully using the following command:
+.. and check afterwards if the change has been done successfully using the following command:
 {% highlight shell %}
 grep [[:space:]]DEBOOTSTRAP_DIR= usr/sbin/debootstrap
 {% endhighlight %}
@@ -1097,7 +1097,7 @@ passwd: password updated successfully
 root@rescue:/#
 {% endhighlight %}
 
-Then we want to set both the hostname (`/etc/hostname`) and mailname (`/etc/mailname` - this will come in handy later, when we install `postfix`) and as well add ourselfs to `/etc/hosts`:
+Then we want to set both the hostname (`/etc/hostname`) and mailname (`/etc/mailname` - this will come in handy later, when we install `postfix`) and as well add ourselves to `/etc/hosts`:
 {% highlight shell %}
 root@rescue:/# echo "pven.scheib.me" > /etc/hostname
 root@rescue:/# echo "pven.scheib.me" > /etc/mailname
@@ -1523,7 +1523,7 @@ The given UUID has to be added to the file `/etc/crypttab` in the following form
 {% endhighlight %}
 Substitute *\<LUKS_device_name\>* with the name of your LUKS device (e.g. `crypted_system`) and *\<UUID\>* with the UUID you received by the command before.
 
-You can either do it by hand or use the following oneliner (you can adjust the name of the luks partition):
+You can either do it by hand or use the following one liner (you can adjust the name of the luks partition):
 {% highlight shell %}
 echo "crypted_system UUID="$(cryptsetup luksDump /dev/sda3 | grep UUID | awk '/UUID/ { print $2 }')" none luks" > /etc/crypttab
 {% endhighlight %}
@@ -1697,7 +1697,7 @@ With later versions of vim it is (by default) not possible anymore to copy/paste
 set clipboard=unnamed
 {% endhighlight %}
 
-It is a pain if you have to do this (and even remembering to do so) everytime you add a new user. This is why we make use of `/etc/skel` and simply add a file in there called `.vimrc` with the line from above.
+It is a pain if you have to do this (and even remembering to do so) every time you add a new user. This is why we make use of `/etc/skel` and simply add a file in there called `.vimrc` with the line from above.
 {% highlight shell %}
 echo 'set clipboard=unnamed' > /etc/skel/.vimrc
 {% endhighlight %}
@@ -1985,10 +1985,10 @@ root@rescue:/#
 
 ### Configure GRUB
 Configuring GRUB for remote unlocking is as easy as configuring Dropbear.
-However, we need to use the "oldstyle-naming" of the ethernet devices (e.g. `eth0`), so we have to use both `net.ifnames=0` and `biosdevname=0` in the `GRUB_CMDLINE_LINUX_DEFAULT`, which can be found in `/etc/default/grub`.
+However, we need to use the "old style-naming" of the ethernet devices (e.g. `eth0`), so we have to use both `net.ifnames=0` and `biosdevname=0` in the `GRUB_CMDLINE_LINUX_DEFAULT`, which can be found in `/etc/default/grub`.
 Additionally we need to enter the IP address, the gateway, the netmask and the ethernet device to use for the remote connection.
 
-Following is the format of the IP parameter (a detailed explaination can be looked up at [kernel.org](https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt)):
+Following is the format of the IP parameter (a detailed explanation can be looked up at [kernel.org](https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt)):
 {% highlight shell %}
 ip=<ip>::<gateway>:<netmask>::<ethernet device>:none"
 {% endhighlight %}
