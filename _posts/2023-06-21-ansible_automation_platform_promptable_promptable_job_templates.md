@@ -57,7 +57,7 @@ What I do in the playbook is the following:
 - Ensure both the variable and the environment variables are set
 - Gather information about the job template from which we will extract the inventory
 - The inventory we will use to determine the actual hosts, that will be targeted
-- From the hosts retrieved the most challenging part was to build a dictionary which would contain a list of hosts to target
+- The most challenging part was to build a dictionary of Instance Groups which each one would contain a list of hosts to target. The information was present in the `variables` of the host. You can take look at what I mean [here](https://github.com/sscheib/ansible-demo-promptable_job_concept/blob/main/launch_jobs.yml#L52)
 - Finally, iterate over that dictionary and launch as many jobs as required :slightly_smiling_face:
 
 For a better visualization, that dictionary would look something like this:
