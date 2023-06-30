@@ -24,3 +24,9 @@ minima:
     - { linkedin: linkedin,  user_url: "https://linkedin.com/in/sscheib" }
 
 author: Steffen Scheib
+
+jekyll-spaceship:
+  mermaid-processor:
+    mode: 'pre-fetch'
+    config:
+      theme: 'base'
