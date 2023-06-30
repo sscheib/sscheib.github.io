@@ -4,6 +4,7 @@ description:
   All posts and thoughts on this blog are solely my opinion and are not related to my employer.
 github_username:  sscheib
 github: [metadata]
+repository: 'sscheib/sscheib.github.io'
 
 remote_theme: jekyll/minima@v2.5.1
 plugins:

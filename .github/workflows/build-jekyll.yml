@@ -28,4 +28,3 @@ jobs:
           jekyll_src: './'
           jekyll_cfg: '_config.yml'
           cname: 'blog.scheib.me'
-          repository: 'sscheib/sscheib.github.io'
