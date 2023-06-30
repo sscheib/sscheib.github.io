@@ -30,4 +30,5 @@ jobs:
           branch: 'gh-pages'
           jekyll_src: './'
           jekyll_cfg: '_config.yml'
+          jekyll_baseurl: ''
           cname: 'blog.scheib.me'
