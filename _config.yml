@@ -11,6 +11,7 @@ plugins:
   - jekyll-feed
   - jekyll-remote-theme
   - jemoji
+  - jekyll-spaceship
 
 header_pages:
   - index.md
