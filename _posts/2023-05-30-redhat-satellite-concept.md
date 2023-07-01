@@ -840,11 +840,9 @@ Those base CVs would contain only the bare minimum that is required in terms of 
 
 **RHEL7**
 
-:information_source: RHEL 7 *EUS* and *Latest* are, right now, effectively the same (RHEL 7.10). This *will* change, once RHEL 7 transitions to ELS, where the ELS repositories need to be enabled instead (see RHEL 6)
+:information_source: Since RHEL 7 is already out a while, there is no RHEL 7 *EUS* anymore. *Latest* is currently in the [Maintenance Support Phase 2](https://access.redhat.com/support/policy/updates/errata) with RHEL 7.9 being the last version.. This *will* change, once RHEL 7 transitions to ELS, where the ELS repositories need to be enabled instead (see RHEL 6)
 * Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
 * Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.9
-
-:information_source: There is no RHEL 7.10 Kickstart, thus RHEL 7.9 needs to be used in this case.
 
 **RHEL6**
 
