@@ -16,7 +16,7 @@ It, however, is:
 * A good starting point to build upon your *own* Red Hat Satellite 6 concept
 
 # Introduction
-Red Hat Satellite 6 (I'll use Satellite from now on) is a systems management product, which allows administrators to build, deploy and configure Linux systems and manage the deployed systems life cycle.
+Red Hat Satellite 6 (I'll use Satellite from now on) is a systems management product, which allows administrators to build, deploy and configure Linux systems and manage the deployed systems' life cycle.
 Satellite is mainly build around Red Hat Enterprise Linux (RHEL) based distributions, but the included upstream products support many more distributions, such as Debian- or SUSE Enterprise Linux (SLES) based distributions.
 Satellite contains - as most Red Hat products - many upstream products such as:
 - [The Foreman](https://theforeman.org/)
