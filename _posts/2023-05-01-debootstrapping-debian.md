@@ -1,5 +1,6 @@
 ---
 title: Manually installing Debian 11 (Bullseye) with fully encrypted LUKS (besides /boot) using debootstrap
+author: Steffen Scheib
 ---
 ### Introduction
 In this post, we'll cover the installation and configuration of a Debian 11 (Bullseye) system within a live environment.

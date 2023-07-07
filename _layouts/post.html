@@ -15,8 +15,12 @@ layout: default
       {%- endif -%}</p>
   </header>
 
+  <div class="toc">
+    <h2>Table of conents</h2>
+    {% include toc.html html=content %}
+  </div>
   <div class="post-content e-content" itemprop="articleBody">
-    {{ content }}
+    {% include anchor_headings.html html=content anchorBody="#" %}
   </div>
 
   <script src="https://utteranc.es/client.js"
