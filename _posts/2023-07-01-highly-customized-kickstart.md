@@ -34,7 +34,7 @@ Let me provide you with an example: Say we want to install a custom monitoring a
 
 `dnf install zabbix-agent -y`
 
-The monitoring agent might be a necessity for your deployment and you want to make sure that it is installed. Well, if the package `zabbix-agent` isn't available, because you might forgot to enable the repository within the Activation Key or you forgot to add the Content View that provides Zabbix, Satellite *will* continue the Kickstart like nothing happened. It *will* show as *successful build* within Satellite. Obviously, the build was not successful, as a step failed.
+The monitoring agent might be a necessity for your deployment and you want to make sure that it is installed. Well, if the package `zabbix-agent` isn't available, because you might forgot to enable the repository within the Activation Key or you forgot to add the Content View that provides Zabbix, the Kickstart *will* continue to run like nothing happened. It *will* show as *successful build* within Satellite. Obviously, the build was not successful, as a step failed.
 
 You might argue that if you set up your services[^service] properly, this shouldn't happen. While you are correct, what about temporary network issue between your host and the responsible Capsule only at the moment when you enter the `%post` section? You will never notice it and you'd think the deployment was *successful*.
 
