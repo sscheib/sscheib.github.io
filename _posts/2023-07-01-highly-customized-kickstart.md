@@ -107,7 +107,7 @@ With that we can still use for instance `@host.operatingsystem.major.to_i` in an
 
 ## Diving Deeper
 
-Now that we have set a baseline, let's dive into my Kickstart templates. You can find them in my [GitHub repository](https://github.com/sscheib/satellite-templates).
+Now that we have set a baseline, let's dive into my Kickstart templates. You can find them in my [GitHub repository](https://github.com/sscheib/satellite_templates).
 
 :warning: The Kickstarts are built around *my* use case. Please *don't* use them as is. Evaluate them and check if they work for *your* use case.
 
