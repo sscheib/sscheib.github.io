@@ -3,17 +3,17 @@ title: Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly custo
 author: Steffen Scheib
 ---
 ## Introduction
-Following my [Red Hat Satellite 6 concept](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html), I thought it made sense to share my highly customized Kickstart to use with Red Hat Satellite 6.
+Following my [Red Hat Satellite 6 concept suggestion blog post](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html), I thought it made sense to share my highly customized Kickstart to use with Red Hat Satellite 6.
 
 In a later blog post, I'll further share how I make use of [Template Sync](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts) in Satellite. A functionality, that allows importing the templates and also automatically assigning them to defined Operating Systems.
 
-:warning: Before you dig into this: Please read the following paragraph carefully.
+:warning: **Before you dig into this: Please read the following paragraph carefully.**
 
-While it is absolutely possible to customize Kickstarts using Satellite, the degree of flexibility comes with a trade-off: **maintenance**. Please understand that in almost all cases the provided Kickstarts by Red Hat fulfill perfectly the need of almost all use cases. When using highly customized Kickstarts you need to keep up with changes in the Satellite and you need to keep up with the changes to Kickstart. This means, every time a new update of the Satellite is released or a new major version[^kickstart_changes] of RHEL is released, you need to carefully read the change log of the new Satellite version and check whether things you use (e.g. [Satellite-Specific Macros](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/template_writing_reference_managing-hosts#Generic_Project-specific_Macros_managing-hosts)) have changed, have been deprecated or have been removed. The same for RHEL.
+While it is absolutely possible to customize Kickstarts using Satellite, the degree of flexibility comes with a trade-off: **maintenance**. Please understand that in almost all cases the provided Kickstarts by Red Hat fulfill perfectly the need of almost all use cases. When using highly customized Kickstarts you need to keep up with changes in the Satellite and you need to keep up with the changes to Kickstart and RHEL. This means, every time a new update of the Satellite is released or a new major version[^kickstart_changes] of RHEL is released, you need to carefully read the change log of the new Satellite version and check whether things you use (e.g. [Satellite-Specific Macros](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/template_writing_reference_managing-hosts#Generic_Project-specific_Macros_managing-hosts)) have changed, have been deprecated or have been removed. The same for RHEL.
 
 Further, you have to verify with each new Satellite release - and preferably RHEL release, that your Host Provisioning works exactly as you have designed it.
 
-**This adds additional maintenance overhead that has to be done with at least *every* Satellite and RHEL major release!**
+**This adds additional maintenance overhead that has to be done with *at least every* Satellite and RHEL major release!**
 
 Please evaluate carefully whether the already provided Kickstarts fulfill your needs and if not, whether the things you'd like to change can be changed after provisioning a system using automation (e.g. Ansible, Chef, Puppet, Salt, etc.).
 
@@ -24,35 +24,37 @@ Usually, the things you cannot change with ease *after* deploying hosts (such as
 
 Back to topic .. :grin:
 
-A few years back when I didn't fully understand the complete process of Kickstart in Satellite, I made an exercise and completely customized all the Kickstarts to my customer's needs. That meant, removing everything that is not used actively and further to introduce a better logging mechanism and error handling.
+A few years back when I didn't fully understand the complete process of Kickstart in Satellite, I made an exercise and completely customized all the Kickstarts to my customer's needs. That meant, removing everything that is not used actively and further to introduce a better logging mechanism and error handling. Since then, I have further optimized and updated the Kickstart to be fully compatible with *my* use case.
 
 Speaking of error handling: To be perfectly honest, I don't know if that has changed in the meanwhile, but back then (with Kickstart on RHEL 8 and using Satellite at least up to Satellite 6.9), whenever a command failed in the `%post` section of the Kickstart, the Kickstart would continue to run. If you did not verify the provided host thoroughly *after* deployment, you'd end up with an incompletely provisioned host.
 
-Since RHEL 7 Kickstart supports [error handling](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#kickstart-error-handling-section_kickstart-script-file-format-reference) to *some* degree. This error handling, however, concerns serious errors such as a failure in the Storage Selection. It does *not* cover, however, issues that happen due to failing commands in the `%post` section.
+Since RHEL 7, Kickstart supports [error handling](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#kickstart-error-handling-section_kickstart-script-file-format-reference) to *some* degree. This error handling, however, concerns serious errors such as a failure in the Storage Selection. It does *not* cover, however, issues that happen due to failing commands in the `%post` section.
 
 Let me provide you with an example: Say we want to install a custom monitoring agent (e.g. [Zabbix](https://www.zabbix.com/)) during Kickstart using the following command:
 
 `dnf install zabbix-agent -y`
 
-The monitoring agent might be a necessity for your deployment and you want to make sure that it is installed. Well, if the package `zabbix-agent` isn't available, because you might forgot to enable the repository within the Activation Key or you forgot to add the Content View that provides Zabbix, the Kickstart *will* continue to run like nothing happened. It *will* show as *successful build* within Satellite. Obviously, the build was not successful, as a step failed.
+The monitoring agent might be a necessity for your deployment and you want to make sure that it is installed. Well, if the package `zabbix-agent` isn't available, because you might forgot to enable the repository within the Activation Key or you forgot to add the Content View that provides Zabbix, the Kickstart *will* continue to run like nothing happened. It *will* show as a *successful build* within Satellite. Obviously, the build was not successful - at least not entirely, as a step failed. I'd consider this a *failed* build.
 
-You might argue that if you set up your services[^service] properly, this shouldn't happen. While you are correct, what about temporary network issue between your host and the responsible Capsule only at the moment when you enter the `%post` section? You will never notice it and you'd think the deployment was *successful*.
+You might argue that if you set up your services[^service] properly, this shouldn't happen. While you are correct, mistakes happen. For everybody.
+
+Even if everything was set up correctly, what about a temporary network issue between your host and the responsible Capsule only at the moment when you try to install the Zabbix agent? You will never notice it and you'd think the deployment was *successful*.
 
 As you see, while customizing Kickstarts can provide you with some benefits, it comes with the trade-off of maintenance. If you are not comfortable in writing and troubleshooting Kickstarts and troubleshooting the Host Provisioning in Satellite - or don't have the time to - you might consider stopping right here and now.
 
-If you'd like to learn more about it: Perfect, keep on reading. :grin:
+If you'd like to learn more about the way I Kickstart my systems to build from that your very own customized way of Kickstarting your systems, or if you are just curious: Perfect, keep on reading. :grin:
 
 ## Overview
 
-:information_source: If you are not familiar with Kickstart, please [read up on that](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_8_installation/index) first. Otherwise all of the following makes no sense to you.
+:information_source: If you are not familiar with Kickstart, please [read up on that](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_8_installation/index) first. This is not an *introduction* to Kickstart and I assume a good understanding of Kickstart throughout this blog post.
 
 To get started with Kickstart in Satellite, we first need to take a look at how Satellite handles Kickstarts.
 
-A Kickstart file in Satellite is rendered *before* transmitting it to the host that requested it. But what Satellite makes actually awesome for using with Kickstart is the high degree of flexibility you have when using it. The reason being: **metadata**. If you followed my earlier blog post, you know we defined *a lot* of different objects, which provide small pieces of information about a system.
+A Kickstart file in Satellite is rendered *before* transmitting it to the host that requested it. But what Satellite makes awesome for using with Kickstart is the high degree of flexibility you get when using it. The reason being: **metadata**. If you followed my [earlier blog post](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html), you know we defined *a lot* of different objects. Each of those objects provide a small piece of information about a system.
 
 We can use these information pieces - or like I call them, metadata - to stitch together a highly customized Kickstart that *perfectly* fits for the system we are about to deploy.
 
-Before we dig deep into Kickstart, we need to understand how Satellite makes use of Templates and how we can leverage that functionality.
+Before we dig deeper into Kickstart, we first need to understand how Satellite makes use of Templates and how we can leverage that functionality.
 
 Satellite provides the following Template types:
 
@@ -96,12 +98,12 @@ os_major = @host.operatingsystem.major.to_i
 os_minor = @host.operatingsystem.minor.to_i
 %>
 
-<% if ((os_minor < 2) && (os_major < 14)) -%>
+<% if ((os_minor < 5) && (os_major > 7)) -%>
 <%# do something #%>
 <% end -%>
 ```
 
-As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (ERB), specifically. Usually. I say usually, because the `%post` section of the Provisioning Template can be anything, really. That all depends on options passed to it. The `%post` section accepts an `--interpreter=` [argument](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#post-script-section-options_post-script-in-kickstart-file). With that, we can make use of BASH (the default) or make use of Python, etc. The great thing about this is that we can still make use of ERB in the `%post` section. That is because Satellite *renders* the template *before* transmitting it to the client. So every ERB code is evaluated before passing it to the client.
+As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (ERB), specifically. Usually. I say usually, because the `%post` section of the Provisioning Template can be anything, really. That all depends on the options passed to the `%post` section. The `%post` section accepts an `--interpreter=` [argument](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#post-script-section-options_post-script-in-kickstart-file). With that, we can make use of BASH (the default) or make use of Python, etc. as our `interpreter`. The great thing about this is that we can still make use of ERB in the `%post` section. That is because Satellite *renders* the template *before* transmitting it to the client. So ERB code is evaluated before passing it to the client.
 
 With that we can still use for instance `@host.operatingsystem.major.to_i` in any section of the Kickstart as it will be rendered by Satellite before the client actually uses it.
 
@@ -425,7 +427,7 @@ Okay, actually there are multiple `%post` sections. Let's focus on the one that 
 
 `%post --interpreter=/bin/bash --log=/root/install.post.log`
 
-To make it easy, let's start with a flow chart:
+For an initial overview, let's start with a flow chart:
 
 ```mermaid!
 %%{
@@ -441,7 +443,7 @@ flowchart TB
     A[Start %post] --> snt-post&#95provisioning&#95init ~~~ |Initializes error handling| snt-post&#95provisioning&#95init
     --> snt-networking&#95setup&#95post&#95installation ~~~ |Configures host networking| snt-networking&#95setup&#95post&#95installation
     --> snt-subscription&#95manager&#95registration ~~~ |Registers the system to the Satellite/Capsule&#59Determines if EPEL is activated in the AK|snt-subscription&#95manager&#95registration
-    --> snt-configure&#95time&#95synchronization ~~~ |Configure /etc/ntp.conf &#40RHEL7&#41 or /etc/chrony.conf &#40RHEL8+&#41 with the bare minimum of options|snt-configure&#95time&#95synchronization
+    --> snt-configure&#95time&#95synchronization ~~~ |Configures /etc/ntp.conf &#40RHEL7&#41 or /etc/chrony.conf &#40RHEL8+&#41 with the bare minimum of options|snt-configure&#95time&#95synchronization
     --> snt-idm&#95register ~~~ |Registers the system to the appropriate IdM| snt-idm&#95register
     --> snt-remote&#95execution&#95ssh&#95keys ~~~ |Creates the remote execution user and adds SSH keys to the user| snt-remote&#95execution&#95ssh&#95keys
     --> snt-ansible&#95ssh&#95keys ~~~ |Create a user for Ansible automation and adds SSH keys to the user| snt-ansible&#95ssh&#95keys
@@ -451,7 +453,7 @@ flowchart TB
     --> snt-ansible&#95provisioning&#95callback&#95service ~~~ |Creates oneshot systemd service for Ansible post provisioning| snt-ansible&#95provisioning&#95callback&#95service
 ```
 
-That's quite a list, let's go through the more important ones step by step.
+That's quite a list, let's go through them step by step.
 
 #### Template: `pvt-provision`
 Before we dive into the Snippets, a couple of things happen in the Provision Template that are noteworthy.
@@ -480,7 +482,7 @@ Of course, it requires that commands that are invoked 'play nicely' and exit wit
 
 It also has (as with everything) a downside: You need to ensure that every command you invoke, every sub-shell you spawn and every process you invoke needs to **succeed**. Otherwise the installation **will** terminate.
 
-A good example of *bad behavior* is for instance `subscription-manager`. When you enable [Simple Content Access (SCA)](https://access.redhat.com/articles/simple-content-access) for your Satellite, you don't need a subscription and thus have none assigned. `subscription-manager` considers this to be an error and when it exits, it exits with an exit code that indicates an error.
+A good example of *bad behavior* is for instance `subscription-manager`. When you enable [Simple Content Access (SCA)](https://access.redhat.com/articles/simple-content-access) for your Satellite, you don't need a subscription and thus Satellite clients have no subscription assigned. `subscription-manager` considers this to be an error and when it exits, it exits with an exit code that indicates an error.
 
 So, how do you deal with a situation like this? Just let BASH know it's okay if the process fails. See the following example:
 
@@ -503,11 +505,13 @@ You can even do `false || true` and you'll see with `echo $?` (which returns the
 
 Does that obsolete the use of the BASH options that have been implemented in the beginning?
 
-Yes, absolutely. But only for this **one** command. I think it's better to be 99% sure that a system has been deployed successfully compared to close to 0% (when not using the aforementioned BASH options).
+Yes, absolutely. But only for this **one** command. I think it's better to be 99% sure that a system has been deployed successfully, compared to close to 0% (when not using the aforementioned BASH options).
 
 This 'workaround' can be used for every command you encounter that doesn't 'play nice'. **But**, remember, the more often you do it (maybe just to 'make it work') the less useful the BASH options are and with every use of `||` you can be less and less sure whether the system has really been deployed successfully.
 
-Obviously, this is a very strict way of deploying systems. And one could argue even cumbersome. You can do a post provisioning check with your preferred automation tool *after* provisioning. I found this way more intuitive compared to a post provisioning check, as I can rule out e.g. DNS issues due to a failed IdM enrollment.
+Obviously, this is a very strict way of deploying systems. And one could argue even cumbersome. You can do a post provisioning check with your preferred automation tool *after* provisioning. 
+
+While that it is correct, I found my way more intuitive and more *'fail-proof'*, compared to a post provisioning check, as I can rule out e.g. DNS issues due to a failed IdM enrollment (which would render my post provisioning check useless, as I am unable to reach it via DNS).
 
 #### Snippet: `snt-networking_setup_post_installation`
 
@@ -520,7 +524,7 @@ Next up we have the Snippet `snt-networking_setup_post_installation`. It is deri
 
 I decided to put everything into *one* Snippet instead of splitting it out like Red Hat did. The original ones *make sense*, don't get me wrong, but since I have it highly customized on *my* use case, I don't need to split the Snippets as I don't reuse them anywhere else. The splitting *probably* happened with the initial thought of: "*I might be able to reuse it!*". For me this is not necessary and introduces more complexity when troubleshooting (you need to switch between different Snippets all the time), so I merged all of them.
 
-Additionally, my customized version, supports VLANs. Something that the original one does not.
+Additionally, my customized version supports VLANs. Something that the original Snippets do not.
 
 Further, I modified it in such a way, that the Snippet is actually readable (with a few comments added as well), as I find the original one is hard to read and thus hard to troubleshoot should you encounter issues.
 
@@ -546,7 +550,7 @@ Or, you indent the code inside the ERB tags, like so:
 <%=   "# #{bond.identifier} interface" %>
 ```
 
-The difference is, that Ruby, well ERB, does *not care* about indentation inside the ERB tags (`<%- -%>`, `<%=  %>`). This will result in a rendered file which has the beginning of the line at the very start without any spaces.
+The difference is, that Ruby, well ERB, does *not care* about indentation inside the ERB tags (`<%- -%>`, `<%=  %>`, etc.). This will result in a rendered file which has the beginning of each line at the very start without any spaces in front.
 
 If you chose my method (which I find more readable), you'll end up with a *rendered* file (after ERB was processed) that looks like this:
 ```
@@ -577,7 +581,7 @@ The above `sed` commands will remove white spaces at the beginning (that happene
 
 Next up is the Snippet `snt-subscription_manager_registration`. It is derived of `redhat_register` and has been overly simplified. It does *not* support an HTTP proxy, for instance, as I don't need it.
 
-The one specialty I'd like to point out is that it detect [Extra Packages for Enterprise Linux (EPEL)](https://docs.fedoraproject.org/en-US/epel) repositories and disables them right after registering with Satellite.
+The one specialty I'd like to point out is that it checks for [Extra Packages for Enterprise Linux (EPEL)](https://docs.fedoraproject.org/en-US/epel) repositories and disables them right after registering with Satellite.
 
 The responsible code Snippet is the following:
 ```erb
@@ -619,20 +623,20 @@ fi
 
 You might have noticed that the `__PRODUCT_NAME` and `__REPOSITORY_NAME` is based on my naming concept for Satellite[^naming_concept]. The definition of the `__REPOSITORY_ID` on the other hand is Satellite's default for custom repositories and is not influenced by me in any way.
 
-Now to the reason why this is important: There are situations where you'd like to have EPEL repositories enabled, but there is catch with that. EPEL often times contains more updated version of packages. This becomes an issue, when you mix and match the dependencies with packages from RHEL, as they are not meant to work with EPEL by default. To prevent issues right from the get-go, I disable EPEL before installing or updating any packages. After the provisioning has been done, EPEL will be enabled again (that is done by the Snippet `snt-enable_epel`) if the EPEL repository is enabled within the Activation Key.
+Now to the reason why this is important: There are situations where you'd like to have EPEL repositories enabled, but there is catch with that. EPEL often times contains more updated version of packages. This becomes an issue, when you mix and match the dependencies with packages from RHEL, as they are usually not meant to work with dependencies that have a newer version than what is shipped in RHEL (e.g. EPEL). To prevent issues right from the get-go, I disable EPEL before installing or updating any packages. After the provisioning has been done, the EPEL repository will be enabled again (that is done by the Snippet [`snt-enable_epel`](#snippet-snt-enable_epel)) if the EPEL repository is enabled within the Activation Key.
 
 #### Snippet: `snt-configure_time_synchronization`
 
-The snippet `snt-configure_time_synchronization` has one job: Configuring the time synchronization either via NTPd (RHEL 7) or (RHEL 8 and above) chronyd. It deploys a **minimalist** configuration for either of the daemons to ensure that the time is correct before we register the system to Red Hat's Identity Management (IdM). If the time deviates too much of the actual time enrolling to IdM would fail (Microsoft Active Directory (AD) would refuse to add the system as well). This is because LDAP is (usually!) based on SSL and SSL needs to have correct date and time set otherwise it will not work properly.
+The snippet `snt-configure_time_synchronization` has one job: Configuring the time synchronization either via NTPd (RHEL 7) or (RHEL 8 and above) chronyd. It deploys a **minimalist** configuration for either of the daemons to ensure that the time is correct before we register the system to Red Hat's Identity Management (IdM). If the time deviates too much of the actual time, enrolling to IdM would fail (Microsoft Active Directory (AD) would refuse to add the system as well). This is because LDAP is (usually!) based on SSL and SSL needs to have correct date and time set otherwise it will not work properly.
 
-The NTP server to use, however, is determined way earlier in the Kickstart process. It is gathered in `pvt-provisioning` with the following code:
+The NTP server to use, however, is determined way earlier in the Kickstart process. It is gathered in [`pvt-provisioning`](#template-pvt-provision) with the following code:
 ```erb
 declare -r __NTP_SERVER="$(dig +short _ntp._udp.<%= @host.domain -%> SRV | awk '{print $4}' | sed 's/\.$//')"
 ```
 
 The above code snippet queries the DNS and asks for a [service (SRV) record](https://en.wikipedia.org/wiki/SRV_record) at `_ntp._udp.example.com`. This means that you need to have an SRV record for `_ntp._udp.example.com` as otherwise the provisioning will fail (early in the Kickstart). Of course, you need to substitute `example.com` with the domain the host is going to be provisioned.
 
-To as why the NTP server is determined early in the Kickstart and not in this Snippet: In the beginning of the Kickstart (*almost* at start of the `%post` section) I determine everything that is required for the installation to proceed. Amongst these things is the NTP server. This is a benefit, because the installation will fail quicker and that way you save some time. :sunglasses:
+To as why the NTP server is determined early in the Kickstart and not in this Snippet: In the beginning of the Kickstart (*almost* at start of the `%post` section), I determine everything that is required for the installation to proceed. Amongst these things is the NTP server. This is a benefit, because the installation will fail quicker and that way you save some time. :sunglasses:
 
 #### Snippet: `snt-idm_register`
 
@@ -645,7 +649,7 @@ Moreover, the [IdM documentation](https://access.redhat.com/documentation/de-de/
 dnf -y module install idm
 ```
 
-Something, that is not part of the original Template. Maybe there is already a bug open for that which describes this issue or there might be a legitimate reason for it; I don't know, but I chose to use the way the IdM documentation outlines.
+Something, that is not part of the original Template. Maybe there is already a bug open for that which describes this issue or there might be a legitimate reason that it is done differently - I don't know. I chose to use the way the IdM documentation outlines.
 
 #### Snippets: `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys`
 Both `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys` are practically the same. Both create a **local** user and add the defined SSH keys to the user. That's it, nothing special :slightly_smiling_face:
@@ -677,7 +681,22 @@ Let's quickly talk about the different `%post` sections.
 3. The third `%post` section specifies the option `--nochroot`. This option is necessary, as we need control over `systemd` (which is not possible when being in a `chroot`). In this `%post` section we ensure that we don't lose any `journald` logs by making them persistent.
 4. This `%post` section is responsible for notifying the Satellite whether the installation went successful. It is determined that the installation failed when the file `/tmp/installation.successful` does not exist. The file `/tmp/installation.successful` is created as the very last step in the main `%post` section. As it is the last command that is executed in the main `%post` section, we can guarantee that the installation succeeded (due to the aforementioned BASH options).
 
+### `PXELinux` Templates
+Lastly, we need to talk about the two `PXELinux` Templates I have in my repository:
+* `pvt-pxelinux`
+* `pvt-pxelinux_default_local_boot`
+
+#### Template: `pvt-pxelinux`
+This Template will render the options which are passed to our clients when they boot via `PXE` and the host has a build scheduled (build mode is set to `true` for the Host in Satellite).
+It doesn't look like much, but if you look closely, I include a Snippet: `snt-create_ip_config_string`
+This Snippet is where the heavy lifting is done. It will generate all the networking parameters that are required. It is derived from the `kickstart_kernel_options` Template, but again, heavily stripped down on what I need. On top, it fully supports VLANs and bonding. At the time I created my Snippet, that didn't work with the original one. In the meanwhile, the original one also provides this functionality :slightly_smiling_face:
+
+#### Template: `pvt-pxelinux_default_local_boot`
+The Template `pvt-pxelinux_default_local_boot` is derived from `PXELinux default local boot` and contains only one change: I set the timeout to 3 seconds instead of the default 20 seconds. I just got tired of waiting.
+
 ## Closing thoughts
+There is one Template we haven't talked about: `pvt-ipxe`. It is included because some time ago I used it. I no longer do, but I didn't want to throw it away, in case I would need it at some point. It was used to build Host/Full Host images and use those images to install my systems. I switched over to `PXE` - it is just much more convenient :slightly_smiling_face:
+
 We have been discussing *my* way of Kickstarting in this blog post. There are virtually unlimited ways of doing the same thing but different to this approach.
 
 Decide on your own, if such a highly customized Kickstart is worth the maintenance .. until next time :sunglasses:
@@ -687,4 +706,4 @@ Decide on your own, if such a highly customized Kickstart is worth the maintenan
 [^kickstart_changes]:**Typically**, *major changes* to Kickstart are *not* introduced in a minor version of RHEL. This, however, is *not* guaranteed.
 [^service]:[Read more about *my* definition of a *service* in Satellite](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#definition-of-a-service)
 [^host_params]:The section name `Supported host parameters` is actually a bit misleading. You can, of course, override the parameters on any level in Satellite (Global, Host Group, Host, etc.). 
-[^naming_conept]:[Red Hat Satellite Naming Concept](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#naming-concept)
+[^naming_concept]:[Red Hat Satellite Naming Concept](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#naming-concept)
