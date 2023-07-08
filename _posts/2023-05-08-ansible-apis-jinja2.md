@@ -1,5 +1,6 @@
 ---
 title: Automating APIs with Ansible .. and Jinja2
+author: Steffen Scheib
 ---
 
 The other day I wanted to automate some of my newly acquired MikroTik switches using Ansible and the excellent Ansible collection [community.general.routeros](https://docs.ansible.com/ansible/latest/collections/community/routeros/index.html).

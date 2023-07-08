@@ -1,5 +1,6 @@
 ---
 title: A Red Hat Satellite 6 concept suggestion
+author: Steffen Scheib
 ---
 
 # Preface

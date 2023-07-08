@@ -1,5 +1,6 @@
 ---
 title: Ansible Automation Platform - Automating the execution of job templates and leveraging the 'prompt on launch' feature
+author: Steffen Scheib
 ---
 ### Introduction
 Just today I had an interesting conversation with a customer about the need to **not** duplicate job templates. To quickly give an overview about the problem:
