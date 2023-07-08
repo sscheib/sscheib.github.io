@@ -647,16 +647,16 @@ dnf -y module install idm
 
 Something, that is not part of the original Template. Maybe there is already a bug open for that which describes this issue or there might be a legitimate reason for it; I don't know, but I chose to use the way the IdM documentation outlines.
 
-#### Snippets `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys`
+#### Snippets: `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys`
 Both `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys` are practically the same. Both create a **local** user and add the defined SSH keys to the user. That's it, nothing special :slightly_smiling_face:
 
-#### Snippet `snt-enable_epel`
+#### Snippet: `snt-enable_epel`
 This snippet is pretty simple as well. It enabled EPEL again, when it is enabled within the Activation Key.
 
-#### Snippet `snt-luks_encryption`
+#### Snippet: `snt-luks_encryption`
 This Snippet is entirely custom-made and based on the documentation of [`clevis luks bind`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#configuring-manual-enrollment-of-volumes-using-clevis_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption). This Snippet provides the possibility to use [Network Bound Disk Encryption (NBDE)](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#network-bound-disk-encryption_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption) and requires **two** installed and configured [Tang servers](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#deploying-a-tang-server-with-selinux-in-enforcing-mode_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption) (to have a backup Tang server should one die).
 
-#### Snippets `snt-ansible_provisioning_callback_script` and `snt-ansible_provisioning_callback_service`
+#### Snippets: `snt-ansible_provisioning_callback_script` and `snt-ansible_provisioning_callback_service`
 These last two Snippets place a script on the server and create a `systemd service` that launches a specific Job Template in Ansible Automation Platform. That Job Template would usually configure the system initially; That would typically be such tasks as applying hardening, etc. This `systemd service` only runs *once* and disables itself afterwards.
 
 ### The different `%post` sections
