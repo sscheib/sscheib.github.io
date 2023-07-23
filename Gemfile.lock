@@ -265,6 +265,7 @@ DEPENDENCIES
   http_parser.rb (~> 0.6.0)
   jekyll-extract
   jekyll-feed (~> 0.12)
+  jekyll-gist
   jekyll-spaceship
   jemoji
   minima (~> 2.5)

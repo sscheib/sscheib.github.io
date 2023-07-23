@@ -19,6 +19,7 @@ group :jekyll_plugins do
   gem 'jemoji'
   gem 'jekyll-spaceship'
   gem 'jekyll-extract'
+  gem 'jekyll-gist'
 end
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem

@@ -12,6 +12,7 @@ plugins:
   - jekyll-remote-theme
   - jemoji
   - jekyll-spaceship
+  - jekyll-gist
 
 header_pages:
   - index.md
