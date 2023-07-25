@@ -1,5 +1,5 @@
 ---
-title: TODO
+title: Automating Red Hat Satellite 6 - End to End
 author: Steffen Scheib
 ---
 {% raw %}
@@ -17,26 +17,14 @@ table th:nth-of-type(2) {
 TODO:
 **general**
 - Specify which variables need to be changed
-- Add to each section that all variables are found on online AH for role XY
 - Comment variables in each code block
-- Link object in Satellite to documentation
-- ^ add link to both role documentation and Satellite documentation
-
-**satellite install/configuration**
-- Remember: Remove cert params from satellite installer if sat_deploy_certificates
-- Firewall rules: Add hint to documentation (because personal ports)
-- To the latest version: To the latest RHEL version available
 
 **configure content credentials**
 - Note: There is no elastic 9
 - Add specific example for EPEL 8 and 9; :warning: if used will download a lot of shit
 
 **enable RHEL repos**
-- information_source: immediate on Kickstart
 - Add comments to variables
-
-**sync plans**
-- Move before enable RHEL repos as sync_plan is specified
 
 **template sync**
 - Link to docu of template sync
@@ -47,6 +35,10 @@ This blog post does not follow the style of my previous blog posts. It is more o
 Further, a good understanding of Satellite and, more importantly, a good understanding of the concepts around Ansible is **required**. Especially [variable precedence](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence) should be well known. Don't get me wrong, it is still a step by step guide, but nevertheless, if you want to adjust this step by step guide to *your* infrastructure (which is likely that you'd want to do that :grin:), you **need** to understand the concepts around Ansible.
 
 All variables we define are either [host or group variables](https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html#organizing-host-and-group-variables). This has the benefit that your inventory is not cluttered with variables, and additionally, this allows you to create different variables for each of your Satellite instances (if you have multiple). I use group variables only for variables that are required by all my Satellite instances.
+
+Please note, only a fraction of the available variables are used for each role. Please make sure to check out each section's documentation of the respective role for a complete list of available variables. Further, relevant documentation is also linked in each section that complements the respective steps that are done in Ansible if you'd like to know more about the general (manual) procedure.
+
+In below sections I make heavy use of [GitHub gists](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists#about-gists) to show **my personal configuration** of the respective roles. You **need to modify every gist so that it works for your environment**. For this purpose, I documented (almost) every variable in the gists to ensure the usage is clear. Should something be not clear, please refer to the role documentation (that is linked in every section), which provides additional context as well as possibly other variables to use that make sense to use in your environment.
 
 :information_source: Just as a general information: Variables that are prefixed with `satellite_` are 'official' role variables of the roles we are going to use. Variables prefixed with `sat_` are custom variables (which usually get merged into a `satelite_` variable eventually).
 
@@ -66,12 +58,10 @@ All variables we define are either [host or group variables](https://docs.ansibl
     $ git clone https://github.com/sscheib/ansible_satellite.git
     $ cd ansible_satellite
     ```
-
 3. Configure Ansible that it'll be able to download [Red Hat's Ansible Certified Content Collections](https://access.redhat.com/support/articles/ansible-automation-platform-certified-content) that are needed for the playbooks to work from either your local Automation Hub or from [Red Hat's Automation Hub](https://console.redhat.com/ansible/automation-hub). If you don't know how to do either of those things, please use [Red Hat's documentation](https://access.redhat.com/documentation/en-us/red_hat_ansible_automation_platform/2.4/html/getting_started_with_automation_hub/con-create-api-token) that explains how to connect to [Red Hat's Automation Hub](https://console.redhat.com/ansible/automation-hub).
 Place your Ansible configuration file either in the directory you checked out (`ansible_satellite`) as `ansible.cfg` or in your home directory with a prefixed dot: `~/.ansible.cfg`.
 
     Your Ansible configuration file will look similar to below example:
-
     ```ini
     [galaxy]
     server_list = automation-hub,galaxy
@@ -84,26 +74,21 @@ Place your Ansible configuration file either in the directory you checked out (`
     [galaxy_server.galaxy]
     url=https://galaxy.ansible.com
     ```
-
 4. Install the required collections:
     ```shell
     $ ansible-galaxy collection install -r collections/requirements.yml
     ```
-
 5. Install the required roles:
     ```shell
     $ ansible-galaxy role install -r collections/requirements.yml
     ```
 6. Create a Manifest for Satellite - we are going to import it at a [later point](#importing-a-manifest). If you don't know how to do it, please follow [Red Hat's blog](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest) that explains very well how to create a Manifest.
-
 7. Put the `Manifest UUID` in `host_vars/<hostname>/00a_secrets.yml`. As said, we are going to need it [later](#importing-a-manifest).
-
 8. Optional (but **highly encouraged!**): You can create a [Vault password file](https://docs.ansible.com/ansible/2.8/user_guide/vault.html#providing-vault-passwords) file to pass it to `ansible-playbook` via `--vault-pass-file`. I named mine `.vault.pass` and added it to my [`.gitignore` file](https://git-scm.com/docs/gitignore) to ensure it is not accidentally pushed to the repository. As you are going to need the Vault for *every* playbook of my repository, it is handy to have a Vault password file - unless you chose to not encrypt your secrets (**highly discouraged!**).
 
     :information_source: If you are not familiar with Ansible Vault, please [read up on it](https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html#encrypting-content-with-ansible-vault) and don't store your secrets in plain text in your variables files. It is really super easy to get started with Ansible Vault, I promise :slightly_smiling_face:!
 
 ## Install Satellite server
-
 The very first step is to install the RHEL 8 host that will be our Satellite eventually.
 
 ### Documentation
@@ -127,7 +112,6 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
 | 1   | `00_create_kickstart.yml`                                                  |
 
 ### Procedure
-
 1. Adjust the included Kickstart (`files/satellite.ks`) to your liking.
 2. Adjust the variables for the role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart)
 
@@ -136,9 +120,8 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
     :information_source: Make sure to read the [README.md of my role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) to fully understand all variables.
 3. Run the playbook that will download 
 ```
-ansible-playbook 00_create_kickstart.yml --vault-pass-file .vault.pass
+$ ansible-playbook 00_create_kickstart.yml --vault-pass-file .vault.pass
 ```
-
 3. Copy the resulting ISO file to your hypervisor and mount it to your VM that should become the Satellite. 
 4. Start the VM and wait for the installation to finish.
 5. Once the installation finished, shutdown the VM and unmount the ISO.
@@ -146,7 +129,6 @@ ansible-playbook 00_create_kickstart.yml --vault-pass-file .vault.pass
     :information_source: If you used the provided Kickstart, the VM will shut down after the Kickstart finished.
 
 ## Prepare Satellite for Ansible access
-
 Now that we have successfully installed our RHEL 8 system, we need to ensure that Ansible can access the system and **elevate its privileges**.
 
 ### Procedure
@@ -158,14 +140,11 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 3. Either set a password for `ansible-provisioning` or deploy your SSH key to the created user.
 4. Ensure you add the user to the group `%wheel` so that you can elevate the privileges of the user.
 6. Add the VM host to the inventory file. Below you'll find an example:
-
     ```shell
     $ cat inventory 
     satellite.office.int.scheib.me ansible_user=ansible-provisioning ansible_port=22
     ```
-
 7. Ensure that your access to the VM is working properly:
-
     ```shell
     $ ansible --become -m ping -i inventory all
     satellite.office.int.scheib.me | SUCCESS => {
@@ -177,14 +156,14 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
     }
     ```
 
-## Registering the system to the Red Hat Customer Portal and installing Satellite
+## Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite
+Now it's time to register our RHEL system to the Red Hat Customer Portal. Please ensure that the host ends up with a Satellite Infrastructure subscription (or equivalent) as, otherwise, the Red Hat Satellite repositories cannot be found.
 
 ### Documentation
 * [Role `redhat.rhel_system_roles.rhc`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/rhel_system_roles/docs/README_rhc/)
 * [Role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/)
 * [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
-
-:information_source: Only a fraction of the available variables are used for each role. Please make sure to check out above documentation of the respective role for a complete list of available variables.
+* [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite#doc-wrapper)
 
 ### Roles, variables files and playbooks
 
@@ -207,46 +186,53 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 | 1   | `01_register_satellite.yml`                         |
 | 2   | `02_satellite_installer.yml`                        |
 
+### Procedure
 1. Define your secrets in `host_vars/<hostname>/00a_secrets.yml`, please see below for an example.
 
-    :information_source: The variables are not required right away, but it makes sense to define all of them at once.
+    :information_source: Not all variables are needed right away, but it makes sense to define all of them at once. Please read the comments in the GitHub gist below.
 
     {% gist 4fbc66d25da509522e16791e497a27a2 %}
 
-2. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles) {% raw %}<br />{% endraw %}
-    **Variables file**: `host_vars/<hostname>/00b_register_satellite.yml`
+2. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles)
+
+    Below you'll find an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
     {% gist 14d99b2931ce8e1bed1f6e9ac717326e %}
   
 3. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (RHCDN): 
     ```
-    ansible-playbook -i inventory 01_register_satellite.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 01_register_satellite.yml --vault-pass-file .vault.pass
     ```
-4. Define the variables for the [Satellite Installer role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/)
-    
-    **Variables file (certificates):** `host_vars/<hostname>/01a_satellite_installer_certificates.yml`
+4. Next, we'll define the variables for the [Satellite Installer role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/).
+   I have split the variables in three files:
+    1. `host_vars/<hostname>/01a_satellite_installer_certificates.yml`: Contains variables with regards to certificates
+        {% gist 7bbba923af596280573aa987180837fd %}
 
-    **Note:** When generating certificates for your Satellite, remember to set the correct `keyUsage` and `extendedKeyUsage`[^key_usage]
+        :warning: When generating certificates for your Satellite, remember to set the correct `keyUsage` and `extendedKeyUsage`[^key_usage].
 
-    {% gist 7bbba923af596280573aa987180837fd %}
+    2. `host_vars/<hostname>/01b_satellite_firewall_rules.yml`: Contains the ports to open on the Satellite
+        {% gist 0b029863ee4e9953ab88978608bae777 %}
 
-    **Variables file (firewall rules):** `host_vars/<hostname>/01b_satellite_firewall_rules.yml`
+        :warning: Above firewall rules are specific to *my* usecase. You need to adapt these based on the Satellite documentation and your used features (such as TFTP, DHCP, DNS, etc.).
+    3. `host_vars/<hostname>/01c_satellite_installer_configuration.yml`: Contains all other variables for the role `redhat.satellite_operations.installer`
+        {% gist c99c3008a954a4ddb81451bad99b599f %}
 
-    {% gist 0b029863ee4e9953ab88978608bae777 %}
-
-    **Variables file (Satellite installer):** `host_vars/<hostname>/01c_satellite_installer_configuration.yml`
-
-    {% gist c99c3008a954a4ddb81451bad99b599f %}
+        :warning: If you are not planning to use certificates, please remove the certificate installer options from above example. Don't worry, the Satellite installer will create self-signed certificates. The certificate options are
+                  are meant for implementing custom SSL certificates that have been signed by your internal certificate authority. 
 
 5. Run the playbook to upgrade your system to the latest version (required) and install Satellite:
     
-    :warning: This will reboot your Satellite to ensure the latest kernel is applied.
+    :warning: This will reboot your Satellite to ensure the latest kernel is applied (as per the Satellite documentation).
     ```
-    ansible-playbook -i inventory 02_satellite_installer.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 02_satellite_installer.yml --vault-pass-file .vault.pass
     ```
 6. Verify that you can login to your Satellite instance once the playbook finished
 7. Shutdown the VM and take a snapshot so you can roll back to this point when you encounter any issues later on
 
 ## Define general variables
+### Documentation
+* [Satellite Collection Common Role Variables](https://github.com/theforeman/foreman-ansible-modules/blob/develop/README.md#common-role-variables)
+
+  :information_source: The upstream common role variables are *not* used downstream in the Satellite collection. All `foreman_` variables can be substituted with `satellite_`, e.g. `foreman_url` -> `satellite_url`
 
 ### Roles, variables files and playbooks
 
@@ -254,26 +240,30 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | Used in almost all roles                                                   |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/02_general.yml`                                      |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | Used in almost all playbooks                                               |
 
-1. Define variables that are reused multiple times
-
-    **Variables file:** `host_vars/<hostname>/02_general.yml`
+### Procedure
+1. With this, we define variables that are reused multiple times. To avoid duplication, it is good to define them once. Please see below an example of my definition:
     {% gist 1bb3a400efe20cb7a07a7b64730ad1d2 %}
 
 ## *Optional*: Configure Satellite's Cloud Connector
 
-:information_source: This step is entirely optional, as it merely configures [Satellite's Cloud Connector](https://access.redhat.com/documentation/en-us/red_hat_insights/2023/html-single/red_hat_insights_remediations_guide/index#assembly-configuring-satellite-cloud-connector_host-communication-with-insights).
+:information_source: This step is entirely optional, as it merely configures Satellite's Cloud Connector.
 
-:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Insight to **run remediation on you Satellite**.
+:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Red Hat Insights to **run remediation on you Satellite** from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
+
+### Documentation
+* [Role `redhat.satellite_operations.cloud_connector`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/cloud_connector/)
+* [Red Hat Insights Remediations Guide](https://access.redhat.com/documentation/en-us/red_hat_insights/2023/html-single/red_hat_insights_remediations_guide/index)
+* [Enabling Cloud Connector on hosts managed by Satellite](https://access.redhat.com/documentation/en-us/red_hat_insights/2023/html-single/red_hat_insights_remediations_guide/index#configuring-satellite-cloud-connector_host-communication-with-insights)
 
 ### Roles, variables files and playbooks
 
@@ -281,27 +271,30 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite_operations.cloud_connector`                              |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/03_cloud_connector.yml`                              | 
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `03_satellite_cloud_connector.yml`                                         |
 
-1. Define the variables
-
-    **Variables file**: `host_vars/<hostname>/03_cloud_connector.yml`
+1. Define the variables for the role `redhat.satellite_operations.cloud_connector`. Please see an example below:
     {% gist 64a79193346520cb437930b4497c7f7d %}
-
 2. Run the playbook to configure Satellite's Cloud Connector:
     ```
-    ansible-playbook -i inventory 03_satellite_cloud_connector.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 03_satellite_cloud_connector.yml --vault-pass-file .vault.pass
     ```
 
 ## Importing a Manifest
+Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct Manifest UUID in `satellite_manifest_uuid`, as well as the `rhsm_username` and `rhsm_password`. (as described in [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
+
+### Documentation
+* [Role `redhat.satellite.manifest`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/manifest/)
+* [How to create and use a Red Hat Satellite manifest](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest)
+* [Importing a Red Hat Subscription Manifest into Satellite Server](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_red_hat_subscriptions_content-management#Importing_a_Red_Hat_Subscription_Manifest_into_Server_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -309,24 +302,29 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.manifest`                                                |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/04_manifest.yml`                                     |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `04_satellite_manifest.yml`                                                |
 
 3. Adjust the variables for this step in `host_vars/<hostname>/04_manifest.yml`, please see below for an example:
     {% gist 5e8b980306c43281971f6f8976c9a351 %}
 4. Run the playbook to download the manifest and import it to your Satellite:
     ```
-    ansible-playbook -i inventory 04_satellite_manifest.yml --vault-pass-file .vault.pass 
+    $ ansible-playbook -i inventory 04_satellite_manifest.yml --vault-pass-file .vault.pass 
     ``` 
 
 ## Creating Content Credentials for custom Products
+Before creating custom Products and repositories, we need to create the custom Content Credentials. This is required, as we are going to use those Content Credentials to ensure that the content we retrieve is retrieved without any modification (through a malicous actor for instance). This is only required for 3rd-party repositories, as Red Hat repositories are validated by default.
+
+## Documentation
+* [Role `redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/)
+* [Importing Custom SSL Certificates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Importing_Custom_SSL_Certificates_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -334,27 +332,37 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.content_credentials`                                     |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/05_content_credentials.yml`                          |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `05_satellite_content_credentials.yml`                                     |
 
 ### Procedure
 
-1. Define [Content Credentials](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Importing_Custom_SSL_Certificates_content-management) for any custom Product in `host_vars/<hostname>/05_content_credentials.yml`. All available variables can be found in the role [`redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/):
+1. Define the required Content Credentials for any custom Product in `host_vars/<hostname>/05_content_credentials.yml`. Please see an example of my Content Credentials below:
     {% gist b573c065923442511509c519938b6f89 %} 
 
 2. Run the playbook to create the Content Credentials:
     ```
-    ansible-playbook -i inventory 05_satellite_content_credentials.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 05_satellite_content_credentials.yml --vault-pass-file .vault.pass
     ```
 
-## Enabling Red Hat repositories, creating custom Products and Repositories and synchronize the Repositories
+## Enabling Red Hat Repositories, creating custom Products and Repositories and synchronize the Repositories
+Now that we have created the Content Credentials for our custom Products, we can start creating the custom Products and their containing Repositories. Further, we are going to enable the official Red Hat Repositories that we require. Conveniently, this can all be done by one role, so we are doing it in one go.
+
+Since we do a couple of things with one role, I decided to split up my variables into Custom Products (`host_vars/<hostname>/06a_products.yml`) and Red Hat Products (`host_vars/<hostname>/06a_products.yml`). Lastly, we combine the two definitions into one variable which is stored as `satellite_repositories`: That is the variable the role `redhat.satellite.repositories` requires.
+
+:information_source: Unfortunately, this step requires an already installed Satellite. I am not aware of any other method of finding out the Product and Repository names. If you know another way, kindly let me know in the comments below.
+
+## Documentation
+* [Role `redhat.satellite.repositories`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/repositories/)
+* [Introduction to Content Management](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Introduction_to_Content_Management_content-management)
+* [Download Policies Overview](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Download_Policies_Overview_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -362,24 +370,26 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.repositories`                                            |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/06a_products.yml`                                    |
+| ^^  | ^^ `host_vars/<hostname>/06b_custom_products.yml`                          |
+| ^^  | ^^ `host_vars/<hostname>/06c_combined_products.yml`                        |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `06_satellite_products_and_repositories.yml`                               |
 
 ### Procedure
 1. Finding out Red Hat Repository and Product names
 
     This step requires an already installed Satellite (to my knowledge), because you need to find out two things:
-      * The Product name a repository is tied to
+      * The Product name a Repository is tied to
       * The Repository name itself
 
-    The Repository and Product names can be found out via:
+    The Repository and Product names can be found out via the following procedure:
     1. `Satellite WebUI` -> `Content` -> `Red Hat Repositories`
     2. Click on `Filter by Product` and select a Product, e.g. `Red Hat Enterprise Linux for x86_64` (this is the **Product Name** to use)
     3. Select the appropriate "Type" (right hand side to the `Filter by Product` dropdown), e.g. `RPM` for RPM repositories, `Kickstart` for Kickstart repositories
@@ -390,22 +400,34 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
       * The release (which is optional and thus not available for every repository), (e.g. `8`, `8.7`, etc.)
 2. Define the Red Hat Repositories and Products in `host_vars/<hostname>/06a_products.yml`
     {% gist 1ab1bbd6cc74c1f1fb47ea16c5e054ef %}
-3. Define the custom Products and Repositories in `host_vars/<hostname>/06b_custom_products.yml`
-    *Note:* Custom Repositories have to be tied to Products. So the logical step is to create custom Products and tie the custom Repositories to them
+
+    :warning: The Kickstart Repositories are set to the `download_policy` `immediate` as having them set to `on_demand` is known to cause issues during provisioning.
+
+3. Define the custom Products and their containing Repositories in `host_vars/<hostname>/06b_custom_products.yml`
     {% gist f483a67504e10ef76189ea5a921dcecc %} 
 4. The two definition will be merged in `host_vars/<hostname>/06c_combined_products.yml`
     {% gist ea886810cd22867a096eb2d3f96a48c5 %}
 5. Run the playbook to enable and/or create the custom Products and Repositories
     ```
-    ansible-playbook -i inventory 06_satellite_repositories.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 06_satellite_products_and_repositories.yml --vault-pass-file .vault.pass
     ```
 6. Run the playbook to synchronize the Repositories (both custom and Red Hat)
+
     :information_source: This might take a while.
+
+    :warning: If you'd like to follow along with the blog post, you *have* to run this step, as otherwise the Content Views *will* be *empty*!
+
     ```
-    ansible-playbook -i inventory 08_satellite_sync_repositories.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 08_satellite_sync_repositories.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Sync Plans
+To ensure our content is kept up to date, we are going to create Sync Plans in the next step.
+
+## Documentation
+* [Role `redhat.satellite.sync_plans`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/sync_plans/)
+* [Creating a Sync Plan](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Creating_a_Sync_Plan_content-management)
+* [Assigning a Sync Plan to a Product](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Assigning_a_Sync_Plan_to_a_Product_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -413,25 +435,33 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.sync_plans`                                              |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/07_sync_plans.yml`                                   |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `07_satellite_sync_plans.yml`                                              |
 
 ### Procedure
 1. Define the Sync Plans in `host_vars/<hostname>/07_sync_plans.yml`
     {% gist 00a3ab9f03266ba08e80cc756d43ecc0 %}
+
+    :information_source: I am reusing the definition of the Products we have done earlier to map all products to one Sync Plan.
+
 2. Run the playbook to create the Sync Plans:
     ```
-    ansible-playbook -i inventory 07_satellite_sync_plans.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 07_satellite_sync_plans.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Lifecycle Environments
+When it comes to Lifecycle Environments I have a *very* simple use case. I have two Lifecycle Environments and that's it. Your use case might be much more complex, but the example below should get you started quickly.
+
+### Documentation
+* [Role `redhat.satellite.lifecycle_environments`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/lifecycle_environments/)
+* [Managing Application Life Cycles](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/creating_an_application_life_cycle_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -439,25 +469,29 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.lifecycle_environments`                                  |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/08_lifecycle_environments.yml`                       |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `09_satellite_lifecycle_environments.yml`                                  |
 
 ### Procedure
-1. Define the Lifecycle Environment in `host_vars/<hostname>/08_lifecycle_environments.yml`
+1. Define the Lifecycle Environment in `host_vars/<hostname>/08_lifecycle_environments.yml`. Please see below for an example:
     {% gist 3dfd83aa5d7231d602b715316ce1f419 %}
 2. Run the playbook to create the Lifecycle Environments:
     ```
-    ansible-playbook -i inventory 09_satellite_lifecycle_environments.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 09_satellite_lifecycle_environments.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Domains
+This one is super easy for my use case as well. I have exactly **one** Domain I am using internally for my lab environment: `office.int.scheib.me`. Since this is conveniently also the value of the initial Domain I have specified, I am just reusing it. Your use case might be much more complex; This example can easily be extended.
+
+### Documentation
+* [Role `redhat.satellite.domains`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/domains/)
 
 ### Roles, variables files and playbooks
 
@@ -465,25 +499,31 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.domains`                                                 |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/09_domains.yml`                                      |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `10_satellite_domains.yml`                                                 |
 
 ### Procedure
 1. Define the Domains in `host_vars/<hostname>/09_domains.yml`
     {% gist 6f33448c5ef7750f10c79d88cd301ed7 %}
 2. Run the playbook to create the Domains:
     ```
-    ansible-playbook -i inventory 10_satellite_domains.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 10_satellite_domains.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Subnets
+When it comes to Subnets it's the same as for the Domains: I have a super easy use case. One Subnet. That's it :grin:
+
+Again, your use case might be much, much more complex, but the example below should get you started.
+
+### Documentation
+* [Role `redhat.satellite.subnets`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/subnets/)
 
 ### Roles, variables files and playbooks
 
@@ -491,26 +531,36 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.subnets`                                                 |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/10_subnets.yml`                                      |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `11_satellite_subnets.yml`                                                 |
 
 ### Procedure
 1. Define the Subnets in `host_vars/<hostname>/10_subnets.yml`
     {% gist 85c7a7082456159c05b6e8850f5a54a9 %}
 2. Run the playbook to create the Subnets:
-
     ```
-    ansible-playbook -i inventory 11_satellite_subnets.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 11_satellite_subnets.yml --vault-pass-file .vault.pass
     ```
 
-## Define the (Composite-) Content Views and publish and promote the (Composite-) Content Views
+## Define the (Composite) Content Views and publish and promote them
+We are now going to automate one of the more complex things: Content Views and Composite Content Views. Since Composite Content Views will contain `components` (which are Content View Versions), they are dependent on the Content Views being present at the time we are going to create the Composite Content Views. So, the order really matters!
+
+As the order matters, I am splitting again the Content Views in the `host_vars` in to several files:
+1. `host_vars/<hostname>/11a_content_views_custom_products.yml`: Contains Content Views with Custom Products we have created earlier
+2. `host_vars/<hostname>/11b_content_views.yml`: Contains Content Views which use official Red Hat Products
+3. `host_vars/<hostname>/11c_composite_content_views.yml`: Contains Composite Content Views (which depend on the creation of the earlier defined Content Views)
+4. `host_vars/<hostname>/11d_combined_content_views.yml`: Lastly, I merge the definitions of the aforementioned (Composite) Content Views into one variable, which is used by the role `redhat.satellite.content_views`: `satellite_content_views`
+
+### Documentation
+* [Role `redhat.satellite.content_views`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_views/)
+* [Managing Content Views](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_content_views_content-management)
 
 ### Roles, variables files and playbooks
 
@@ -518,18 +568,20 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.content_views`                                           |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/11a_content_views_custom_products.yml`               |
+| ^^  | ^^ `host_vars/<hostname>/11b_content_views.yml`                            |
+| ^^  | ^^ `host_vars/<hostname>/11c_composite_content_views.yml`                  |
+| ^^  | ^^ `host_vars/<hostname>/11d_combined_content_views.yml`                   |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `12_satellite_content_views.yml`                                           |
 
 ### Procedure
-*Note*: The order is important, as the Composite Content Views depend on the Content Views being created before the creation of the Composite Content Views.
 1. Define the Content Views with custom Products in `host_vars/<hostname>/11a_content_views_custom_products.yml`
     {% gist 12fd843551041ed98632060d72b9dd60 %}
 2. Define the Content Views with Red Hat Products in `host_vars/<hostname>/11b_content_views.yml`
@@ -538,16 +590,13 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
     {% gist 577f57b8b67b5accc6436ce21b69b62c %}
 4. The definitions of 1. to 3. will be merged in `host_vars/<hostname>/11d_combined_content_views.yml`
     {% gist 8df9e83c3c21836afc83af093e34a3db %}
-5. Run the playbook to create the (Composite-) Content Views:
-
+5. Run the playbook to create the (Composite) Content Views:
     ```
-    ansible-playbook -i inventory 12_satellite_content_views.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 12_satellite_content_views.yml --vault-pass-file .vault.pass
     ```
-
-6. Run the playbook to publish and promote the (Composite-) Content Views
-
+6. Run the playbook to publish and promote the (Composite) Content Views
     ```
-    ansible-playbook -i inventory 13_satellite_content_view_publish.yml --vault-pass-file .vault.pass 
+    $ ansible-playbook -i inventory 13_satellite_content_view_publish.yml --vault-pass-file .vault.pass 
     ```
 
 ## Apply Satellite settings and enable Template Synchronization
@@ -709,3 +758,4 @@ Again, I split the Global Parameters in smaller files to not have a big confusin
 # Footnootes
 [^key_usage]:["ERR_SSL_KEY_USAGE_INCOMPATIBLE" while accessing Red Hat Satellite WebUI after configure custom SSL certificates](https://access.redhat.com/solutions/6977733)
 [^column_explanation]: All tables in the **Roles, variables files and playbooks** section are set up in a way that helps to easily identify which role uses which variable files and which playbooks. For example, the role that is used in `#1` in the first table (`Role/s used`), makes use of the variables that are defined in table `Variable definition file/s` in column `#1` and is executed with the playbook that is defined in the table `Playbook/s used` in column `#1`.
+[^secrets]:[Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)
