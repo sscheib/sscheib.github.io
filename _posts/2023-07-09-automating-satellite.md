@@ -24,7 +24,7 @@ Please note, only a fraction of the available variables are used for each role. 
 
 In below sections I make heavy use of [GitHub gists](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists#about-gists) to show **my personal configuration** of the respective roles. You **need to modify every gist so that it works for your environment**. For this purpose, I documented (almost) every variable in the gists to ensure the usage is clear. Should something be not clear, please refer to the role documentation (that is linked in every section), which provides additional context as well as possibly other variables to use that make sense to use in your environment.
 
-:information_source: Just as a general information: Variables that are prefixed with `satellite_` are 'official' role variables of the roles we are going to use. Variables prefixed with `sat_` are custom variables (which usually get merged into a `satelite_` variable eventually).
+:information_source: Just as a general information: Variables that are prefixed with `satellite_` are 'official' role variables of the roles we are going to use. Variables prefixed with `sat_` are custom variables (which usually get merged into a `satellite_` variable eventually).
 
 :information_source: I am going to use `ansible-playbook` in this blog post and will thus install all required collections and roles as the current user. Of course, you can also make use of `ansible-navigator` with an Execution Environment that contains the collections and roles which are defined in `collections/requirements.yml`. This blog post won't cover the procedure of how to do that, however.
 
@@ -45,7 +45,7 @@ In below sections I make heavy use of [GitHub gists](https://docs.github.com/en/
 3. Configure Ansible that it'll be able to download [Red Hat's Ansible Certified Content Collections](https://access.redhat.com/support/articles/ansible-automation-platform-certified-content) that are needed for the playbooks to work from either your local Automation Hub or from [Red Hat's Automation Hub](https://console.redhat.com/ansible/automation-hub). If you don't know how to do either of those things, please use [Red Hat's documentation](https://access.redhat.com/documentation/en-us/red_hat_ansible_automation_platform/2.4/html/getting_started_with_automation_hub/con-create-api-token) that explains how to connect to [Red Hat's Automation Hub](https://console.redhat.com/ansible/automation-hub).
 Place your Ansible configuration file either in the directory you checked out (`ansible_satellite`) as `ansible.cfg` or in your home directory with a prefixed dot: `~/.ansible.cfg`.
 
-    Your Ansible configuration file will look similar to below example:
+    Your Ansible configuration file will look similar to the example below:
     ```ini
     [galaxy]
     server_list = automation-hub,galaxy
