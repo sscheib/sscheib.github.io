@@ -14,22 +14,6 @@ table th:nth-of-type(2) {
 {% endraw %}
 
 ## Preface
-TODO:
-**general**
-- Specify which variables need to be changed
-- Comment variables in each code block
-
-**configure content credentials**
-- Note: There is no elastic 9
-- Add specific example for EPEL 8 and 9; :warning: if used will download a lot of shit
-
-**enable RHEL repos**
-- Add comments to variables
-
-**template sync**
-- Link to docu of template sync
-
-
 This blog post does not follow the style of my previous blog posts. It is more or less a step by step manual on how to use [my repository on GitHub](https://github.com/sscheib/ansible_satellite) to automate Red Hat Satellite using Ansible.
 
 Further, a good understanding of Satellite and, more importantly, a good understanding of the concepts around Ansible is **required**. Especially [variable precedence](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence) should be well known. Don't get me wrong, it is still a step by step guide, but nevertheless, if you want to adjust this step by step guide to *your* infrastructure (which is likely that you'd want to do that :grin:), you **need** to understand the concepts around Ansible.
@@ -212,7 +196,7 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
     2. `host_vars/<hostname>/01b_satellite_firewall_rules.yml`: Contains the ports to open on the Satellite
         {% gist 0b029863ee4e9953ab88978608bae777 %}
 
-        :warning: Above firewall rules are specific to *my* usecase. You need to adapt these based on the Satellite documentation and your used features (such as TFTP, DHCP, DNS, etc.).
+        :warning: Above firewall rules are specific to *my* use case. You need to adapt these based on the Satellite documentation and your used features (such as TFTP, DHCP, DNS, etc.).
     3. `host_vars/<hostname>/01c_satellite_installer_configuration.yml`: Contains all other variables for the role `redhat.satellite_operations.installer`
         {% gist c99c3008a954a4ddb81451bad99b599f %}
 
@@ -320,7 +304,7 @@ Next up, we are going to import a Manifest into our Satellite. I have configured
     ``` 
 
 ## Creating Content Credentials for custom Products
-Before creating custom Products and repositories, we need to create the custom Content Credentials. This is required, as we are going to use those Content Credentials to ensure that the content we retrieve is retrieved without any modification (through a malicous actor for instance). This is only required for 3rd-party repositories, as Red Hat repositories are validated by default.
+Before creating custom Products and repositories, we need to create the custom Content Credentials. This is required, as we are going to use those Content Credentials to ensure that the content we retrieve is retrieved without any modification (through a malicious actor for instance). This is only required for 3rd-party repositories, as Red Hat repositories are validated by default.
 
 ## Documentation
 * [Role `redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/)
@@ -392,7 +376,7 @@ Since we do a couple of things with one role, I decided to split up my variables
     The Repository and Product names can be found out via the following procedure:
     1. `Satellite WebUI` -> `Content` -> `Red Hat Repositories`
     2. Click on `Filter by Product` and select a Product, e.g. `Red Hat Enterprise Linux for x86_64` (this is the **Product Name** to use)
-    3. Select the appropriate "Type" (right hand side to the `Filter by Product` dropdown), e.g. `RPM` for RPM repositories, `Kickstart` for Kickstart repositories
+    3. Select the appropriate "Type" (right hand side to the `Filter by Product` drop-down), e.g. `RPM` for RPM repositories, `Kickstart` for Kickstart repositories
     4. Either scroll through the `Available Repositories` or narrow the list further down using the search bar at the top
     5. The search lists contains the **Repository Name** to use
     6. Each Repository has a arrow an the left hand side. When clicking on it, it reveals two things:
@@ -600,27 +584,55 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
     ```
 
 ## Apply Satellite settings and enable Template Synchronization
+We need to apply some settings in Satellite, as the Operating System definitions depend on Provision Templates that have to be imported prior to defining the Operating Systems. The Host Groups and the Activation Keys (which we still need to create) rely on the definitions of the Operating System, thus we need to start with importing the Templates.
+
+I make use of [Satellite's TemplateSync Plug-in](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper) which allows us to import Templates from a Source Code Management (SCM) tool (such as GitHub or Git Lab). TemplateSync will also assign the Templates to the correct Operating System, Organization and Location, if the [required metadata](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts) is present in the Template's header.
+
+Again, I have split my variables into several files to not have one very large confusing file. I named the files like the tabs in the `Satellite Web UI` -> `Administer` -> `Settings`.
+
+This chapter essentially covers two steps:
+1. Set specific settings in the Satellite, especially the Template Sync settings. But since we are on it, I'll define *all* settings right away to spare me some time.
+2. Run the Template Sync to import the Templates of my [Kickstart Repository on GitHub](https://github.com/sscheib/satellite_templates). The playbook will perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Synchronizing_Templates_Using_the_API_managing-hosts) from git. Please review them prior to running the playbook (`15_satellite_template_sync.yml`).
+
+    :information_source: Unfortunately, there is no role to configure and run the Template Sync. This will be done by a custom playbook I have written and importing the Templates using the Satellite API. It is a playbook, as I didn't see the need to create a role for such a basic task.
+
+### Documentation
+* [Role `redhat.satellite.settings`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/settings/)
+* [Synchronizing Template Repositories](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+* [GitHub: Managing your personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens)
+* [Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6](https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html)
 
 ### Roles, variables files and playbooks
 
 :information_source: The tables below can be mapped through the numbering column (`#`).[^column_explanation]
 
+:information_source: `12a_settings_template_sync.yml` is added twice, as both playbooks make use of it.
+
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.settings`                                                |
+| 2   | N/A                                                                        |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `12a_settings_template_sync.yml`                                           |
+| ^^  | ^^ `12b_settings_provisioning.yml`                                         |
+| ^^  | ^^ `12c_settings_remote_execution.yml`                                     |
+| ^^  | ^^ `12d_settings_rh_cloud.yml`                                             |
+| ^^  | ^^ `12e_settings_general.yml`                                              |
+| ^^  | ^^ `12f_settings_notifications.yml`                                        |
+| ^^  | ^^ `12g_merge_settings.yml`                                                |
+| 2   | `12a_settings_template_sync.yml`                                           |
+| ^^  | ^^ `group_vars/all/github.yml`                                             |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `14_satellite_settings.yml`                                                |
+| 2   | `15_satellite_template_sync.yml`                                           |
 
 ### Procedure
-First, we need to apply some settings in Satellite, as the Operating System definitions depend on Provision Templates that should be imported prior to defining the Operating Systems. The Host Groups rely on the definitions of the Operating System, thus we need to first start with the Templates.
 
-1. Define the Satellite settings, I have split mine into several files to not have one very large confusing file. I named the files like the tabs in the Satellite Web UI -> Administer -> Settings.
+1. Define the Satellite settings in our variables files:
     1. **Tab Template Sync**: Variables file: `12a_settings_template_sync.yml`:
         {% gist bf5474d6cd2b41fcf237a515bc92a829 %}
     2. **Tab Provisioning**: Variables file: `12b_settings_provisioning.yml`:
@@ -638,23 +650,28 @@ First, we need to apply some settings in Satellite, as the Operating System defi
 
 2. Run the playbook to apply the settings:
     ```
-    ansible-playbook -i inventory 14_satellite_settings.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 14_satellite_settings.yml --vault-pass-file .vault.pass
     ```
 3. Create a [(Fine Grained) Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens) in GitHub with the following permissions (at least):
-    * Administration: Read and Write (to deploy the SSH key from the Foreman user that performs the Template Synchronization)
-    * Content: Read
-    * Metadata: Read
+    * `Administration: Read and Write` (to deploy the SSH key from the Foreman user that performs the Template Synchronization)
+    * `Content: Read`
+    * `Metadata: Read`
 
-   Of course, you can deploy the SSH key manually and modify the playbook that configures the Template Sync (`15_satellite_template_sync.yml`) to not deploy the SSH key to GitHub if you are uncomfortable with creating a GitHub Access Token that 
-   has the *Administration* option set
+    :warning: Of course, you can deploy the SSH key manually and modify the playbook that configures the Template Sync (`15_satellite_template_sync.yml`) to not deploy the SSH key to GitHub if you are uncomfortable with creating a GitHub Access Token that has the *Administration* option set
+
 4. Define the GitHub settings for the Template Sync in `group_vars/all/github.yml`
     {% gist 21475840ab5b6a90b263a87d9ee6bf70 %}
 5. Run the playbook to configure the Template Sync and synchronize the Templates:
     ```
-    ansible-playbook -i inventory 15_satellite_template_sync.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 15_satellite_template_sync.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Operating Systems
+Since the Templates are now imported, we can start creating the Operating Systems and assign the imported Templates to them.
+
+### Documentation
+* [Role `redhat.satellite.operatingsystems`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/operatingsystems/)
+* [Creating Operating Systems](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/provisioning_hosts/index#creating-operating-systems_provisioning)
 
 ### Roles, variables files and playbooks
 
@@ -662,33 +679,63 @@ First, we need to apply some settings in Satellite, as the Operating System defi
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.operatingsystems`                                        |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/13_operating_systems.yml`                            |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `16_satellite_operating_systems.yml`                                       |
 
 ### Procedure
 1. Define the Operating Systems in `host_vars/<hostname>/13_operating_systems.yml`:
     {% gist 031b18a1b51d901f088e88d8f779dc26 %}
 2. Run the playbook to create and configure the Operating Systems:
     ```
-    ansible-playbook -i inventory 16_satellite_operating_systems.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 16_satellite_operating_systems.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Activation Keys
+Creating Activation Keys is now possible, as we can refer to the Operating Systems that we created in the prior chapter.
+
+### Documentation
+* [Role `redhat.satellite.activation_keys`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/activation_keys/)
+* [Managing Activation Keys](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_activation_keys_content-management)
+
+### Roles, variables files and playbooks
+
+:information_source: The tables below can be mapped through the numbering column (`#`).[^column_explanation]
+
+| #   | Role/s used                                                                |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | `redhat.satellite.activation_keys`                                         |
+
+| #   | Variable definition file/s                                                 |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | `host_vars/<hostname>/14_activation_keys.yml`                              |
+
+| #   | Playbook/s used                                                            |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | `17_satellite_activation_keys.yml`                                         |
+
+### Procedure
 1. Define the Activation Keys in `host_vars/<hostname>/14_activation_keys.yml`
     {% gist 585614ff9d774fb064ce6b586f48efc8 %}
 2. Run the playbook to create the Activation Keys:
     ```
-    ansible-playbook -i inventory 17_satellite_activation_keys.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 17_satellite_activation_keys.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Host Groups
+Almost done! :sunglasses: 
+
+As our second to last step, we are going to create the Host Groups. Since I have applied [my Satellite 6 concept for Host Groups](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#host-groups-hg), I have split the Host Groups into multiple files.
+
+### Documentation
+* [Role `redhat.satellite.hostgroups`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/hostgroups/)
+* [Creating a Host Group](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/administering_hosts_managing-hosts#Creating_a_Host_Group_managing-hosts)
 
 ### Roles, variables files and playbooks
 
@@ -696,33 +743,43 @@ First, we need to apply some settings in Satellite, as the Operating System defi
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | `redhat.satellite.hostgroups`                                              |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/15a_host_groups_base.yml`                            |
+| ^^  | ^^ `host_vars/<hostname>/15b_host_groups_services.yml`                     |
+| ^^  | ^^ `host_vars/<hostname>/15c_host_groups_lifecycle_environments.yml`       |
+| ^^  | ^^ `host_vars/<hostname>/15d_host_groups_merged.yml`                       |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `18_satellite_host_groups.yml`                                             |
 
 ### Procedure
-Since I have applied [my Satellite 6 concept for Host Groups](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#host-groups-hg), I have split the Host Groups into multiple files.
 1. Define the Host Groups
-    1. Base and Operating System level Host Groups: Variables files: `15a_host_groups_base.yml`
+    1. **Base** and **Operating System level Host Groups**: `host_vars/<hostname>/15a_host_groups_base.yml`
         {% gist c0ca37c45ec9ca780b2f7eff17fef984 %}
-    2. Service level Host Groups: Variables files: `15b_host_groups_services.yml`
+    2. **Service level Host Groups**: `host_vars/<hostname>/15b_host_groups_services.yml`
         {% gist d06b236f5f5ff5dc15abbe54d6174ec1 %}
-    3. Lifecycle Environment level Host Groups: Variables files: `15c_host_groups_lifecycle_environments.yml`
+    3. **Lifecycle Environment level Host Groups**: `host_vars/<hostname>/15c_host_groups_lifecycle_environments.yml`
         {% gist 46776747718e35681b94681f68bfdfe9 %}
-    4. Merge all Host Groups into the required variable `satellite_hostgroups` for the role `redhat.satellite.hostgroups`
+    4. Finally, merge all Host Groups into the required variable `satellite_hostgroups` for the role `redhat.satellite.hostgroups`; That is done in the file `host_vars/<hostname>/15d_host_groups_merged.yml`
         {% gist 9dd2cd08399d49dad14a3637de88f935 %}
 2. Run the playbook to create the Host Groups:
     ```
-    ansible-playbook -i inventory 18_satellite_host_groups.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 18_satellite_host_groups.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Global Parameters
+Now on the the Global Parameters. I will define some Global Parameters that are specific to my use case, which [my Provisioning Templates](https://github.com/sscheib/satellite_templates) make use of as well as override some default Parameters. My parameters are denoted with a prefixed `p-`. All Parameters which do not have that prefix are Parameters that are present by default.
+
+Once again, I split up my variables into separate files to not have a big clunky file that is unmaintainable. :grin:
+
+:information_source: Unfortunately, there is no role available that creates Global Parameters, but there is a module available which we can use: `redhat.satellite.global_parameter`.
+
+### Documentation
+* [Module `redhat.satellite.global_parameter`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/module/global_parameter/)
 
 ### Roles, variables files and playbooks
 
@@ -730,32 +787,77 @@ Since I have applied [my Satellite 6 concept for Host Groups](https://blog.schei
 
 | #   | Role/s used                                                                |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `rhel_iso_kickstart`                                                       |
+| 1   | N/A                                                                        |
 
 | #   | Variable definition file/s                                                 |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `host_vars/<hostname>/00_kickstart.yml`
+| 1   | `host_vars/<hostname>/16a_global_parameters_ansible_provisioning.yml`      |
+| ^^  | ^^ `host_vars/<hostname>/16b_global_parameters_remote_execution.yml`       |
+| ^^  | ^^ `host_vars/<hostname>/16c_global_parameters_general.yml`                |
+| ^^  | ^^ `host_vars/<hostname>/16d_merge_global_parameters.yml`                  |
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `00_create_kickstart.yml`                                                  |
+| 1   | `19_satellite_global_parameters.yml`                                       |
 
 ### Procedure
-Again, I split the Global Parameters in smaller files to not have a big confusing file.
 1. Define the Global Parameters
-    1. Global Parameters for Ansible post provisioning
+    1. Global Parameters for Ansible post provisioning: `host_vars/<hostname>/16a_global_parameters_ansible_provisioning.yml`
         {% gist ccacbc6d834959ab0a18898af41c3546 %}
-    2. Global Parameters for Remote Execution
+    2. Global Parameters for Remote Execution: `host_vars/<hostname>/16b_global_parameters_remote_execution.yml`
         {% gist 9a54f56b9a66f99473d49fe61d16e322 %}
-    3. General Global Parameters
+    3. General Global Parameters: `host_vars/<hostname>/16c_global_parameters_general.yml`
         {% gist 581f59a607c385a52e7750f93261a379 %}
-    4. Merge all Global Parameters
+    4. Merge all Global Parameters: `host_vars/<hostname>/16d_merge_global_parameters.yml`
         {% gist 594c9981cfde05e3db15e24bd3cb28fc %}
 2. Run the playbook to create the Global Parameters:
     ```
-    ansible-playbook -i inventory 19_satellite_global_parameters.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 19_satellite_global_parameters.yml --vault-pass-file .vault.pass
     ```
-# Footnootes
+
+## *Optional:* Enable and import OpenSCAP content
+If you are looking to ensure compliance on your hosts using [OpenSCAP](https://www.open-scap.org/), this chapter will be for you. Here is the thing: Satellite comes already pre-loaded with some OpenSCAP content. I have written a playbook that will accommodate the two scenarios. Whether you are looking to only enable the default OpenSCAP content or if you want to import custom OpenSCAP content, you can use this playbook.
+
+Why writing a custom playbook and not make use of the module [`satellite.scap_content`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/module/scap_content/)? First of all, I haven't been able to make the module work with `validate_certs: true`. I have created a [GitHub issue](https://github.com/theforeman/foreman-ansible-modules/issues/1611) that hasn't been resolved yet (due to the lack of interaction on my end). Secondly, I simply haven't come around to build a role of it. I probably will eventually do - but then again it makes no sense, as there is already a module that's supposed to work, which would make the role practically obsolete.
+
+Nevertheless, for the time being you can use the playbook :sunglasses:
+
+### Documentation
+* [Module satellite.scap_content](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/module/scap_content/)
+* [OpenSCAP](https://www.open-scap.org/)
+
+### Roles, variables files and playbooks
+
+:information_source: The tables below can be mapped through the numbering column (`#`).[^column_explanation]
+
+| #   | Role/s used                                                                |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | N/A                                                                        |
+
+| #   | Variable definition file/s                                                 |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | `host_vars/<hostname>/17_openscap.yml`                                     |
+
+| #   | Playbook/s used                                                            |
+| :-- | :------------------------------------------------------------------------- |
+| 1   | `20_satellite_openscap.yml`                                                |
+
+### Procedure
+1. Define the variables for OpenSCAP
+    {% gist a222ecc8c0afaaf5d8dc9fcdbc3c7fe8 %}
+2. Run the playbook to create the OpenSCAP content, enable the default OpenSCAP content and enable the Foreman OpenSCAP role:
+    ```
+    $ ansible-playbook -i inventory 20_satellite_openscap.yml --vault-pass-file .vault.pass
+    ```
+
+# Closing thoughts
+This concludes this blog post. There are way more things you can do with [Red Hat's Certified Ansible Collection for Red Hat Satellite](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite) and I highly encourage you to explore the possibilities. I haven't touch on things as Compute Resources or Host Collections and many more things you could theoretically make use of with your specific use case.
+
+I hope this blog post was helpful to some of you :sunglasses:
+
+.. until next time
+
+# Footnotes
 [^key_usage]:["ERR_SSL_KEY_USAGE_INCOMPATIBLE" while accessing Red Hat Satellite WebUI after configure custom SSL certificates](https://access.redhat.com/solutions/6977733)
 [^column_explanation]: All tables in the **Roles, variables files and playbooks** section are set up in a way that helps to easily identify which role uses which variable files and which playbooks. For example, the role that is used in `#1` in the first table (`Role/s used`), makes use of the variables that are defined in table `Variable definition file/s` in column `#1` and is executed with the playbook that is defined in the table `Playbook/s used` in column `#1`.
 [^secrets]:[Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)
