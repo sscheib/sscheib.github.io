@@ -854,6 +854,7 @@ Nevertheless, for the time being you can use the playbook :sunglasses:
 This concludes this blog post. There are way more things you can do with [Red Hat's Certified Ansible Collection for Red Hat Satellite](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite) and I highly encourage you to explore the possibilities. I haven't touch on things as Compute Resources or Host Collections and many more things you could theoretically make use of with your specific use case.
 
 There are still a few things left to do! I either update this blog post or might create new blog posts about the topics. The topics that I'd like to touch in the future are:
+* Adding Capsules
 * Create Hosts in Satellite
 * Create and assign OpenSCAP policies, as well as OpenSCAP tailoring files
 * Figure out a way to make it easier to find out the Product and Repository labels
