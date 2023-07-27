@@ -34,7 +34,7 @@ I tested all of this with Satellite 6.12. It *should* work the same for other Sa
 ## Prerequisites
 1. You need a host that will run Ansible and carry out the automation.
 
-    :information_source: I have tested all of this on a RHEL 8.7 system with Ansible Core 2.14.6. RHEL 9 *should* work (untested) and Ansible Core versions starting from 2.12 *should* work.
+    :information_source: I have tested all of this on a RHEL 8.7 system with Ansible Core 2.14.6. RHEL 9.2 with Ansible Core 2.14.2. has been tested as well.
 
     :warning: RHEL 7 is not going to work for this purpose, as only Ansible Engine 2.9 can (officially) be installed on it (which is too old for most - if not all - collections we are going to use).
 
@@ -876,6 +876,7 @@ There are still a few things left to do! I either update this blog post or might
 I hope this blog post was helpful to some of you :sunglasses:
 
 .. until next time,
+
 Steffen
 
 # Footnotes
