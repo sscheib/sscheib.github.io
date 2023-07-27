@@ -24,6 +24,8 @@ Please note, only a fraction of the available variables are used for each role. 
 
 In below sections I make heavy use of [GitHub gists](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists#about-gists) to show **my personal configuration** of the respective roles. You **need to modify every gist so that it works for your environment**. For this purpose, I documented (almost) every variable in the gists to ensure the usage is clear. Should something be not clear, please refer to the role documentation (that is linked in every section), which provides additional context as well as possibly other variables to use that make sense to use in your environment.
 
+I tested all of this with Satellite 6.12. It *should* work the same for other Satellite versions, but I cannot guarantee it.
+
 :information_source: Just as a general information: Variables that are prefixed with `satellite_` are 'official' role variables of the roles we are going to use. Variables prefixed with `sat_` are custom variables (which usually get merged into a `satellite_` variable eventually).
 
 :information_source: I am going to use `ansible-playbook` in this blog post and will thus install all required collections and roles as the current user. Of course, you can also make use of `ansible-navigator` with an Execution Environment that contains the collections and roles which are defined in `collections/requirements.yml`. This blog post won't cover the procedure of how to do that, however.
@@ -170,6 +172,8 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
 | 1   | `01_register_satellite.yml`                         |
 | 2   | `02_satellite_installer.yml`                        |
 
+:information_source: The variable file where we put our secrets in (`host_vars/<hostname>/00a_secrets.yml`) is used in almost all roles and playbooks, and thus it isn't added to the table above as it would need to be included in all further tables.
+
 ### Procedure
 1. Define your secrets in `host_vars/<hostname>/00a_secrets.yml`, please see below for an example.
 
@@ -177,10 +181,10 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
 
     {% gist 4fbc66d25da509522e16791e497a27a2 %}
 
-2. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles)
-
-    Below you'll find an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
+2. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles), please find below an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
     {% gist 14d99b2931ce8e1bed1f6e9ac717326e %}
+
+    :information_source: If you want to install a different Satellite version than 6.12, you need to adjust the variable `rhc_repositories` to enable the proper repositories for the desired Satellite version.
   
 3. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (RHCDN): 
     ```
@@ -200,7 +204,7 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
     3. `host_vars/<hostname>/01c_satellite_installer_configuration.yml`: Contains all other variables for the role `redhat.satellite_operations.installer`
         {% gist c99c3008a954a4ddb81451bad99b599f %}
 
-        :warning: If you are not planning to use certificates, please remove the certificate installer options from above example. Don't worry, the Satellite installer will create self-signed certificates. The certificate options are
+        :warning: If you are not planning to use certificates, please remove the certificate installer options from above example (`--certs-server-cert`, `--certs-server-key`, `--certs-server-ca-cert`). Don't worry, the Satellite installer will create self-signed certificates. The certificate options are
                   are meant for implementing custom SSL certificates that have been signed by your internal certificate authority. 
 
 5. Run the playbook to upgrade your system to the latest version (required) and install Satellite:
@@ -238,6 +242,8 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
 1. With this, we define variables that are reused multiple times. To avoid duplication, it is good to define them once. Please see below an example of my definition:
     {% gist 1bb3a400efe20cb7a07a7b64730ad1d2 %}
 
+    :warning: If you know that your Linux host is slow in synchronizing the Repositories or publishing and promoting (Composite) Content Views (due to e.g. slow storage), consider significantly raising the value of `sat_repository_sync_retries`, `sat_content_view_publish_retries` and `sat_composite_content_view_publish_retries`, as otherwise the respective tasks (and thus the playbook) will fail. The status is checked every `3` seconds, so the time is (roughly) calculated as `3 * number_of_retries`. In this case it would be `3 * 3600 = 10800 seconds = 180 minutes = 3 hours`.
+
 ## *Optional*: Configure Satellite's Cloud Connector
 
 :information_source: This step is entirely optional, as it merely configures Satellite's Cloud Connector.
@@ -273,7 +279,7 @@ Now it's time to register our RHEL system to the Red Hat Customer Portal. Please
     ```
 
 ## Importing a Manifest
-Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct Manifest UUID in `satellite_manifest_uuid`, as well as the `rhsm_username` and `rhsm_password`. (as described in [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
+Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct Manifest UUID in `satellite_manifest_uuid`, as well as the `satellite_rhsm_username` and `satellite_rhsm_password`. (as described in [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
 
 ### Documentation
 * [Role `redhat.satellite.manifest`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/manifest/)
@@ -365,6 +371,7 @@ Since we do a couple of things with one role, I decided to split up my variables
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
 | 1   | `06_satellite_products_and_repositories.yml`                               |
+| 1   | `07_satellite_sync_repositories.yml`                                       |
 
 ### Procedure
 1. Finding out Red Hat Repository and Product names
@@ -387,6 +394,8 @@ Since we do a couple of things with one role, I decided to split up my variables
 
     :warning: The Kickstart Repositories are set to the `download_policy` `immediate` as having them set to `on_demand` is known to cause issues during provisioning.
 
+    :warning: I recommend setting the `download_policy` to `immediate` on custom upstream repositories, as usually the upstream repositories do **not** keep **all versions** of an RPM, which will cause issues if a client tries to install an older version. Red Hat keeps all RPMs in their respective repositories, that's why it is not required to set them on `immediate`.
+
 3. Define the custom Products and their containing Repositories in `host_vars/<hostname>/06b_custom_products.yml`
     {% gist f483a67504e10ef76189ea5a921dcecc %} 
 4. The two definition will be merged in `host_vars/<hostname>/06c_combined_products.yml`
@@ -402,7 +411,7 @@ Since we do a couple of things with one role, I decided to split up my variables
     :warning: If you'd like to follow along with the blog post, you *have* to run this step, as otherwise the Content Views *will* be *empty*!
 
     ```
-    $ ansible-playbook -i inventory 08_satellite_sync_repositories.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 07_satellite_sync_repositories.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Sync Plans
@@ -427,7 +436,7 @@ To ensure our content is kept up to date, we are going to create Sync Plans in t
 
 | #   | Playbook/s used                                                            |
 | :-- | :------------------------------------------------------------------------- |
-| 1   | `07_satellite_sync_plans.yml`                                              |
+| 1   | `08_satellite_sync_plans.yml`                                              |
 
 ### Procedure
 1. Define the Sync Plans in `host_vars/<hostname>/07_sync_plans.yml`
@@ -437,11 +446,11 @@ To ensure our content is kept up to date, we are going to create Sync Plans in t
 
 2. Run the playbook to create the Sync Plans:
     ```
-    $ ansible-playbook -i inventory 07_satellite_sync_plans.yml --vault-pass-file .vault.pass
+    $ ansible-playbook -i inventory 08_satellite_sync_plans.yml --vault-pass-file .vault.pass
     ```
 
 ## Create Lifecycle Environments
-When it comes to Lifecycle Environments I have a *very* simple use case. I have two Lifecycle Environments and that's it. Your use case might be much more complex, but the example below should get you started quickly.
+When it comes to Lifecycle Environments I have a *very* simple use case. I have two Lifecycle Environments and that's it. Your use case might be much more complex, but the example below should get you up to speed quickly.
 
 ### Documentation
 * [Role `redhat.satellite.lifecycle_environments`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/lifecycle_environments/)
@@ -504,7 +513,7 @@ This one is super easy for my use case as well. I have exactly **one** Domain I 
 ## Create Subnets
 When it comes to Subnets it's the same as for the Domains: I have a super easy use case. One Subnet. That's it :grin:
 
-Again, your use case might be much, much more complex, but the example below should get you started.
+Again, your use case might be much, much more complex, but the example below should get you up to speed quickly.
 
 ### Documentation
 * [Role `redhat.satellite.subnets`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/subnets/)
@@ -594,6 +603,8 @@ This chapter essentially covers two steps:
 1. Set specific settings in the Satellite, especially the Template Sync settings. But since we are on it, I'll define *all* settings right away to spare me some time.
 2. Run the Template Sync to import the Templates of my [Kickstart Repository on GitHub](https://github.com/sscheib/satellite_templates). The playbook will perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Synchronizing_Templates_Using_the_API_managing-hosts) from git. Please review them prior to running the playbook (`15_satellite_template_sync.yml`).
 
+    :warning: You obviously *have* to either fork [my Satellite template repository](https://github.com/sscheib/satellite_templates) or create your own GitHub repository with your Templates to be able to create a GitHub Token (which will be done in this chapter).
+
     :information_source: Unfortunately, there is no role to configure and run the Template Sync. This will be done by a custom playbook I have written and importing the Templates using the Satellite API. It is a playbook, as I didn't see the need to create a role for such a basic task.
 
 ### Documentation
@@ -654,8 +665,8 @@ This chapter essentially covers two steps:
     ```
 3. Create a [(Fine Grained) Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens) in GitHub with the following permissions (at least):
     * `Administration: Read and Write` (to deploy the SSH key from the Foreman user that performs the Template Synchronization)
-    * `Content: Read`
-    * `Metadata: Read`
+    * `Contents: Read-only`
+    * `Metadata: Read-only`
 
     :warning: Of course, you can deploy the SSH key manually and modify the playbook that configures the Template Sync (`15_satellite_template_sync.yml`) to not deploy the SSH key to GitHub if you are uncomfortable with creating a GitHub Access Token that has the *Administration* option set
 
@@ -859,6 +870,8 @@ There are still a few things left to do! I either update this blog post or might
 * Create and assign OpenSCAP policies, as well as OpenSCAP tailoring files
 * Figure out a way to make it easier to find out the Product and Repository labels
 * *Maybe* convert the OpenSCAP playbook into a role
+
+*BUT* don't hold your breath on those topics. I have other blogs that I'd like to write, but I'll surely revisit this blog in **the future**.
 
 I hope this blog post was helpful to some of you :sunglasses:
 
