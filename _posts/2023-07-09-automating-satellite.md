@@ -1,6 +1,7 @@
 ---
 title: Automating Red Hat Satellite 6 - End to End
 author: Steffen Scheib
+last_modified: 
 ---
 {% raw %}
 <style>
@@ -104,7 +105,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
     :information_source: In my case, I am going to run the role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) on `localhost` (as I want to have the ISO downloaded and built on my machine), so the `host_vars` have to be placed in the directory `host_vars/localhost/`. I have chosen to place them in the file `00_create_kickstart.yml` inside that directory.
 
     :information_source: Make sure to read the [README.md of my role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) to fully understand all variables.
-3. Run the playbook that will download 
+3. Run the playbook that will download the specified RHEL ISO and build a custom RHEL ISO containing the specified Kickstart file
 ```
 $ ansible-playbook 00_create_kickstart.yml --vault-pass-file .vault.pass
 ```
