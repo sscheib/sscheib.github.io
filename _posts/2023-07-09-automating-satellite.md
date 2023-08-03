@@ -31,6 +31,8 @@ I tested all of this with Satellite 6.12. It *should* work the same for other Sa
 
 :information_source: I am going to use `ansible-playbook` in this blog post and will thus install all required collections and roles as the current user. Of course, you can also make use of `ansible-navigator` with an Execution Environment that contains the collections and roles which are defined in `collections/requirements.yml`. This blog post won't cover the procedure of how to do that, however.
 
+:information_source: You need to be a Red Hat subscriber to follow this blog post. If you are not, you can use a [no-cost Red Hat Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux), which includes the Ansible Automation Platform subscription (required for the certified collections) and the Satellite Infrastructure subscription. Of course, you could also use the upstream projects (e.g. Foreman/Katello) and upstream collections (e.g. `theforeman.foreman`) to follow along, but for that you need to adjust *every* playbook (and not 'just' the GitHub gists) and it might not work at all, as I haven't tested it.
+
 
 ## Prerequisites
 1. You need a host that will run Ansible and carry out the automation.
