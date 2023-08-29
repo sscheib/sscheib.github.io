@@ -536,7 +536,7 @@ To explain the general approach a bit, this is what the following script is doin
 * To be able to mount the LVs we need to create the necessary directories beforehand (e.g. `/mnt/var`, `/mnt/var/log`, `/mnt/home`, etc.)
 * Finally the LVs get mounted to those created directories
 
-{% highlight shell %}
+```shell
 #!/bin/bash
 # name of the volume group for the system
 declare -r __VG_SYSTEM="vg_system"
@@ -701,11 +701,12 @@ case "${1}" in
     echo "Use either mount or umount as parameters. Additionally a second parameter with any value can be passed to mount system partitions as well (/dev /dev/pts etc)"
   ;;
 esac
-{% endhighlight %}
+```
 
-<details>
-<summary>To be able to copy the script right into the command line, you can use the following approach:</summary>
-{% highlight shell %}
+
+To be able to copy the script right into the command line, you can use the following approach:
+
+```shell
 cat <<-'#EOF' > mount.sh
 #!/bin/bash
 # name of the volume group for the system
@@ -872,8 +873,7 @@ case "${1}" in
   ;;
 esac
 #EOF
-{% endhighlight %}
-</details>
+```
 
 You should now have a file `mount.sh` in your current directory, with the contents of the script above (minus the first and last line).
 Now, go ahead and adjust the necessary parts and execute it via either `bash mount.sh mount` or first setting executable permissions on it and then executing it (done via `chmod +x mount.sh && ./mount.sh mount`).
