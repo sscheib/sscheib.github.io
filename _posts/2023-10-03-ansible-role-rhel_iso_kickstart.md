@@ -3,7 +3,7 @@ title: Ansible role rhel_iso_kickstart
 author: Steffen Scheib
 ---
 ### Preface
-I have been playing around with the idea of writing a blog posts about my Ansible roles for quite a while now. Not only to 'promote' my Ansible roles, but also to show case how extremely flexible Ansible really is.
+I have been playing around with the idea of writing a blog post series about my Ansible roles for quite a while now. Not only to 'promote' my Ansible roles, but also to show case how extremely flexible Ansible really is.
 Often times people think of Ansible as "just another configuration management tool". While this is absolutely true, Ansible - in my opinion - is so much more than that. Ansible is great in automating a series of tasks across multiple systems - that is really the **strength of Ansible**.
 
 To disclose it right away: I am working at Red Hat as Senior Technical Account Manager Ansible - so please take the above with a grain of salt, as I am most probably biased.
@@ -23,6 +23,19 @@ First off, to download an ISO from the [Red Hat Customer Portal](https://access.
 Once you created your account and are able to download from the Red Hat Customer Portal, you need to create an API Token, which we'll use to authenticate to the Red Hat Customer Portal. For that, simply login to Red Hat's Customer Portal and create an [API Token](https://access.redhat.com/management/api).
 
 Note down that token, as we are going to need it for the role to function.
+
+### Prerequisite: Obtaining the checksum of an ISO to download
+The Red Hat Customer Portal API enables downloading of ISO images only **by checksum**. To download an ISO, you first need to identify the checksum to pass to the role. This checksum can be retrieved for any ISO on the Red Hat Customer Portal and can be found on the respective download page of the ISO itself.
+
+For RHEL you can visit [https://access.redhat.com/downloads/content/rhel](https://access.redhat.com/downloads/content/rhel) and simply click on **Show details**. As an example, the **Red Hat Enterprise Linux 8.8 Binary DVD** will show the following additional details:
+```
+File name: rhel-8.8-x86_64-dvd.iso
+File Size: 11.7 GB
+SHA-256 Checksum: 517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09 
+Last Updated: 2023-04-26
+```
+
+We are going to need the **SHA-256 Checksum** :slightly_smiling_face:.
 
 ### Installation
 Installation is easy and straight forward. I tag my Role releases using [semantic versioning](https://semver.org/) on GitHub. Installing a specific tag works through providing a `requirements.yml` to the `ansible-galaxy` command.
