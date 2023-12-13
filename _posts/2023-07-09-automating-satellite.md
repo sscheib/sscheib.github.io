@@ -104,7 +104,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
 1. Adjust the included Kickstart (`files/satellite.ks`) to your liking.
 2. Adjust the variables for the role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart)
 
-    :information_source: In my case, I am going to run the role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) on `localhost` (as I want to have the ISO downloaded and built on my machine), so the `host_vars` have to be placed in the directory `host_vars/localhost/`. I have chosen to place them in the file `00_create_kickstart.yml` inside that directory.
+    :information_source: In my case, I am going to run the role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) on `localhost` (as I want to have the ISO downloaded and built on my machine), so the `host_vars` have to be placed in the directory `host_vars/localhost/`. I have chosen to place them in the file `00_kickstart.yml` inside that directory.
 
     :information_source: Make sure to read the [README.md of my role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) to fully understand all variables.
 3. Run the playbook that will download the specified RHEL ISO and build a custom RHEL ISO containing the specified Kickstart file:
@@ -121,7 +121,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
 Now that we have successfully installed our RHEL 8 system, we need to ensure that Ansible can access the system and **elevate its privileges**.
 
 ### Procedure
-1. Login via SSH to the new VM using `root` as username and the root password you defined in `00_create_kickstart.yml`
+1. Login via SSH to the new VM using `root` as username and the root password you defined in `00_kickstart.yml`
 
     :information_source: This step assumes that you have not already created a local user (other than `root`, of course) on the Satellite server. If you already created a local user as part of the Kickstart (or other means), please ensure that the user has privileged access; You can skip step **2** and **3**.
  
