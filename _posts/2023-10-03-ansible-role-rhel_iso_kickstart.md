@@ -264,7 +264,7 @@ Example playbook:
           - !vault |
               $ANSIBLE_VAULT;1.1;AES256
               [..]
-    kickstart_password: !vault |
+    kickstart_root_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           [..]
     api_token: !vault |
