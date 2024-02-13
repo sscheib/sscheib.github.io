@@ -159,7 +159,7 @@ As you can see, now the GUID is different, perfect :sunglasses:
 Let's move on to creating the RAID 1s with those NVMe disks.
 
 Creating a RAID 1 is super easy with `mdadm`. We need four things for that:
-* A RAID label (common would be `md1` for the first array, `md2` for the second, etc.)
+* A RAID label (common would be `md0` for the first array, `md1` for the second, etc.)
 * The RAID level (e.g. 1, 5, 6, 60, etc.)
 * The number of RAID devices (in our case 2)
 * The RAID devices, which are the partitions we created earlier
@@ -1497,10 +1497,10 @@ echo "crypted_system UUID="$(cryptsetup luksDump /dev/md1 | grep UUID | awk '/UU
 {% endhighlight %}
 
 The next step is to configure `/etc/fstab`.
-To do so, we first need to read out the UUID for both the `/boot` partition (which is stored on `/dev/md1`) and all partitions that LVM is managing for us. Again depending whether you have multiple VGs (e.g. another drive holding data) or not. This can be easily achieved using `blkid`:
+To do so, we first need to read out the UUID for both the `/boot` partition (which is stored on `/dev/md0`) and all partitions that LVM is managing for us. Again depending whether you have multiple VGs (e.g. another drive holding data) or not. This can be easily achieved using `blkid`:
 {% highlight shell %}
-root@rescue:/# blkid /dev/md1 
-/dev/md1: UUID="67619dac-48fd-4140-9040-d31c1d3bba0f" TYPE="xfs" PARTLABEL="Linux filesystem" PARTUUID="e435544d-b8df-4e6a-bf74-7f094c3007e1"
+root@rescue:/# blkid /dev/md0 
+/dev/md0: UUID="67619dac-48fd-4140-9040-d31c1d3bba0f" TYPE="xfs" PARTLABEL="Linux filesystem" PARTUUID="e435544d-b8df-4e6a-bf74-7f094c3007e1"
 root@rescue:/# blkid /dev/mapper/vg_system-*
 /dev/mapper/vg_system-home: UUID="e560e1fc-897e-4738-832c-09c2663048ba" TYPE="xfs"
 /dev/mapper/vg_system-root: UUID="c1934670-c520-4d57-b87c-69a376fa51e4" TYPE="xfs"
