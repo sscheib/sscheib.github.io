@@ -80,7 +80,7 @@ Meet [Ansible's execution environments (EEs)](https://docs.ansible.com/ansible/l
 ### Ansible's execution environments (EEs): An introduction
 So what exactly are EEs?
 
-First and foremost, EEs are container images. You can imagine EEs basically as packaged Ansible control nodes. Essentially, you can picture it as your development machine
+First and foremost, EEs are container images - they are basically packaged Ansible control nodes. Essentially, you can picture it as your development machine
 or your centralized Ansible control node that runs your Ansible content in production, packaged in a container image with everything it needs to run specific Ansible content.
 
 EEs come by default with a few things:
@@ -96,9 +96,158 @@ not see the massive benefits of EEs just yet. I understand that. Some people mig
 Rest assured: Containers are not bad. They are actually awesome if you understand the benefits of them and understand that you need to adapt in some ways to them.
 This might sound at first like a big task, but it's not, really.
 
-Especially in the context of EEs, containers are not just not bad, but are *the* solution to all the problems I outlined above. I know, this is might not be yet clear at this
-point. You - hopefully - understand or at the very least begin to understand what I mean once you finished reading this blog post.
+Especially in the context of EEs, containers are not just not bad, but are *the* solution to all the problems I outlined above. I know, this might not be clear yet at this
+point. You - hopefully - understand or at the very least begin to understand, what I mean once you finished reading this blog post.
 
 For those who are afraid of containers: You don't *really* need to work with containers in that sense when dealing with EEs. When building and executing EEs, you essentially
 work with two 'wrappers' that take care of building and running your containers in such a way that you usually don't need to interact with container images and containers
 directly. I explain all of that in greater detail a bit later.
+
+With the knowledge of what EEs are, I guess everyone can easily imagine why they solve the issues `venvs` have. Essentially, you define and extend your EE as necessary while
+you actively develop Ansible content. Since everything is now neatly packaged in a container, you can easily share and reuse it.
+
+### Execution environments: Getting started
+Working with EEs is pretty straight-forward once you know what you need. In the previous chapter I referred to two 'wrappers' that enable you to use and create EEs - these are:
+1. [`ansible-navigator`](https://ansible.readthedocs.io/projects/navigator/)
+2. [`ansible-builder`](https://ansible.readthedocs.io/projects/builder/en/latest/)
+
+Let me give you a *very brief* overview over these tools.
+
+#### `ansible-navigator`
+`ansible-navigator` is essentially a drop-in replacement for all the `ansible-` commands (e.g. `ansible-playbook`, `ansible-inventory`, `ansible-doc`, etc.) you are used to when
+working with Ansible on the command line (CLI). You *need* `ansible-navigator` to run your Ansible content via CLI inside an EE, as `ansible-playbook` is not able to run
+something inside an EE.
+
+#### `ansible-builder`
+`ansible-builder` is the tool to use when building execution environments. It makes creating and extending existing EEs easy and straight-forward. Under the hood, it
+essentially interacts with [`podman`](https://podman.io/) to create the images.
+
+Now that we know the *very basics* about EEs let's actually get started. :sunglasses:
+
+#### Existing EEs: An overview
+The understand the concept behind EEs, please allow me to contextualize the Ansible ecosystem with regards to EEs a little.
+
+There are existing EEs which you can utilize to get started. Both the Ansible community and Red Hat maintain a few EEs. The ones maintained by the
+Ansible community are either hosted on [quay.io](https://quay.io/) or on GitHubs Container Registry [ghcr.io](https://ghcr.io). The ones Red Hat maintains are called *Red Hat
+certified execution environments* and are provided via Red Hat's Container Registry [registry.redhat.io](https://catalog.redhat.com/).
+
+The difference between EEs of the Ansible community (we at Red Hat, usually refer to them as *upstream*) and Red Hat's EEs (we at Red Hat, usually refer to them as
+*downstream*) is that upstream EEs are *usually* based on CentOS stream, while downstream EEs are based on
+[Red Hat's Universal Base Image (UBI)](https://catalog.redhat.com/software/base-images) and are *essentially* Red Hat Enterprise Linux (RHEL) in containers, if you will.
+
+:information_source: To use Red Hat certified EEs you need to be a Red Hat subscriber If you don't own any subscriptions, you can make use of                                   [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
+
+The major difference, however, is the level of support you'll get. Upstream in general moves really fast and does not do any
+[backports](https://en.wikipedia.org/wiki/Backporting) for older Ansible versions.
+In contrast, Red Hat supports their EEs for a [defined lifecycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) and backports bugfixes and/or
+security fixes to older EEs which are using older `ansible-core` versions, which are still under support by Red Hat.
+
+Please don't get confused that the [linked lifecycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) points to the Ansible Automation Platform
+lifecycle. That's not a mistake. The reason being that Red Hat treats several components of the Ansible ecosystem (such as Execution and Decision Environments, `ansible-core`,
+`ansible-navigator`, `ansible-builder` among other things) as one *platform*. As Ansible Automation Platform subscriber, you'll get a defined set of components in a
+certain version, which ensures that all components are compatible with each other.
+
+Upstream essentially treats various components, such as EEs, `ansible-builder`, `ansible-navigator` etc. as seperate projects and therefore you *might* encounter difficulties
+using the latest upstream versions together.
+
+**Please don't get me wrong**: I am not saying you should avoid upstream releases. That's not what I am saying at all. Upstream projects are *the core of everything* we do at
+Red Hat as we follow the ['upstream first'](https://www.redhat.com/en/about/open-source/participation-guidelines) guideline and you should definitively make use of upstream
+projects. However, you *might* want to reconsider using upstream projects if you are going to use them in production or you require a certain level of support to sustain your
+business.
+
+:warning: Please keep in mind that this is a **very simplified** overview of upstream and downstream projects in the Open Source world. If you run a business and are about
+to make a decision to either use upstream or downstream projects, I highly encourage you to do your own research to build up a solid understanding of the topic before
+you decide.
+
+Now that the *basic* principles of upstream vs. downstream with regards to EEs are out of the way, let's actually get our hands dirty :slightly_smiling_face:.
+
+#### Deciding which existing EE to obtain
+
+Alright, let's obtain one EE and start using it - but where do you get them and which one to chose?
+
+For upstream EEs, you are probably going to choose the [AWX EE](https://quay.io/repository/ansible/awx-ee) which is meant to be used when running your code in
+[AWX](https://github.com/ansible/awx) (one of Red Hat's upstream projects that are part of the Ansible Automation Platform).
+
+In this blog post I am going to focus on using *Red Hat certified execution environments*.
+
+Certified EEs come, at the time of this writing, in different variants:
+- Either based on UBI 8 or UBI 9
+- Either contain `ansible-core` *only* or `ansible-core` and a set of [*certified collections*](https://catalog.redhat.com/software/search?target_platforms=Red%20Hat%20Ansible%20Automation%20Platform)
+- In a *special* case, one EE contains Ansible Engine 2.9, but this EE is going to go away in the future as Ansible Engine reached its downstream end of life in December last
+  year (31.12.2023). This EE is/was provided merely for the reason to support customers in their migration from older Ansible Automation Platform versions, as Ansible itself
+  has changed drastically.
+
+*Technically* that's four variants, but UBI 8 or UBI 9 'only' change the underlying operating system :sweat_smile:.
+
+Again, Red Hat's EEs are hosted on [registry.redhat.io](https://catalog.redhat.com) where the 'user-browsable interface' is [catalog.redhat.com](https://catalog.redhat.com).
+When browsing to [registry.redhat.io](https://catalog.redhat.com) with your browser, you'll be redirected to [catalog.redhat.com](https://catalog.redhat.com) automatically, but
+you'll be pulling the EEs of registry.redhat.io.
+
+Now, *finally*, here are some of the available EEs:
+- [ansible-automation-platform/ee-minimal-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel8/62bd87442c0945582b2b4b37)
+- [ansible-automation-platform/ee-minimal-rhel9](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel9/6447df2aa123f7fc409f847e)
+- [ansible-automation-platform-24/ee-minimal-rhel9](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-minimal-rhel9/643d4c13fae71880450b6108)
+- [ansible-automation-platform-24/ee-supported-rhel9](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-supported-rhel9/643d4c7255839fe0f27b0f30)
+- [ansible-automation-platform-24/ee-supported-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-supported-rhel8/63a333ce183540f5962ae01d)
+- [ansible-automation-platform-24/ee-minimal-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-minimal-rhel8/63a3338544b6f291781716c7)
+- [ansible-automation-platform-24/ee-29-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-29-rhel8/63a3322ccdc6fa07ca9d7527)
+
+You can already tell a difference from the namespace portion of the EEs. `ansible-automation-platform/ee-minimal-rhel9` vs. `ansible-automation-platform-24/ee-minimal-rhel9`.
+Moreover, there is a `supported` variant and a `minimal` variant.
+
+First off: Don't get confused. `supported` in this context means, it will contain `ansible-core` **and** *some* **supported** Ansible collections. The `minimal`
+variant is exactly as supported as the `supported` one is, albeit it's totally understandable if you are confused :smile:.
+
+There is also this *special* EE, which contains Ansible Engine 2.9 only: `ansible-automation-platform-24/ee-29-rhel8`. Again, this EE is/was provided merely for the reason to
+support customers in their migration from older Ansible Automation Platform/Ansible versions.
+
+Secondly, the namespace difference (`ansible-automation-platform/ee-minimal-rhel9` vs. `ansible-automation-platform-24/ee-minimal-rhel9`) is due to 'historic' reasons,
+basically.
+
+Nowadays, we encourage customers to make use of the *versionless* or *multi stream* EEs as *versioned* or *single stream* EEs are going to go away in the future.
+I prefer using the terms *versionless* and *versioned* over *multi stream* and *single stream*, as it - in my opinion - more accurately describes what is meant.
+
+*Versioned* in this specific case refers to EEs that are build for a *specific* Ansible Automation Platform **version** - such as `ansible-automation-platform-24/ee-minimal-rhel9`. From this example, the Ansible Automation Platform version that contains the EE `ee-minimal-rhel9` is 2.4. This is how EEs where distributed in the past.
+
+Nowadays, EEs are rather independent of the Ansible Automation Platform version and are distributed '*independently*', meaning not tied to a specific Ansible Automation
+Platform version in that sense. Hence: *versionless*.
+
+The idea behind the *versionless* EEs is basically to pick and chose which `ansible-core` version you'd like to have included in your EE. The
+[version tags](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel8/62bd87442c0945582b2b4b37/history) of, for instance,
+`ansible-automation-platform/ee-minimal-rhel8` correspond to `ansible-core` versions.
+
+One thing important to know: Often, container images make use of the `latest` tag, which commonly - who would have guessed it - refers to the latest available version of the
+container image. But when you are trying to pull `ansible-automation-platform/ee-minimal-rhel8:latest` using `podman`, you'll be greeted with an error:
+
+```
+# podman pull ansible-automation-platform/ee-minimal-rhel8:latest
+Resolved "ansible-automation-platform/ee-minimal-rhel8" as an alias (/etc/containers/registries.conf.d/001-rhel-shortnames.conf)
+Trying to pull registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:latest...
+WARN[0001] Failed, retrying in 1s ... (1/3). Error: initializing source docker://registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:latest: reading manifest latest in registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8: unsupported: This repository does not use the "latest" tag to track the most recent image and must be pulled with an explicit version or image reference. For more information, see: https://access.redhat.com/articles/4301321
+```
+
+:information_source: Don't get confused that I am using `podman` to pull the EE. You don't have to do the same. We'll be using `ansible-builder` for that. Using `podman` in
+this specific case is just easier.
+
+In [Red Hat's linked knownledgebase article](https://access.redhat.com/articles/4301321) it is explained *why* this change was introduced for a number of container images if
+you are curious of the *why*. In the context of the *versionless* EEs you only need to know, that it doesn't work :slightly_smiling_face:.
+
+One last thing to discuss is the absence of the `supported` variants (the ones that contain besides `ansible-core` also *some* **supported** Ansible collections) of EEs, as 
+well as the absence of the *special EE* (`ee-29-rhel8`) in *versionless* EEs.
+
+For the *special EE* (`ee-29-rhel8`) the reason is simple: There is nothing to choose from. There is only Ansible Engine 2.9 to use and it was never intended to run on RHEL 9,
+therefore there is only the RHEL 8 variant. Period. It will also go away in the future, as already mentioned.
+
+For the `supported` variants the answer is a different one: Red Hat envisions that Ansible Automation Platform users are building their very own and very specific EEs that
+fulfill exactly their needs on top of a supported `minimal` EE containing only `ansible-core`.
+
+If you think a moment about it, it hopefully makes perfect sense to you. You likely have very specific requirements for an EE. Such as the `ansible-core` version used, the
+included collections, the included Python packages, maybe you need access to a corporate proxy which requires you to include a set of certificate authority certificates into
+your EE and so on and so forth. All these things couldn't possibly come from Red Hat.
+
+At first, this might mean to you that you'll need to dive a little deeper into EEs than you'd like to, but it is worthwhile, and really easy.
+I mean, the chances are high, that you'll need to build your own EEs in the future if you are in a corporate environment - which most Red Hat customers are - so why not learn
+to build them yourself right from the start.
+
+In later sections, we'll learn how to build complex EEs on top of your very own base EEs that fit *exactly* your specific requirement.
+Just keep on reading :sunglasses:.
