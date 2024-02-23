@@ -2,7 +2,9 @@
 title: Execution Environments - Getting started and building complex execution environments (EEs) using ansible-builder 3
 author: Steffen Scheib
 ---
-### Preface
+
+# Preface
+
 To understand why execution environments (EEs) are such a crucial part of modern Ansible we need to briefly look into the past.
 To a time where there were no EEs, but *something* else to accomodate for certain situations.
 
@@ -11,10 +13,10 @@ feel free to skip to the next chapter :slightly_smiling_face:.
 
 Okay, let's get into it :sunglasses:.
 
-#### A quick look into the past
+## A quick look into the past
 
 Probably most users of Ansible encountered at some point a situation, where they needed to install a specific version of a Python module as a specific module of a collection
-required it to be installed. 
+required it to be installed.
 
 Let's take as an example [`community.general.proxmox`](https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_module.html). The
 module `proxmox` [specifies](https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_module.html#requirements) the following requirements:
@@ -26,11 +28,12 @@ Both [`proxmoxer`](https://github.com/proxmoxer/proxmoxer) and [`requests`](http
 [Python packages](https://packaging.python.org/en/latest/tutorials/installing-packages/).
 
 At this point we know, we need to install both Python packages *somehow* on our system where we execute Ansible. This leaves us with basically three choices:
+
 1. Use the system's package manager to install the packages - if packaged versions are available
-2. Install the Python packages using [`pip installs packages`, better known as `pip`](https://ianbicking.org/blog/2008/10/pyinstall-is-dead-long-live-pip.html) to install the
+1. Install the Python packages using [`pip installs packages`, better known as `pip`](https://ianbicking.org/blog/2008/10/pyinstall-is-dead-long-live-pip.html) to install the
    Python packages either in the user context ([`--user`](https://pip.pypa.io/en/stable/user_guide/#user-installs)) or in the system context (**don't ever install
    Python packages in the system context!**)
-3. Use a [`Python Virtual Environment`, better known as `venv`](https://docs.python.org/3/library/venv.html)
+1. Use a [`Python Virtual Environment`, better known as `venv`](https://docs.python.org/3/library/venv.html)
 
 We can choose either of the three options above and we should be good to, right?
 
@@ -44,7 +47,7 @@ actual Python system packages and therefore keeps the actual system 'clean'.
 Okay great, now you installed both `requests` and `proxmoxer`. It's in your `venv`. Now you can get started with developing the Ansible role you wanted.
 
 You start developing your role and you install more and more Ansible collections. With it, you install more and more Python packages as well as system packages, because, of
-course, most of the collections depend on specific Python and/or system packages. 
+course, most of the collections depend on specific Python and/or system packages.
 
 Finally you are done: You couldn't be happier right now. Your role works *exactly* as you've imagined.
 
@@ -77,16 +80,18 @@ something more productive.
 So, what's then a better solution to achieve the same - or even better - outcome?
 Meet [Ansible's execution environments (EEs)](https://docs.ansible.com/ansible/latest/getting_started_ee/index.html#getting-started-with-execution-environments).
 
-### Ansible's execution environments (EEs): An introduction
+## Ansible's execution environments (EEs): An introduction
+
 So what exactly are EEs?
 
 First and foremost, EEs are container images - they are basically packaged Ansible control nodes. Essentially, you can picture it as your development machine
 or your centralized Ansible control node that runs your Ansible content in production, packaged in a container image with everything it needs to run specific Ansible content.
 
 EEs come by default with a few things:
+
 1. Ansible, usually `ansible-core`
-2. [`ansible-runner`](https://ansible.readthedocs.io/projects/runner/en/latest/) 
-3. A specific Python version that fits the Ansible version used
+1. [`ansible-runner`](https://ansible.readthedocs.io/projects/runner/en/latest/)
+1. A specific Python version that fits the Ansible version used
 
 That's really it - for the bare minimum.
 
@@ -107,24 +112,29 @@ With the knowledge of what EEs are, I guess everyone can easily imagine why they
 you actively develop Ansible content. Since everything is now neatly packaged in a container, you can easily share and reuse it.
 
 ### Execution environments: Getting started
+
 Working with EEs is pretty straight-forward once you know what you need. In the previous chapter I referred to two 'wrappers' that enable you to use and create EEs - these are:
+
 1. [`ansible-navigator`](https://ansible.readthedocs.io/projects/navigator/)
-2. [`ansible-builder`](https://ansible.readthedocs.io/projects/builder/en/latest/)
+1. [`ansible-builder`](https://ansible.readthedocs.io/projects/builder/en/latest/)
 
 Let me give you a *very brief* overview over these tools.
 
 #### `ansible-navigator`
+
 `ansible-navigator` is essentially a drop-in replacement for all the `ansible-` commands (e.g. `ansible-playbook`, `ansible-inventory`, `ansible-doc`, etc.) you are used to when
 working with Ansible on the command line (CLI). You *need* `ansible-navigator` to run your Ansible content via CLI inside an EE, as `ansible-playbook` is not able to run
 something inside an EE.
 
 #### `ansible-builder`
+
 `ansible-builder` is the tool to use when building execution environments. It makes creating and extending existing EEs easy and straight-forward. Under the hood, it
 essentially interacts with [`podman`](https://podman.io/) to create the images.
 
 Now that we know the *very basics* about EEs let's actually get started. :sunglasses:
 
 #### Existing EEs: An overview
+
 The understand the concept behind EEs, please allow me to contextualize the Ansible ecosystem with regards to EEs a little.
 
 There are existing EEs which you can utilize to get started. Both the Ansible community and Red Hat maintain a few EEs. The ones maintained by the
@@ -171,6 +181,7 @@ For upstream EEs, you are probably going to choose the [AWX EE](https://quay.io/
 In this blog post I am going to focus on using *Red Hat certified execution environments*.
 
 Certified EEs come, at the time of this writing, in different variants:
+
 - Either based on UBI 8 or UBI 9
 - Either contain `ansible-core` *only* or `ansible-core` and a set of [*certified collections*](https://catalog.redhat.com/software/search?target_platforms=Red%20Hat%20Ansible%20Automation%20Platform)
 - In a *special* case, one EE contains Ansible Engine 2.9, but this EE is going to go away in the future as Ansible Engine reached its downstream end of life in December last
@@ -184,6 +195,7 @@ When browsing to [registry.redhat.io](https://catalog.redhat.com) with your brow
 you'll be pulling the EEs of registry.redhat.io.
 
 Now, *finally*, here are some of the available EEs:
+
 - [ansible-automation-platform/ee-minimal-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel8/62bd87442c0945582b2b4b37)
 - [ansible-automation-platform/ee-minimal-rhel9](https://catalog.redhat.com/software/containers/ansible-automation-platform/ee-minimal-rhel9/6447df2aa123f7fc409f847e)
 - [ansible-automation-platform-24/ee-minimal-rhel9](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-minimal-rhel9/643d4c13fae71880450b6108)
@@ -232,7 +244,7 @@ this specific case is just easier.
 In [Red Hat's linked knownledgebase article](https://access.redhat.com/articles/4301321) it is explained *why* this change was introduced for a number of container images if
 you are curious of the *why*. In the context of the *versionless* EEs you only need to know, that it doesn't work :slightly_smiling_face:.
 
-One last thing to discuss is the absence of the `supported` variants (the ones that contain besides `ansible-core` also *some* **supported** Ansible collections) of EEs, as 
+One last thing to discuss is the absence of the `supported` variants (the ones that contain besides `ansible-core` also *some* **supported** Ansible collections) of EEs, as
 well as the absence of the *special EE* (`ee-29-rhel8`) in *versionless* EEs.
 
 For the *special EE* (`ee-29-rhel8`) the reason is simple: There is nothing to choose from. There is only Ansible Engine 2.9 to use and it was never intended to run on RHEL 9,
@@ -251,3 +263,55 @@ to build them yourself right from the start.
 
 In later sections, we'll learn how to build complex EEs on top of your very own base EEs that fit *exactly* your specific requirement.
 Just keep on reading :sunglasses:.
+
+### Using existing EEs with `ansible-navigator`
+
+After we've learnt a lot about EEs in the previous chapters, let's actually use them :slightly_smiling_face:. To use the EEs on the CLI, let me first
+introduce you to `ansible-navigator`. `ansible-navigator` is crucial for developing and testing EEs before actually putting them into production.
+
+#### Installing `ansible-navigator`
+
+There are multiple ways you can install `ansible-navigator`, which are detailed in the
+[installation documentation](https://ansible.readthedocs.io/projects/navigator/installation/).
+
+To install a stable version of `ansible-navigator` on RHEL (I'll refer to it as *downstream*), you need access to one of the Red Hat Ansible Automation Platform
+repositories, for instance:
+
+- Red Hat Ansible Automation Platform 2.4 for RHEL 8 x86_64 (RPMs), repository ID: `ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms`
+- Red Hat Ansible Automation Platform 2.4 for RHEL 9 x86_64 (RPMs), repository ID: `ansible-automation-platform-2.4-for-rhel-9-x86_64-rpms`
+
+:information_source: Once again the hint that the above repositories require you to be a [Red Hat subscriber](#existing-ees-an-overview).
+
+Simply enable the repository you've chosen using `subscription-manager`:
+
+```
+# sudo subscription-manager repos --enable ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms
+```
+
+Then install `ansible-navigator` using `dnf` or `yum`:
+
+```
+# sudo dnf install ansible-navigator
+```
+
+If you'd rather like to use the latest available upstream version, you can do so with [`pip`](https://pypi.org/project/pip/):
+
+```
+sudo dnf install python3-pip
+python3 -m pip install ansible-navigator --user
+```
+
+For `ansible-navigator` to be able to work with EEs, you either need [`podman`](https://podman.io/) or [`docker`](https://www.docker.com/) on your system, as we are going to use
+containers and naturally need *something* to handle them :slightly_smiling_face:. I'll use `podman` for the remainder of this post, but all commands I am going to use with
+`podman` are working exactly the same when replacing `podman` with `docker`.
+
+Afterall, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
+
+:information_source: The upstream variant of `ansible-navigator` is not exclusively available on RHEL; You can install it on a few more operating systems. Please refer to the
+[installation documentation](https://ansible.readthedocs.io/projects/navigator/installation/) to get an overview of all supported operating systems.
+
+:warning: There is one important difference in the above versions: The downstream variant of `ansible-navigator` will default to an EE that is provided and supported by Red Hat,
+while the upstream variant will default to an upstream EE. At the time of this writing, the downstream variant of `ansible-navigator` of the Ansible Automation Platform 2.4
+repository will pull `registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest` while the upstream variant will pull `ghcr.io/ansible/creator-ee:v0.22.0`.
+
+#### Getting started with `ansible-navigator`
