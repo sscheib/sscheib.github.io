@@ -3,7 +3,7 @@ title: Execution Environments - Getting started and building complex execution e
 author: Steffen Scheib
 ---
 
-# Preface
+## Preface
 
 To understand why execution environments (EEs) are such a crucial part of modern Ansible we need to briefly look into the past.
 To a time where there were no EEs, but *something* else to accomodate for certain situations.
@@ -20,8 +20,9 @@ required it to be installed.
 
 Let's take as an example [`community.general.proxmox`](https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_module.html). The
 module `proxmox` [specifies](https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_module.html#requirements) the following requirements:
+
 > The below requirements are needed on the host that executes this module.
-> - proxmoxer
+> - proxmoxer <!-- markdownlint-disable-line MD032 -->
 > - requests
 
 Both [`proxmoxer`](https://github.com/proxmoxer/proxmoxer) and [`requests`](https://github.com/psf/requests) are
@@ -35,7 +36,7 @@ At this point we know, we need to install both Python packages *somehow* on our 
    Python packages in the system context!**)
 1. Use a [`Python Virtual Environment`, better known as `venv`](https://docs.python.org/3/library/venv.html)
 
-We can choose either of the three options above and we should be good to, right?
+We can choose either of the three options above and we should be good to go, right?
 
 *Theoretically*, yes. *Practically*, not really - well, at least it comes with its challenges.
 
@@ -99,7 +100,7 @@ But what makes EEs so powerful and versatile is their great flexibility bundled 
 not see the massive benefits of EEs just yet. I understand that. Some people might even be afraid of containers as they haven't been using them until this point.
 
 Rest assured: Containers are not bad. They are actually awesome if you understand the benefits of them and understand that you need to adapt in some ways to them.
-This might sound at first like a big task, but it's not, really.
+This might sound at first like a big task, but it really is not.
 
 Especially in the context of EEs, containers are not just not bad, but are *the* solution to all the problems I outlined above. I know, this might not be clear yet at this
 point. You - hopefully - understand or at the very least begin to understand, what I mean once you finished reading this blog post.
@@ -108,8 +109,14 @@ For those who are afraid of containers: You don't *really* need to work with con
 work with two 'wrappers' that take care of building and running your containers in such a way that you usually don't need to interact with container images and containers
 directly. I explain all of that in greater detail a bit later.
 
-With the knowledge of what EEs are, I guess everyone can easily imagine why they solve the issues `venvs` have. Essentially, you define and extend your EE as necessary while
-you actively develop Ansible content. Since everything is now neatly packaged in a container, you can easily share and reuse it.
+With the knowledge of what EEs are, I guess everyone can easily imagine why they solve the issues `venvs` have.
+
+Essentially, you **define and extend your EE** as necessary **while you actively develop** Ansible content. This is *exactly* the same workflow you are used to when developing
+Ansible Content with `venvs`. This time however, since everything is now neatly packaged in a container, you can now essentially share your development environment. With
+*everything* you have modified. Be it settings within the EE, installed system packages or Python packages, as well as every Ansible content you depend on when running your
+Ansible code.
+
+EEs effectively eleminate the ".. but it works on my machine!" :sunglasses:.
 
 ### Execution environments: Getting started
 
@@ -122,24 +129,26 @@ Let me give you a *very brief* overview over these tools.
 
 #### `ansible-navigator`
 
-`ansible-navigator` is essentially a drop-in replacement for all the `ansible-` commands (e.g. `ansible-playbook`, `ansible-inventory`, `ansible-doc`, etc.) you are used to when
-working with Ansible on the command line (CLI). You *need* `ansible-navigator` to run your Ansible content via CLI inside an EE, as `ansible-playbook` is not able to run
-something inside an EE.
+`ansible-navigator` is essentially an extension for all (well, most of) the `ansible-` commands (e.g. `ansible-playbook`, `ansible-inventory`, `ansible-doc`, etc.) you are
+used to when working with Ansible on the command line (CLI). You *need* `ansible-navigator` to run your Ansible content via CLI inside an EE, as `ansible-playbook` is not
+able to run something inside an EE.
 
 #### `ansible-builder`
 
 `ansible-builder` is the tool to use when building execution environments. It makes creating and extending existing EEs easy and straight-forward. Under the hood, it
 essentially interacts with [`podman`](https://podman.io/) to create the images.
 
-Now that we know the *very basics* about EEs let's actually get started. :sunglasses:
+Now that we know the *very basics* about EEs, let's look a little deeper.
 
 #### Existing EEs: An overview
 
 The understand the concept behind EEs, please allow me to contextualize the Ansible ecosystem with regards to EEs a little.
 
 There are existing EEs which you can utilize to get started. Both the Ansible community and Red Hat maintain a few EEs. The ones maintained by the
-Ansible community are either hosted on [quay.io](https://quay.io/) or on GitHubs Container Registry [ghcr.io](https://ghcr.io). The ones Red Hat maintains are called *Red Hat
-certified execution environments* and are provided via Red Hat's Container Registry [registry.redhat.io](https://catalog.redhat.com/).
+Ansible community are either hosted on [quay.io](https://quay.io/) or on GitHubs Container Registry [ghcr.io](https://ghcr.io). The ones Red Hat maintains are officially called
+*Ansible Automation Platform execution environments*, which are [*Certified Container Images*](https://catalog.redhat.com/software/containers/explore) and are provided via
+Red Hat's Container Registry [registry.redhat.io](https://catalog.redhat.com/). I'll refer to Red Hat's EEs typically as "certified EEs", as it makes communication
+easier :slightly_smiling_face:.
 
 The difference between EEs of the Ansible community (we at Red Hat, usually refer to them as *upstream*) and Red Hat's EEs (we at Red Hat, usually refer to them as
 *downstream*) is that upstream EEs are *usually* based on CentOS stream, while downstream EEs are based on
@@ -175,10 +184,11 @@ Now that the *basic* principles of upstream vs. downstream with regards to EEs a
 
 Alright, let's obtain one EE and start using it - but where do you get them and which one to chose?
 
-For upstream EEs, you are probably going to choose the [AWX EE](https://quay.io/repository/ansible/awx-ee) which is meant to be used when running your code in
-[AWX](https://github.com/ansible/awx) (one of Red Hat's upstream projects that are part of the Ansible Automation Platform).
+For upstream EEs, you are probably going to choose either the [Ansible Creator EE](https://github.com/ansible/creator-ee), which is aimed towards Ansible content developers
+or the [AWX EE](https://quay.io/repository/ansible/awx-ee) which is meant to be used when running your code in [AWX](https://github.com/ansible/awx) (one of Red Hat's
+upstream projects that are part of the Ansible Automation Platform).
 
-In this blog post I am going to focus on using *Red Hat certified execution environments*.
+In this blog post I am going to focus on using Red Hat's certified EEs.
 
 Certified EEs come, at the time of this writing, in different variants:
 
@@ -192,7 +202,7 @@ Certified EEs come, at the time of this writing, in different variants:
 
 Again, Red Hat's EEs are hosted on [registry.redhat.io](https://catalog.redhat.com) where the 'user-browsable interface' is [catalog.redhat.com](https://catalog.redhat.com).
 When browsing to [registry.redhat.io](https://catalog.redhat.com) with your browser, you'll be redirected to [catalog.redhat.com](https://catalog.redhat.com) automatically, but
-you'll be pulling the EEs of registry.redhat.io.
+you'll be pulling the EEs of `registry.redhat.io`.
 
 Now, *finally*, here are some of the available EEs:
 
@@ -208,9 +218,10 @@ You can already tell a difference from the namespace portion of the EEs. `ansibl
 Moreover, there is a `supported` variant and a `minimal` variant.
 
 First off: Don't get confused. `supported` in this context means, it will contain `ansible-core` **and** *some* **supported** Ansible collections. The `minimal`
-variant is exactly as supported as the `supported` one is, albeit it's totally understandable if you are confused :smile:.
+variant is exactly as supported as the `supported` one is, albeit it's totally understandable if you are confused :smile:. The `minimal` EE contains `ansible-core` **only** -
+no collections or anything else.
 
-There is also this *special* EE, which contains Ansible Engine 2.9 only: `ansible-automation-platform-24/ee-29-rhel8`. Again, this EE is/was provided merely for the reason to
+There is also this *special* EE, which contains Ansible Engine 2.9: `ansible-automation-platform-24/ee-29-rhel8`. Again, this EE is/was provided merely for the reason to
 support customers in their migration from older Ansible Automation Platform/Ansible versions.
 
 Secondly, the namespace difference (`ansible-automation-platform/ee-minimal-rhel9` vs. `ansible-automation-platform-24/ee-minimal-rhel9`) is due to 'historic' reasons,
@@ -231,7 +242,7 @@ The idea behind the *versionless* EEs is basically to pick and chose which `ansi
 One thing important to know: Often, container images make use of the `latest` tag, which commonly - who would have guessed it - refers to the latest available version of the
 container image. But when you are trying to pull `ansible-automation-platform/ee-minimal-rhel8:latest` using `podman`, you'll be greeted with an error:
 
-```
+```shell
 # podman pull ansible-automation-platform/ee-minimal-rhel8:latest
 Resolved "ansible-automation-platform/ee-minimal-rhel8" as an alias (/etc/containers/registries.conf.d/001-rhel-shortnames.conf)
 Trying to pull registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:latest...
@@ -243,6 +254,16 @@ this specific case is just easier.
 
 In [Red Hat's linked knownledgebase article](https://access.redhat.com/articles/4301321) it is explained *why* this change was introduced for a number of container images if
 you are curious of the *why*. In the context of the *versionless* EEs you only need to know, that it doesn't work :slightly_smiling_face:.
+
+Afterall, users typically want the latest available version of `ansible-core` within the same *minor version* (the second digit in e.g 2.**15**.9).
+It is not a good idea to jump from say `ansible-core` 2.15 to `ansible-core` 2.16 *without* evaluating what *changed* inbetween those versions. On the other hand,
+you'd most likely want to have the *latest 2.15* version, e.g. 2.15.9, as *usually* there are no *breaking* or *major* changes within the same minor version.
+
+If that's a use-case you can relate to, then I have good news for you: You can specify the tag `2.15` on the execution environment, e.g.
+`ansible-automation-platform/ee-minimal-rhel8:2.15`, which will pull always the latest available version within this minor version, which is 2.15.x.
+
+If you want to be more specific, you can do that too, simply specify a tag with an additional z-version (the last digit in e.g. 2.15.**9**), e.g.
+`ansible-automation-platform/ee-minimal-rhel8:2.15.9`
 
 One last thing to discuss is the absence of the `supported` variants (the ones that contain besides `ansible-core` also *some* **supported** Ansible collections) of EEs, as
 well as the absence of the *special EE* (`ee-29-rhel8`) in *versionless* EEs.
@@ -267,7 +288,8 @@ Just keep on reading :sunglasses:.
 ### Using existing EEs with `ansible-navigator`
 
 After we've learnt a lot about EEs in the previous chapters, let's actually use them :slightly_smiling_face:. To use the EEs on the CLI, let me first
-introduce you to `ansible-navigator`. `ansible-navigator` is crucial for developing and testing EEs before actually putting them into production.
+introduce you to `ansible-navigator`. In an earlier chapter I have briefly touched on `ansible-navigator`, but `ansible-navigator` is crucial for developing and testing
+EEs before actually putting them into production - so we need to have a deeper look into it to actually leverage its functionalities.
 
 #### Installing `ansible-navigator`
 
@@ -284,22 +306,28 @@ repositories, for instance:
 
 Simply enable the repository you've chosen using `subscription-manager`:
 
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo subscription-manager repos --enable ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms
 ```
-# sudo subscription-manager repos --enable ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms
-```
+<!-- markdownlint-enable MD014 -->
 
 Then install `ansible-navigator` using `dnf` or `yum`:
 
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo dnf install ansible-navigator
 ```
-# sudo dnf install ansible-navigator
-```
+<!-- markdownlint-enable MD014 -->
 
 If you'd rather like to use the latest available upstream version, you can do so with [`pip`](https://pypi.org/project/pip/):
 
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo dnf install python3-pip
+$ python3 -m pip install ansible-navigator --user
 ```
-sudo dnf install python3-pip
-python3 -m pip install ansible-navigator --user
-```
+<!-- markdownlint-enable MD014 -->
 
 For `ansible-navigator` to be able to work with EEs, you either need [`podman`](https://podman.io/) or [`docker`](https://www.docker.com/) on your system, as we are going to use
 containers and naturally need *something* to handle them :slightly_smiling_face:. I'll use `podman` for the remainder of this post, but all commands I am going to use with
@@ -312,6 +340,265 @@ Afterall, we really only run **one** command with `podman`. The remainder will b
 
 :warning: There is one important difference in the above versions: The downstream variant of `ansible-navigator` will default to an EE that is provided and supported by Red Hat,
 while the upstream variant will default to an upstream EE. At the time of this writing, the downstream variant of `ansible-navigator` of the Ansible Automation Platform 2.4
-repository will pull `registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest` while the upstream variant will pull `ghcr.io/ansible/creator-ee:v0.22.0`.
+repository will pull `registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest` while the upstream variant will pull `ghcr.io/ansible/creator-ee`.
 
 #### Getting started with `ansible-navigator`
+
+First up: `ansible-navigator` has a ton of features. We'll only cover the very basics of it which gets you up to speed with `ansible-navigator`. If you'd like to dive deeper
+into specific features of `ansible-navigator`, the [documentation](https://ansible.readthedocs.io/projects/navigator/) provides a good starting point for that.
+
+As I mentioned already, `ansible-navigator` is meant to extend the current CLI tools, which you are most likely familiar with, such as:
+
+- `ansible-playbook`
+- `ansible-inventory`
+- `ansible-doc`
+- etc.
+
+Extending the functionality of the 'original' CLI tools of Ansible means for `ansible-navigator` - in a nutshell - that it can work with EEs. First, you'd maybe think that
+only `ansible-playbook` should be extended or superseeded, as this command is where we actually run playbooks.
+
+Let's talk about this hypothesis.
+
+It is easiest to show the difference using `ansible-galaxy collection list` and `ansible-doc`.
+
+Let's first check which collections I have installed locally:
+
+```shell
+$ ansible-galaxy collection list
+
+# /home/steffen/.ansible/collections/ansible_collections
+Collection                  Version
+--------------------------- ----------
+ansible.controller          4.3.0
+ansible.netcommon           5.3.0
+ansible.posix               1.5.4
+ansible.tower               3.8.6
+ansible.utils               2.10.3
+ansible.windows             1.11.0
+community.crypto            2.16.2
+community.docker            3.3.2
+community.general           7.3.0
+community.mysql             3.4.0
+community.postgresql        2.2.0
+community.routeros          2.7.0
+community.zabbix            1.9.1
+containers.podman           1.10.1
+infra.ah_configuration      2.0.2
+kubernetes.core             2.3.2
+openstack.cloud             2.0.0
+redhat.openshift            2.2.0
+redhat.rhel_system_roles    1.22.0
+redhat.satellite            3.15.0
+redhat.satellite_operations 2.1.0
+sscheib.insights            0.0.2
+theforeman.foreman          3.11.0-dev
+zabbix.zabbix               1.2.2
+```
+
+Now, let's try the same with `ansible-navigator`.
+
+First, as I use the downstream variant of `ansible-navigator`, I need to login to the container registry of Red Hat (`registry.redhat.io`) - this the single podman
+command that is *required* to know about when using the downstream variant of `ansible-navigator`:
+
+```shell
+$ podman login registry.redhat.io
+Username: myUsername
+Password:
+Login Succeeded!
+```
+
+:information_source: To learn which credentials you can use to login to `registry.redhat.io`, Red Hat has created a great
+                     [knowledgebase article](https://access.redhat.com/RegistryAuthentication) which also explains how to use tokens for authentication instead of username
+                     and password.
+
+Let's run the equivalent command using `ansible-navigator`:
+
+```shell
+$ ansible-navigator collections list
+--------------------------------------------------------------------------------------------------------------
+Execution environment image and pull policy overview
+--------------------------------------------------------------------------------------------------------------
+Execution environment image name:     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+Execution environment image tag:      latest
+Execution environment pull arguments: None
+Execution environment pull policy:    tag
+Execution environment pull needed:    True
+--------------------------------------------------------------------------------------------------------------
+Updating the execution environment
+--------------------------------------------------------------------------------------------------------------
+Running the command: podman pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+Trying to pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest...
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob 4a22b5338626 skipped: already exists  
+Copying blob 161ea1f419fb skipped: already exists  
+Copying blob 72e13691cee8 skipped: already exists  
+Copying blob 74e0c06e5eac skipped: already exists  
+Copying config 996b5c1825 done  
+Writing manifest to image destination
+Storing signatures
+996b5c1825b0b3d56296900606fe360a652d4633e0f517a6716bf489579808cc
+
+
+   Name                                 Version    Shadowed    Type         Path
+ 0│amazon.aws                           6.4.0      False       contained    /usr/share/ansible/collections/ansible_collections/amazon/aws
+ 1│ansible.builtin                      2.15.9     False       contained    /usr/lib/python3.9/site-packages/ansible
+ 2│ansible.controller                   4.5.1      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/controller
+ 3│ansible.netcommon                    6.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/netcommon
+ 4│ansible.network                      3.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/network
+ 5│ansible.posix                        1.5.4      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/posix
+ 6│ansible.scm                          2.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/scm
+ 7│ansible.security                     2.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/security
+ 8│ansible.snmp                         2.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/snmp
+ 9│ansible.utils                        3.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/utils
+10│ansible.windows                      1.14.0     False       contained    /usr/share/ansible/collections/ansible_collections/ansible/windows
+11│ansible.yang                         2.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ansible/yang
+12│arista.eos                           7.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/arista/eos
+13│cisco.asa                            5.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/cisco/asa
+14│cisco.ios                            6.1.0      False       contained    /usr/share/ansible/collections/ansible_collections/cisco/ios
+15│cisco.iosxr                          7.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/cisco/iosxr
+16│cisco.nxos                           6.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/cisco/nxos
+17│cloud.common                         2.1.2      False       contained    /usr/share/ansible/collections/ansible_collections/cloud/common
+18│cloud.terraform                      1.1.1      False       contained    /usr/share/ansible/collections/ansible_collections/cloud/terraform
+19│frr.frr                              2.0.2      False       contained    /usr/share/ansible/collections/ansible_collections/frr/frr
+20│ibm.qradar                           3.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/ibm/qradar
+21│junipernetworks.junos                6.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/junipernetworks/junos
+22│kubernetes.core                      2.4.0      False       contained    /usr/share/ansible/collections/ansible_collections/kubernetes/core
+23│microsoft.ad                         1.1.0      False       contained    /usr/share/ansible/collections/ansible_collections/microsoft/ad
+24│openvswitch.openvswitch              2.1.1      False       contained    /usr/share/ansible/collections/ansible_collections/openvswitch/openvswitch
+25│redhat.amq_broker                    1.3.0      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/amq_broker
+26│redhat.eap                           1.3.1      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/eap
+27│redhat.insights                      1.0.7      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/insights
+28│redhat.openshift                     2.3.0      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/openshift
+29│redhat.redhat_csp_download           1.2.2      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/redhat_csp_download
+30│redhat.rhel_idm                      1.10.0     False       contained    /usr/share/ansible/collections/ansible_collections/redhat/rhel_idm
+31│redhat.rhel_system_roles             1.21.1     False       contained    /usr/share/ansible/collections/ansible_collections/redhat/rhel_system_roles
+32│redhat.rhv                           2.4.2      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/rhv
+33│redhat.runtimes_common               1.0.2      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/runtimes_common
+34│redhat.sap_install                   1.2.1      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/sap_install
+35│redhat.satellite                     3.10.0     False       contained    /usr/share/ansible/collections/ansible_collections/redhat/satellite
+36│redhat.satellite_operations          1.3.0      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/satellite_operations
+37│redhat.sso                           1.2.1      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/sso
+38│sap.sap_operations                   1.0.4      False       contained    /usr/share/ansible/collections/ansible_collections/sap/sap_operations
+39│servicenow.itsm                      2.1.0      False       contained    /usr/share/ansible/collections/ansible_collections/servicenow/itsm
+40│splunk.es                            3.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/splunk/es
+41│trendmicro.deepsec                   3.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/trendmicro/deepsec
+42│vmware.vmware_rest                   2.3.1      False       contained    /usr/share/ansible/collections/ansible_collections/vmware/vmware_rest
+43│vyos.vyos                            4.0.2      False       contained    /usr/share/ansible/collections/ansible_collections/vyos/vyos
+```
+
+:information_source: I copied the collection list from the text-based user interface of `ansible-navigator`. A text-based user interfac might be known to you from e.g.
+`nmtui`, `tmux` or `vim`. All of them are based on the same library: [`ncurses`](https://en.wikipedia.org/wiki/Ncurses), that's why it might look familiar to you.
+
+Looking at the above output, we can notice that there's quite a difference to the previous `ansible-galaxy collection list`.
+
+Why's that?
+
+First, the EE image gets pulled. **After** the EE image was pulled, it started `ansible-navigator` in the text-based user interface (TUI), and then finally the collections are listed.
+
+Now it might become clear why the majority of the `ansible-navigator` commands are run in an EE: To show correct information, `ansible-navigator` needs to access the Ansible version inside the EE and with it all the
+collections, the documentation, the Python packages and so on and so forth.
+
+That is why I can run `ansible-navigator doc vyos.vyos.vyos_static_routes` and get the documentation for it, but when I run the equivalent comment with `ansible-doc`, Ansible only shows a warning:
+
+```shell
+$ ansible-doc vyos.vyos.vyos_static_routes
+[WARNING]: vyos.vyos.vyos_static_routes was not found
+```
+
+The reason being that the collection `vyos.vyos` is installed within the EE `ansible-automation-platform-24/ee-supported-rhel8`, which is used
+by `ansible-navigator` in this example, but not on my local system, where the `ansible-doc vyos.vyos.vyos_static_routes` command will look for.
+
+#### An overview of the commands of `ansible-navigator`
+
+With the previous chapter, we found out why it makes sense to have the majority of the conventional Ansible CLI tools extended with EE support. But what features does
+`ansible-navigator` actually provide?
+
+Let's have a look at the `--help` output of `ansible-navigator`:
+
+```shell
+$ ansible-navigator --help
+Usage: ansible-navigator [options]
+
+[..]
+
+Subcommands:
+ {subcommand} --help
+  builder                                        Build [execution environment](https://docs.ansible.com/ansible/devel/getting_started_ee/index.html) (container image)
+  collections                                    Explore available collections
+  config                                         Explore the current ansible configuration
+  doc                                            Review documentation for a module or plugin
+  exec                                           Run a command within an execution environment
+  images                                         Explore execution environment images
+  inventory                                      Explore an inventory
+  lint                                           Lint a file or directory for common errors and issues
+  replay                                         Explore a previous run using a playbook artifact
+  run                                            Run a playbook
+  settings                                       Review the current ansible-navigator settings
+  welcome                                        Start at the welcome page
+```
+
+That's quite a lot of sub-command, but how do they map to the original Ansible CLI tools?
+
+The answer is not as straight-forward as you might think; Let me start with the obvious ones:
+
+| ansible command                           | ansible-navigator command                   |
+| :---------------------------------------- | :------------------------------------------ |
+| `ansible-galaxy collection list`          | `ansible-navigator collections list`        |
+| `ansible-config`                          | `ansible-navigator config`                  |
+| `ansible-doc`                             | `ansible-navigator doc`                     |
+| `ansible-inventory`                       | `ansible-navigator inventory`               |
+| `ansible-playbook`                        | `ansible-navigator run`                     |
+
+The above table shows the most common Ansible CLI tools, but a few are missing:
+
+- `ansible`
+- `ansible-test`
+- `ansible-vault`
+
+For both `ansible` and `ansible-test` you can use the `exec` sub-command. For an Ansible ad-hoc command this will look like the following:
+
+```shell
+$ ansible-navigator exec -- ansible -m ping localhost
+--------------------------------------------------------------------------------------------------------------
+Execution environment image and pull policy overview
+--------------------------------------------------------------------------------------------------------------
+Execution environment image name:     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+Execution environment image tag:      latest
+Execution environment pull arguments: None
+Execution environment pull policy:    tag
+Execution environment pull needed:    True
+--------------------------------------------------------------------------------------------------------------
+Updating the execution environment
+--------------------------------------------------------------------------------------------------------------
+Running the command: podman pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+Trying to pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest...
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob 4a22b5338626 skipped: already exists  
+Copying blob 72e13691cee8 skipped: already exists  
+Copying blob 161ea1f419fb skipped: already exists  
+Copying blob 74e0c06e5eac skipped: already exists  
+Copying config 996b5c1825 done  
+Writing manifest to image destination
+Storing signatures
+996b5c1825b0b3d56296900606fe360a652d4633e0f517a6716bf489579808cc
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+**Personally**, I do not see much sense in using `ansible-vault` and `ansible-test` with `ansible-navigator`; It is just easier to stick with the original CLI tools for them.
+
+If you'd really like to do it, here are the commands:
+
+<!-- markdownlint-disable MD014 -->
+```shell
+$ ansible-navigator exec -- ansible-test --help
+$ ansible-navigator exec -- ansible-vault --help
+```
+<!-- markdownlint-enable MD014 -->
+
+What essentially is done with `ansible-navigator exec` is to execute commands inside the EE. No more, no less. For the ad-hoc commands, this can definitively be a benefit to
+run it inside an EE, but for `ansible-test` and `ansible-vault` I don't see the value. If you know a use-case, please let me know! :slightly_smiling_face:
