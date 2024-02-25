@@ -285,13 +285,13 @@ to build them yourself right from the start.
 In later sections, we'll learn how to build complex EEs on top of your very own base EEs that fit *exactly* your specific requirement.
 Just keep on reading :sunglasses:.
 
-### Using existing EEs with `ansible-navigator`
+## Using existing EEs with `ansible-navigator`
 
 After we've learnt a lot about EEs in the previous chapters, let's actually use them :slightly_smiling_face:. To use the EEs on the CLI, let me first
 introduce you to `ansible-navigator`. In an earlier chapter I have briefly touched on `ansible-navigator`, but `ansible-navigator` is crucial for developing and testing
 EEs before actually putting them into production - so we need to have a deeper look into it to actually leverage its functionalities.
 
-#### Installing `ansible-navigator`
+### Installing `ansible-navigator`
 
 There are multiple ways you can install `ansible-navigator`, which are detailed in the
 [installation documentation](https://ansible.readthedocs.io/projects/navigator/installation/).
@@ -342,7 +342,7 @@ Afterall, we really only run **one** command with `podman`. The remainder will b
 while the upstream variant will default to an upstream EE. At the time of this writing, the downstream variant of `ansible-navigator` of the Ansible Automation Platform 2.4
 repository will pull `registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest` while the upstream variant will pull `ghcr.io/ansible/creator-ee`.
 
-#### Getting started with `ansible-navigator`
+### Getting started with `ansible-navigator`
 
 First up: `ansible-navigator` has a ton of features. We'll only cover the very basics of it which gets you up to speed with `ansible-navigator`. If you'd like to dive deeper
 into specific features of `ansible-navigator`, the [documentation](https://ansible.readthedocs.io/projects/navigator/) provides a good starting point for that.
@@ -509,7 +509,7 @@ $ ansible-doc vyos.vyos.vyos_static_routes
 The reason being that the collection `vyos.vyos` is installed within the EE `ansible-automation-platform-24/ee-supported-rhel8`, which is used
 by `ansible-navigator` in this example, but not on my local system, where the `ansible-doc vyos.vyos.vyos_static_routes` command will look for.
 
-#### An overview of the commands of `ansible-navigator`
+### An overview of the commands of `ansible-navigator`
 
 With the previous chapter, we found out why it makes sense to have the majority of the conventional Ansible CLI tools extended with EE support. But what features does
 `ansible-navigator` actually provide?
@@ -538,9 +538,12 @@ Subcommands:
   welcome                                        Start at the welcome page
 ```
 
-That's quite a lot of sub-command, but how do they map to the original Ansible CLI tools?
+That's quite a lot of sub-commands, but how do they map to the original Ansible CLI tools?
 
-The answer is not as straight-forward as you might think; Let me start with the obvious ones:
+The answer is not as straight-forward as you might think. First off: `ansible-navigator` is an **extension** to the original Ansible CLI tools, **not** a **replacement**.
+Having said that, *some* original Ansible CLI tools are incooperated into `ansible-navigator`:
+
+Let me start with the obvious ones:
 
 | ansible command                           | ansible-navigator command                   |
 | :---------------------------------------- | :------------------------------------------ |
@@ -602,3 +605,1077 @@ $ ansible-navigator exec -- ansible-vault --help
 
 What essentially is done with `ansible-navigator exec` is to execute commands inside the EE. No more, no less. For the ad-hoc commands, this can definitively be a benefit to
 run it inside an EE, but for `ansible-test` and `ansible-vault` I don't see the value. If you know a use-case, please let me know! :slightly_smiling_face:
+
+Lastly, there are also some sub-commands that are specific to `ansible-navigator`:
+
+- `builder`
+- `images`
+- `lint`
+- `replay`
+- `settings`
+
+Let me start with the ones, where I do not see a benefit in using them directly with `ansible-navigator`, but your milage my vary:
+
+- `builder`: You could theoretically build EEs using `ansible-navigator builder`, but under the hood it basically calls `ansible-builder`, so I decided to stick to
+  `ansible-builder` directly
+- `lint`: With `ansible-navigator lint` you can lint your Ansible code, *if* `ansible-lint` is installed. Essentially, it calls `ansible-lint` under the hood, so I decided to
+   stick to `ansible-lint` directly
+
+So what's left for sub-commands are `images`, `replay` and `settings`.
+
+With `ansible-navigator settings` you can view the current settings of `ansible-navigator` and create sample settings.
+
+### Configuration of `ansible-navigator`
+
+`ansible-navigator` [configuration file locations](https://ansible.readthedocs.io/projects/navigator/settings/) follow the same logic as the well-known
+`ansible.cfg`.
+
+Following locations are valid:
+
+- `ansible-navigator.yml` in your current working directory
+- `~/.ansible-navigator.yml` in your home directory
+
+:information_source: The `ansible-navigator.yml` configuration file in your current working directory has precedence over the `~/.ansible-navigator.yml` in your home directory.
+
+Alternatively, you can override the configuration file location with an environment variable: `ANSIBLE_NAVIGATOR_CONFIG`. Please note that the environment variable
+`ANSIBLE_NAVIGATOR_CONFIG` has the highest precedence.
+
+`ansible-navigator` settings can either be stored in `YAML` or `JSON`. For `YAML` the file extension needs to either be `.yml` or `.yaml`. For `JSON` it is `.json`.
+
+Decide on either format (I suggest `YAML`, of course :slightly_smiling_face:) and make sure that only *one* configuration file is present in either of the locations. If
+`ansible-navigator` finds more than one configuration file in one of the possible configuration file locations, it will error out:
+
+```shell
+$ ansible-navigator settings --help
+  Error: Only one file among '/home/steffen/.ansible-navigator.yml',
+         '/home/steffen/.ansible-navigator.yaml' and
+         '/home/steffen/.ansible-navigator.json' should be present in
+         /home/steffen Found: '/home/steffen/.ansible-navigator.yml' and
+         '/home/steffen/.ansible-navigator.json'
+
+   Note: Configuration failed, using default log file location.
+         (/home/steffen/ansible-navigator.log) Log level set to debug
+   Hint: Review the hints and log file to see what went wrong.
+```
+
+You can find a [sample configuration](https://ansible.readthedocs.io/projects/navigator/settings/) in the documentation or you can generate one using `ansible-navigator`.
+
+Okay, let's generate a sample configuration using `ansible-navigator settings --sample` and redirect the output to `~/.ansible-navigator.yml`:
+
+```shell
+$ ansible-navigator settings --sample > ~/.ansible-navigator.yml
+Trying to pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest...
+Getting image source signatures
+Checking if image destination supports signatures
+Copying blob 4a22b5338626 skipped: already exists  
+Copying blob 161ea1f419fb skipped: already exists  
+Copying blob 72e13691cee8 skipped: already exists  
+Copying blob 74e0c06e5eac skipped: already exists  
+Copying config 996b5c1825 done  
+Writing manifest to image destination
+Storing signatures
+```
+
+Unfortunately, this leaves us with a broken configuration, as part of the image pulling is also part of the `~/.ansible-navigator.yml` configuration file:
+
+```shell
+$ cat ~/.ansible-navigator.yml 
+996b5c1825b0b3d56296900606fe360a652d4633e0f517a6716bf489579808cc
+--------------------------------------------------------------------------------------------------------------
+Execution environment image and pull policy overview
+--------------------------------------------------------------------------------------------------------------
+Execution environment image name:     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+Execution environment image tag:      latest
+Execution environment pull arguments: None
+Execution environment pull policy:    tag
+Execution environment pull needed:    True
+--------------------------------------------------------------------------------------------------------------
+Updating the execution environment
+--------------------------------------------------------------------------------------------------------------
+Running the command: podman pull registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest
+---
+ansible-navigator:
+#   ansible:
+#     config:
+#       # Help options for ansible-config command in stdout mode
+#       help: False
+#       # Specify the path to the ansible configuration file
+#       path: ./ansible.cfg
+[..]
+```
+
+:information_source: From my point of view, the indentation in the generated `ansible-navigator` sample configuration is wrong. Technically, and according to
+the [YAML specification 1.2.2](https://yaml.org/spec/1.2.2/#61-indentation-spaces), *any* number of spaces is fine.
+> In YAML block styles, structure is determined by indentation. In general, indentation is defined as a zero or more space characters at the start of a line.
+I think, however, that either two (preferred) or four spaces are the common number of spaces used for indentation.
+
+The only way I found to overcome this is to create a small configuration file that disables using EEs and will be overwritten by our redirect:
+
+```shell
+$ cat ~/.ansible-navigator.yml 
+---
+ansible-navigator:
+  execution-environment:
+    enabled: false
+...
+```
+
+It is not possible to specify the same settings on the CLI as then `ansible-navigator` will error out:
+
+```shell
+$ ansible-navigator settings --ee false --sample
+Warning: Issues were found while applying the settings.
+   Hint: Command provided: 'settings --ee false --sample'
+
+  Error: Settings file found /home/steffen/ansible-navigator.yaml, but failed to load it.
+           error was: 'Settings file cannot be empty.'
+   Hint: Try checking the settings file '/home/steffen/ansible-navigator.yaml'and ensure it is properly formatted
+
+   Note: Configuration failed, using default log file location. (/home/steffen/ansible-navigator.log) Log level set to debug
+   Hint: Review the hints and log file to see what went wrong.
+```
+
+### My configuration for `ansible-navigator`
+
+Below you'll find one of configurations I am using. I don't have a configuration in my home directory: The reason being that I store a copy of my `ansible.cfg`, my
+`ansible-navigator.yml` and various other configurations in a 'project' directory. This project directory is structured per use-case and that's why I have special settings in
+each `ansible-navigator.yml` and `ansible.cfg` - such as number of forks, the Ansible remote user and the EE to use.
+
+I'll write a seperate blog post about how and why I structure my projects this way in the distant future, as I have been asked a couple of times already how I develop
+Ansible code and how I organize things - but that's a topic for the other blog post.
+
+Below is the configuration of my `ansible-navigator.yml` for my project `ansible-project-satellite`:
+
+```yaml
+---
+ansible-navigator:
+  mode: 'stdout'
+  logging:
+    level: 'critical'
+    append: true
+    file: '/dev/null'
+
+  color:
+    enable: true
+    osc4: true
+
+  editor:
+    command: 'vim_from_setting'
+    console: true
+
+  inventory-columns:
+    - 'ansible_network_os'
+    - 'ansible_network_cli_ssh_type'
+    - 'ansible_connection'
+
+  execution-environment:
+    container-engine: 'podman'
+    enabled: true
+    image: 'localhost/ee-ansible_project-satellite-rhel-8:latest'
+    pull:
+      policy: 'never'
+
+  playbook-artifact:
+    enable: false
+
+  ansible:
+    config:
+      help: false
+      path: './ansible.cfg'
+    doc:
+      help: false
+    inventory:
+      help: false
+      entries:
+        - './inventory/'
+
+  ansible-lint:
+    config: './.ansible-lint'
+
+  time-zone: 'Europe/Berlin'
+...
+```
+
+It is a very minimal configuration and should not be taken as "the correct configuration to use". This is my preferrence, your's probably differ.
+
+Following a quick summary of the settings I applied:
+
+1. I don't want to log to a log-file, that's why basically 'redirect' the log to `/dev/null`
+1. I'd like to have colors in my terminal :slightly_smiling_face:. And yes, I develop on the CLI using `vim` only :satisfied:!
+1. The editor that should be used when editing anything in `ansible-navigator` should be `vim`
+1. I added a few more `inventory-columns` that I find interesting
+1. I set `podman` as my `container-engine` and specified a specific image to use. I also never want `ansible-navigator` to pull the image, because it is locally available
+1. I don't want to use `playbook-artifacts` - we'll talk about that in a moment
+1. I specify the `ansible.cfg` and the `inventories` to use and disable all help in the TUI
+1. I played around with `ansible-lint` in `ansible-navigator` and left the `ansible-lint` setting pointing to my configuration file
+1. Lastly, I specified the time-zone. This will be used for calculating the time when using `playbook-artifacts`
+
+### `playbook-artifacts` in `ansible-navigator`
+
+`ansible-navigator` does not only extend the original Ansible CLI tools with EEs, but also brings some new features to the table. One of them is `playbook-artifacts`.
+`playbook-artifacts` are essentially a structured way of saving the events of a playbook run.
+
+At first, this might sound boring and not useful at all, but here is the thing which makes it great:
+
+You can replay any playbook (using `ansible-navigator replay`) by using the created playbook artifact. This allows for easier troubleshooting as every task is written to the artifact file with both the arguments it was
+executed with and what the result of it was.
+
+This can be beneficial as you are able to troubleshoot easier. And if you ever hit a roadblock and simply cannot find out what's wrong, you just share the artifact with one of your colleagues and can get your colleague's
+help that way.
+
+I personally don't use them at all times. I enable the artifact creation when I need it.
+
+### Modes of `ansible-navigator`
+
+`ansible-navigator` comes with two modes:
+
+1. `interactive`: That's the default and provides you with the TUI to interact with `ansible-navigator`. This mode is required when replaying artifacts. It is also helpful when
+looking at existing EEs to determine what's in them.
+1. `stdout`: `stdout` is essentially the 'good old look' of `ansible-playbook`. I prefer using this mode for most of the things I do with `ansible-navigator`.
+
+The mode can either be saved in the configuration file ([as in my above configuration file](#my-configuration-for-ansible-navigator) or can be overwritten by specifying the
+`-m` or `--mode` parameter, like in the following example:
+
+<!-- markdownlint-disable MD014 -->
+```shell
+$ ansible-navigator -m stdout
+```
+<!-- markdownlint-enable MD014 -->
+
+### Navigating in `ansible-navigator` when using the text-based user interface (TUI)
+
+Navigation in the TUI of `ansible-navigator` is easy and straight-forward when you are used to `vim`.
+
+If you are not used to `vim`, here is a quick run through:
+Pressing `:` will enable you to call the different functions. Say you wanted to check the images `ansible-navigator` knows about, then you'll simply type `:images` and press enter.
+
+Getting help is done via `:help`, looking at collections is done via `:collections`, and so on.
+
+There are also shortcuts available (as you might have noticed when looking at `:help`). For instance, `:im` calls `:images`, `:h` calls `:help`, etc. The shortcuts are listed
+in `:help`. Going back a screen is done by pressing escape on your keyboard and you can quit `ansible-navigator` with `:quit` or `:q`.
+
+So, once you are in one of these functions, you'll notice on the left-hand side a numbering which starts at 0.
+
+Let's look into an example of `ansible-navigator images`:
+
+```plaintext
+  Image                                                    Tag                                          Execution environment                 Created                  Size
+0│ansible-test-utility-container                           2.0.0                                        False                                 15 months ago            7.7 MB
+1│default-test-container                                   7.14.0                                       False                                 9 months ago             1.6 GB
+2│ee-ansible_project-zabbix-rhel-8                         latest                                       True                                  2 months ago             436 MB
+3│ee-minimal-rhel8                                         2.15                                         True                                  4 months ago             338 MB
+4│ee-supported-rhel8                                       latest                                       True                                  2 weeks ago              1.73 GB
+5│rootfs                                                   x86-generic-openwrt-22.03                    False                                 4 months ago             12.1 MB
+6│rootfs                                                   x86-generic-openwrt-21.02                    False                                 4 months ago             10.5 MB
+7│rootfs                                                   x86-generic-snapshot                         False                                 10 months ago            9.15 MB
+```
+
+If I now want to know more about the EE `ee-supported-rhel8`, I simply press `3` and I'll be offered a different set of options:
+
+```plaintext
+  Image: ee-supported-rhel:latest                                                            Description
+0│Image information                                                                          Information collected from image inspection
+1│General information                                                                        OS and python version information
+2│Ansible version and collections                                                            Information about ansible and ansible collections
+3│Python packages                                                                            Information about python and python packages
+4│Operating system packages                                                                  Information about operating system packages
+5│Everything                                                                                 All image information
+```
+
+To know more about the Ansible version and the EEs included collections, I press `2`:
+
+```plaintext
+Image: ee-supported-rhel8:latest (primary) (Information about ansible and ansible collections)                                                                                                                                             
+ 0│---
+ 1│ansible:
+ 2│  collections:
+ 3│    details:
+ 4│      amazon.aws: 6.4.0
+ 5│      ansible.controller: 4.5.1
+ 6│      ansible.netcommon: 6.0.0
+ 7│      ansible.network: 3.0.0
+ 8│      ansible.posix: 1.5.4
+ 9│      ansible.scm: 2.0.0
+10│      ansible.security: 2.0.0
+11│      ansible.snmp: 2.0.0
+12│      ansible.utils: 3.0.0
+13│      ansible.windows: 1.14.0
+14│      ansible.yang: 2.0.0
+15│      arista.eos: 7.0.0
+16│      cisco.asa: 5.0.0
+17│      cisco.ios: 6.1.0
+18│      cisco.iosxr: 7.0.0
+19│      cisco.nxos: 6.0.0
+20│      cloud.common: 2.1.2
+21│      cloud.terraform: 1.1.1
+22│      frr.frr: 2.0.2
+23│      ibm.qradar: 3.0.0
+24│      junipernetworks.junos: 6.0.0
+25│      kubernetes.core: 2.4.0
+26│      microsoft.ad: 1.1.0
+27│      openvswitch.openvswitch: 2.1.1
+28│      redhat.amq_broker: 1.3.0
+29│      redhat.eap: 1.3.1
+30│      redhat.insights: 1.0.7
+31│      redhat.openshift: 2.3.0
+32│      redhat.redhat_csp_download: 1.2.2
+33│      redhat.rhel_idm: 1.10.0
+34│      redhat.rhel_system_roles: 1.21.1
+35│      redhat.rhv: 2.4.2
+36│      redhat.runtimes_common: 1.0.2
+37│      redhat.sap_install: 1.2.1
+38│      redhat.satellite: 3.10.0
+39│      redhat.satellite_operations: 1.3.0
+40│      redhat.sso: 1.2.1
+41│      sap.sap_operations: 1.0.4
+42│      servicenow.itsm: 2.1.0
+43│      splunk.es: 3.0.0
+44│      trendmicro.deepsec: 3.0.0
+45│      vmware.vmware_rest: 2.3.1
+46│      vyos.vyos: 4.0.2
+47│  version:
+48│    details: ansible [core 2.15.9]
+```
+
+Now I can see what Ansible collections are part of the EE, great :slightly_smiling_face:.
+
+If you have more than 9 options available, you need to make use of `:10`, followed by pressing enter to get to the 10th item, or `:35` followed by pressing enter to get to the 35th item.
+This is exactly the way you'd navigate to line numbers in `vim` :sunglasses:.
+
+:information_source: Whenever there is nothing more `ansible-navigator` can show to you by selecting an item from the list - like with the collections above - it'll simply do nothing. So when I would want to get more information
+about the Satellite collection, which is item 38 and type `:38` followed by enter, `ansible-navigator` will do nothing.
+
+### Running playbooks in `ansible-navigator`
+
+Now we've learned a lot about `ansible-navigator`, but let's actually use it.
+
+I have the following *very* simple playbook:
+
+```yaml
+---
+- name: 'Configure SSHD'
+  hosts: 'g_satellites'
+  gather_facts: false
+  become: true  # required for the role redhat.rhel_system_roles.sshd'
+  roles:
+    - role: 'file_deployment'
+    - role: 'redhat.rhel_system_roles.sshd'
+...
+```
+
+In the above playbook I merely include two roles:
+
+1. My own role [`file_deployment`](https://github.com/sscheib/ansible-role-file_deployment) which places two files on the managed nodes that are required to configure `sshd`
+in the way I want it
+1. The RHEL system role to configure `sshd`:
+[`redhat.rhel_system_roles.sshd`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/rhel_system_roles/content/role/sshd/)
+
+For this little demo, I specified
+[ansible-automation-platform-24/ee-supported-rhel8](https://catalog.redhat.com/software/containers/ansible-automation-platform-24/ee-supported-rhel8/63a333ce183540f5962ae01d) as
+the EE to use and set the pull policy to `missing` in the `ansible-navigator` configuration file in my working directory (`ansible-navigator.yml`). I further specified to
+use as inventory the directory `./inventory` and to use the `ansible.cfg` that is in my current directory:
+
+```yaml
+---
+ansible-navigator:
+[..]
+  execution-environment:
+    container-engine: 'podman'
+    enabled: true
+    image: 'ee-supported-rhel8'
+    pull:
+      policy: 'missing'
+[..]
+  ansible:
+    config:
+      help: false
+      path: './ansible.cfg'
+    doc:
+      help: false
+    inventory:
+      help: false
+      entries:
+        - './inventory/'
+[..]
+```
+
+Let's quickly examine the folder structure in this directory:
+
+```shell
+$ tree .
+.
+├── ansible.cfg
+├── ansible-navigator.yml
+├── collections
+│   └── requirements.yml
+├── inventory
+│   ├── g_satellites.yml
+│   ├── host_vars
+│   │   ├── satellite.office.int.scheib.me
+│   │   │   ├── 00a_secrets.yml
+│   │   │   ├── 00b_secrets_base.yml
+│   │   │   ├── 00c_register_satellite.yml
+│   │   │   ├── 00d_user_deployment.yml
+│   │   │   ├── 00e_package_installation.yml
+│   │   │   ├── 00f_service_management.yml
+│   │   │   ├── 00g_file_deployment.yml
+│   │   └── satellite.pve.ext.scheib.me
+│   │       ├── 00a_secrets.yml
+│   │       ├── 00b_secrets_base.yml
+│   │       ├── 00c_register_satellite.yml
+│   │       ├── 00d_user_deployment.yml
+│   │       ├── 00e_package_installation.yml
+│   │       ├── 00f_service_management.yml
+│   │       ├── 00g_sshd.yml
+│   └── ungrouped.yml
+├── playbooks
+│   ├── 000_setup.yml
+│   ├── 00_create_kickstart.yml
+│   ├── 01a_register_satellite.yml
+│   ├── 01b_user_deployment.yml
+│   ├── 01c_package_installation.yml
+│   ├── 01d_service_management.yml
+│   ├── 01e_sshd.yml
+│   ├── 01f_generate_ssl_key_pairs.yml
+│   ├── files
+│   │   ├── sshd_issue.net
+│   │   └── sshd_motd
+│   ├── group_vars -> ../inventory/group_vars/
+│   └── host_vars -> ../inventory/host_vars/
+└── roles
+    └── requirements.yml
+
+20 directories, 159 files
+```
+
+:information_source: The directory contains *way more* files and directories than shown above (see the last line in the output above), but I removed a lot of the output
+to shorten it a little.
+
+My hosts are in this specific case in the group `g_satellites` which is defined in the file `inventory/g_satellites.yml`:
+
+```yaml
+---
+g_satellites:
+  hosts:
+    satellite.office.int.scheib.me: {}
+    satellite.pve.ext.scheib.me: {}
+...
+```
+
+The corresponding `host_vars` for both hosts are stored in `inventory/host_vars/<hostname>`. Both `host_vars` directories contain a file `00g_sshd.yml` which is where I get
+the settings for the RHEL system role `redhat.rhel_system_roles.sshd`.
+
+As an example what one of them looks like:
+
+<!-- markdownlint-disable MD003 MD022 -->
+{% highlight yaml %}
+{% raw %}
+---
+sshd_enable: true
+sshd_skip_defaults: true
+sshd_manage_firewall: true
+sshd_manage_selinux: true
+sshd_sysconfig: true
+sshd_sysconfig_override_crypto_policy: true
+sshd:
+  AddressFamily: 'inet'
+  AllowAgentForwarding: false
+  AllowTcpForwarding: false
+  AllowStreamLocalForwarding: false
+  AuthenticationMethods: 'publickey'
+  AuthorizedKeysFile: '%h/.ssh/authorized_keys'
+  Banner: '/etc/issue.net'
+  ChallengeResponseAuthentication: false
+  ChrootDirectory: 'none'
+  Ciphers: >-
+    {{
+      [
+        'chacha20-poly1305@openssh.com',
+        'aes256-gcm@openssh.com',
+        'aes128-gcm@openssh.com',
+        'aes256-ctr',
+        'aes192-ctr',
+        'aes128-ctr'
+      ] | join(',')
+    }}
+  ClientAliveCountMax: 3
+  ClientAliveInterval: 0
+  Compression: 'delayed'
+  FingerprintHash: 'sha512'
+  GatewayPorts: false
+  HostbasedAuthentication: false
+  HostKey:
+    - '/etc/ssh/ssh_host_ecdsa_key'
+  HostKeyAlgorithms: >-
+    {{
+      [
+        'ecdsa-sha2-nistp256-cert-v01@openssh.com',
+        'ecdsa-sha2-nistp384-cert-v01@openssh.com',
+        'ecdsa-sha2-nistp521-cert-v01@openssh.com',
+        'ecdsa-sha2-nistp256',
+        'ecdsa-sha2-nistp384',
+        'ecdsa-sha2-nistp521'
+      ] | join(',')
+    }}
+  IgnoreRhosts: true
+  IPQoS: 'lowdelay throughput'
+  KexAlgorithms: >-
+    {{
+      [
+        'curve25519-sha256@libssh.org',
+        'ecdh-sha2-nistp521',
+        'ecdh-sha2-nistp384',
+        'ecdh-sha2-nistp256',
+        'diffie-hellman-group-exchange-sha256'
+      ] | join(',')
+    }}
+  ListenAddress:
+    - '0.0.0.0'
+  LoginGraceTime: 60
+  LogLevel: 'VERBOSE'
+  MACs: >-
+    {{
+      [
+        'hmac-sha2-512-etm@openssh.com',
+        'hmac-sha2-256-etm@openssh.com',
+        'umac-128-etm@openssh.com',
+        'hmac-sha2-512',
+        'hmac-sha2-256',
+        'umac-128@openssh.com'
+      ] | join(',')
+    }}
+  MaxAuthTries: 3
+  MaxSessions: 6
+  MaxStartups: '10:30:60'
+  PasswordAuthentication: false
+  PermitEmptyPasswords: false
+  PermitRootLogin: false
+  PermitTunnel: false
+  PermitTTY: true
+  PermitUserEnvironment: false
+  PermitUserRC: false
+  PidFile: '/var/run/sshd.pid'
+  Port: 1905
+  PrintMotd: true
+  Protocol: 2
+  PubkeyAcceptedKeyTypes: 'ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521'
+  PubkeyAuthentication: true
+  RekeyLimit: '64M 4H'
+  Subsystem: 'sftp internal-sftp'
+  StrictModes: true
+  SyslogFacility: 'AUTH'
+  TCPKeepAlive: true
+  UseDNS: false
+  VersionAddendum: 'none'
+  X11Forwarding: false
+...
+{% endraw %}
+{% endhighlight %}
+<!-- markdownlint-enable MD003 MD022 -->
+
+:information_source: As a side note: Yes, the configuration above is
+[Federal Information Processing Standards (FIPS)](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) compliant :rofl:.
+
+Finally, there are also `host_vars` for my role `file_deployment`. As an example you'll find below the configuration for one of the hosts:
+
+```yaml
+---
+fd_files:
+  - src: 'sshd_motd'
+    dest: '/etc/motd'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+
+  - src: 'sshd_issue.net'
+    dest: '/etc/issue.net'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+...
+```
+
+The corresponding files are stored in `playbooks/files`.
+
+*Locally installed* I have my custom role as well as the collection `redhat.rhel_system_roles`:
+
+```shell
+$ ansible-galaxy role list
+# /home/steffen/.ansible/roles
+- sscheib.filebeat, (unknown version)
+- ansible-timesync, (unknown version)
+- willshersystems.sshd, v0.17.0
+- ansible-role-logrotate, (unknown version)
+- ansible-role-rsyslog, (unknown version)
+- ansible-sshd, (unknown version)
+- zabbix_add_host, v1.0.6
+- satellite_proxmox_compute_ressource, v1.0
+- sscheib.openwrt_dropbear, (unknown version)
+- openwrt_dropbear, (unknown version)
+- satellite_create_host, v1.0.2
+- satellite_publish_promote_content_views, v1.0.2
+- satellite_prepare_installation, v1.0.3
+- satellite_template_synchronization, v1.0.2
+- satellite_global_parameters, v1.0.1
+- file_deployment, v1.0.1
+- rhel_iso_kickstart, v2.0.6
+- user_deployment, v1.0.5
+- package_installation, v1.0.1
+- service_management, v1.0.2
+- generate_ssl_key_pairs, v1.1.5
+- register_to_satellite, v1.0.4
+# /usr/share/ansible/roles
+# /etc/ansible/roles
+
+$ ansible-galaxy collection list
+
+# /home/steffen/.ansible/collections/ansible_collections
+Collection                  Version   
+--------------------------- ----------
+ansible.controller          4.3.0     
+ansible.netcommon           5.3.0     
+ansible.posix               1.5.4     
+ansible.tower               3.8.6     
+ansible.utils               2.10.3    
+ansible.windows             1.11.0    
+community.crypto            2.16.2    
+community.docker            3.3.2     
+community.general           7.3.0     
+community.mysql             3.4.0     
+community.postgresql        2.2.0     
+community.routeros          2.7.0     
+community.zabbix            1.9.1     
+containers.podman           1.10.1    
+infra.ah_configuration      2.0.2     
+kubernetes.core             2.3.2     
+openstack.cloud             2.0.0     
+redhat.openshift            2.2.0     
+redhat.rhel_system_roles    1.22.0    
+redhat.satellite            3.15.0    
+redhat.satellite_operations 2.1.0     
+sscheib.insights            0.0.2     
+theforeman.foreman          3.11.0-dev
+zabbix.zabbix               1.2.2 
+```
+
+That should do it, right? :thinking:
+
+Let's see what happens:
+
+```shell
+$ ansible-navigator run -m stdout playbooks/01e_sshd.yml --limit satellite.office.int.scheib.me
+ERROR! the role 'file_deployment' was not found in /home/steffen/sources/ansible-project-satellite/playbooks/roles:/home/runner/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/home/steffen/sources/ansible-project-satellite/playbooks
+
+The error appears to be in '/home/steffen/sources/ansible-project-satellite/playbooks/01e_sshd.yml': line 7, column 7, but may
+be elsewhere in the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+  roles:
+    - role: 'file_deployment'
+      ^ here
+Please review the log for errors.
+```
+
+That's certainly correct. The role is not part of my project directory, nor is it part of the EE. Let's see if we can *somehow* make it work *without* building a custom EE
+that contains the role.
+
+Let's adjust the `ansible-navigator.yml` configuration a little:
+
+```yaml
+---
+ansible-navigator:
+[..]
+  execution-environment:
+    container-engine: 'podman'
+    enabled: true
+    image: 'ee-supported-rhel8'
+    pull:
+      policy: 'missing'
+    volume-mounts:
+      - src: '~/.ansible/roles/'
+        dest: '/home/runner/.ansible/roles'
+        options: 'z'
+[..]
+...
+```
+
+We just specified a [`volume mount`](https://docs.podman.io/en/v4.4/markdown/podman-volume-mount.1.html), which is a container feature to mount a local directory into the
+container's filesystem.
+
+:information_source: The above description of a `volume mount` is overly simplified. If you'd like to know more about `volume mounts`, please consult the
+[documentation](https://docs.podman.io/en/latest/markdown/podman-volume-mount.1.html) of `podman`.
+
+Rerunning the playbook seems to work now:
+
+```plaintext
+$ ansible-navigator run -m stdout playbooks/01e_sshd.yml --limit satellite.office.int.scheib.me
+
+PLAY [Configure SSHD] ****************************************************************************************************************************************************************
+
+TASK [file_deployment : Include tasks to ensure all variables are defined properly] **************************************************************************************************
+included: /home/runner/.ansible/roles/file_deployment/tasks/assert.yml for satellite.office.int.scheib.me
+
+TASK [file_deployment : Ensure mandatory variables, as  well as variables, which have a default value, are set (boolean)] ************************************************************
+ok: [satellite.office.int.scheib.me] => (item=variable: _fd_quiet_assert) => {
+    "__t_var": "_fd_quiet_assert",
+    "ansible_loop_var": "__t_var",
+    "changed": false,
+    "msg": "Variable '_fd_quiet_assert' defined properly - value: 'False'"
+}
+
+TASK [file_deployment : Ensure _fd_packages is defined properly] *********************************************************************************************************************
+ok: [satellite.office.int.scheib.me] => {
+    "changed": false,
+    "msg": "Files are defined correctly"
+}
+
+TASK [file_deployment : Include tasks to deploy files] *******************************************************************************************************************************
+included: /home/runner/.ansible/roles/file_deployment/tasks/file_deployment.yml for satellite.office.int.scheib.me
+
+TASK [file_deployment : file_deployment | Deploy files] ******************************************************************************************************************************
+ok: [satellite.office.int.scheib.me] => (item=/etc/motd)
+ok: [satellite.office.int.scheib.me] => (item=/etc/issue.net)
+
+TASK [redhat.rhel_system_roles.sshd : Invoke the role, if enabled] *******************************************************************************************************************
+included: /usr/share/ansible/collections/ansible_collections/redhat/rhel_system_roles/roles/sshd/tasks/sshd.yml for satellite.office.int.scheib.me
+[..]
+```
+
+Perfect! Right? :thinking:
+
+Well, yes, but no :rofl:. Here is the thing: If you'd use a customized EE that contains itself also roles, the above `volume mount` would effectively overwrite the directory
+in that sense, that the `volume mount` would overlay the existing roles.
+
+To accomodate for that scenario we have two options:
+
+1. Specify a different roles directory using an Ansible configuration option:
+[`roles_path`](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#default-roles-path`). We could also specify it via the environment variable
+`ANSIBLE_ROLES_PATH`
+1. Mount our local roles directory to a different directory that is checked by Ansible by default
+
+If we recall the error from above, where it couldn't find the role, there was an important piece of information in the error message - the search paths for Ansible roles:
+
+```plaintext
+ERROR! the role 'file_deployment' was not found in /home/steffen/sources/ansible-project-satellite/playbooks/roles:/home/runner/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/home/steffen/sources/ansible-project-satellite/playbooks
+```
+
+So, Ansible will look at:
+
+- `/home/steffen/sources/ansible-project-satellite/playbooks/roles`
+- `/home/runner/.ansible/roles`
+- `/usr/share/ansible/roles:/etc/ansible/roles`
+- `/home/steffen/sources/ansible-project-satellite/playbooks`
+
+We could therefore modify the volume mount to use either `/home/runner/.ansible/roles` or `/usr/share/ansible/roles:/etc/ansible/roles`.
+
+Let's take the safer approach by adjusting the `roles_path`.
+
+Do you recall that I specified the `ansible.cfg` in the `ansible-navigator.yml` file? We can take advantage of that!
+
+We first adjust our `ansible-navigator.yml` to mount the roles somewhere else:
+
+```yaml
+---
+ansible-navigator:
+[..]
+  execution-environment:
+    container-engine: 'podman'
+    enabled: true
+    image: 'ee-supported-rhel8'
+    pull:
+      policy: 'missing'
+    volume-mounts:
+      - src: '~/.ansible/roles/'
+        dest: '/home/runner/custom_roles/'
+        options: 'z'
+[..]
+...
+```
+
+Finally, we add the following to our `ansible.cfg`:
+
+```ini
+[defaults]
+roles_path          = $HOME/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:$HOME/custom_roles
+```
+
+Let us check whether everything works as intended:
+
+```plaintext
+ansible-navigator run -m stdout playbooks/01e_sshd.yml --limit satellite.office.int.scheib.me
+
+PLAY [Configure SSHD] ****************************************************************************************************************************************************************
+
+TASK [file_deployment : Include tasks to ensure all variables are defined properly] **************************************************************************************************
+included: /home/runner/custom_roles/file_deployment/tasks/assert.yml for satellite.office.int.scheib.me
+
+TASK [file_deployment : Ensure mandatory variables, as  well as variables, which have a default value, are set (boolean)] ************************************************************
+ok: [satellite.office.int.scheib.me] => (item=variable: _fd_quiet_assert) => {
+    "__t_var": "_fd_quiet_assert",
+    "ansible_loop_var": "__t_var",
+    "changed": false,
+    "msg": "Variable '_fd_quiet_assert' defined properly - value: 'False'"
+}
+
+TASK [file_deployment : Ensure _fd_packages is defined properly] *********************************************************************************************************************
+ok: [satellite.office.int.scheib.me] => {
+    "changed": false,
+    "msg": "Files are defined correctly"
+}
+
+TASK [file_deployment : Include tasks to deploy files] *******************************************************************************************************************************
+included: /home/runner/custom_roles/file_deployment/tasks/file_deployment.yml for satellite.office.int.scheib.me
+
+TASK [file_deployment : file_deployment | Deploy files] ******************************************************************************************************************************
+ok: [satellite.office.int.scheib.me] => (item=/etc/motd)
+[..]
+```
+
+Awesome :sunglasses:!
+
+But wait a minute - why does it know about my files in `playbooks/files` and even about the `host_vars` and all that?
+
+`ansible-navigator` mounts the current directory ('project directory') automatically inside the EE. This is why everything is working
+[automagically](https://ansible.readthedocs.io/projects/navigator/faq/#where-should-the-ansiblecfg-file-go-when-using-an-execution-environment) :rocket:.
+
+:warning: It is great to play around like that on your development machine, but this is not something that should be used in production. **Instead building custom EEs is the
+way to go**. This ensures portability and eleminates the typical problems of ".. but it works on my machine!". I just wanted to show case what's possible with
+`ansible-navigator` :sweat_smile:
+
+## Building custom EEs with `ansible-builder`
+
+Now that we learned a ton of stuff about `ansible-navigator` and its capabilities, let's take a closer look at `ansible-builder`.
+
+`ansible-builder` is essentially a wrapper that calls `podman` to create container images for running Ansible content - the EEs, we talked about. While using existing EEs
+gives you a quick start, there will be a point, where the existing EEs just don't fit your needs (anymore). Here is where `ansible-builder` comes in.
+
+### Installing `ansible-builder`
+
+There are multiple ways you can install `ansible-builder`, which are detailed in the
+[installation documentation](https://ansible.readthedocs.io/projects/builder/en/latest/installation/).
+
+To install a stable version of `ansible-builder` on RHEL (I'll refer to it as *downstream*), you need access to one of the Red Hat Ansible Automation Platform
+repositories, for instance:
+
+- Red Hat Ansible Automation Platform 2.4 for RHEL 8 x86_64 (RPMs), repository ID: `ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms`
+- Red Hat Ansible Automation Platform 2.4 for RHEL 9 x86_64 (RPMs), repository ID: `ansible-automation-platform-2.4-for-rhel-9-x86_64-rpms`
+
+:information_source: Once again the hint that the above repositories require you to be a [Red Hat subscriber](#existing-ees-an-overview).
+
+Simply enable the repository you've chosen using `subscription-manager`:
+
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo subscription-manager repos --enable ansible-automation-platform-2.4-for-rhel-8-x86_64-rpms
+```
+<!-- markdownlint-enable MD014 -->
+
+Then install `ansible-navigator` using `dnf` or `yum`:
+
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo dnf install ansible-navigator
+```
+<!-- markdownlint-enable MD014 -->
+
+If you'd rather like to use the latest available upstream version, you can do so with [`pip`](https://pypi.org/project/pip/):
+
+<!-- markdownlint-disable MD014 -->
+```shell
+$ sudo dnf install python3-pip
+$ python3 -m pip install ansible-builder --user
+```
+<!-- markdownlint-enable MD014 -->
+
+For `ansible-builder` to be able to build EEs, you either need [`podman`](https://podman.io/) or [`docker`](https://www.docker.com/) on your system, as we are going to
+build containers and naturally need *something* to handle them :slightly_smiling_face:. I'll use `podman` for the remainder of this post, but all commands I am going to use
+with `podman` are working exactly the same when replacing `podman` with `docker`.
+
+Afterall, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
+
+:information_source: The upstream variant of `ansible-builder` is not exclusively available on RHEL; You can install it on a few more operating systems. Please refer to the
+[installation documentation](https://ansible.readthedocs.io/projects/builder/en/latest/installation/) to get an overview of all supported operating systems.
+
+### Getting started with `ansible-builder`
+
+First off: I am going to talk about `ansible-builder` v3 which was released by
+Red Hat with the [Ansible Automation Platform 2.4](https://access.redhat.com/support/policy/updates/ansible-automation-platform). With v3 of `ansible-builder` a new, *way* more
+flexible format of writing EE definitions has been introduced. Please upgrade to `ansible-builder` v3+ if you haven't yet. It makes a **huge** difference.
+
+Having said that, let's first look at the help output of `ansible-builder`:
+
+```shell
+$ ansible-builder --help
+usage: ansible-builder [-h] [--version] {create,build,introspect} ...
+
+Tooling to help build container images for running Ansible content. Get started by looking at the help text for one of the subcommands.
+
+positional arguments:
+  {create,build,introspect}
+                        The command to invoke.
+    create              Creates a build context, which can be used by podman to build an image.
+    build               Builds a container image.
+    introspect          Introspects collections in folder.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             Print ansible-builder version and exit.
+```
+
+Okay, that's a *lot less* possibilities than with `ansible-navigator`. Don't let yourself fool. This is all you **need**.
+
+Actually, we really only need `create` and `build` as commands.
+
+`introspect` is used by `ansible-builder` itself to figure out dependencies of collections. That is something
+we do not need at the moment, but surely is helpful if you are interested in finding out why a specific system or Python package has been installed.
+
+Let me quickly show you what it looks like when I let `ansible-builder introspect` check my installed collections:
+
+```shell
+$ ansible-builder introspect ~/.ansible/collections/
+# Dependency data for /home/steffen/.ansible/collections/
+---
+python:
+  ansible.controller:
+  - 'pytz  # for schedule_rrule lookup plugin'
+  - 'python-dateutil>=2.7.0  # schedule_rrule'
+  - 'awxkit  # For import and export modules'
+  ansible.netcommon:
+  - ansible-pylibssh >= 0.2.0
+  - jxmlease
+  - ncclient
+  - netaddr
+  - paramiko
+  - xmltodict
+  - grpcio
+  - protobuf
+  ansible.tower:
+  - 'pytz  # for tower_schedule_rrule lookup plugin'
+  - 'python-dateutil>=2.7.0  # tower_schedule_rrule'
+  - 'awxkit  # For import and export modules'
+  ansible.utils:
+  - jsonschema
+  - textfsm
+  - ttp
+  - xmltodict
+  - netaddr
+  community.crypto:
+  - PyYAML
+  community.docker:
+  - docker
+  - requests
+  - paramiko
+  community.routeros:
+  - librouteros
+  kubernetes.core:
+  - kubernetes>=12.0.0
+  - requests-oauthlib
+  - jsonpatch
+  openstack.cloud:
+  - openstacksdk>=1.0.0
+  redhat.openshift:
+  - kubernetes>=12.0.0
+  - requests-oauthlib
+  redhat.satellite:
+  - requests>=2.4.2
+  - ipaddress; python_version < '3.3'
+  - PyYAML
+  sscheib.insights:
+  - requests
+  theforeman.foreman:
+  - requests>=2.4.2
+  - ipaddress; python_version < '3.3'
+  - PyYAML
+  zabbix.zabbix:
+  - netaddr>=0.8
+  - Jinja2>=3.1.2
+
+system:
+  ansible.controller:
+  - python38-pytz [platform:centos-8 platform:rhel-8]
+  - python38-requests [platform:centos-8 platform:rhel-8]
+  - python38-pyyaml [platform:centos-8 platform:rhel-8]
+  ansible.netcommon:
+  - gcc-c++ [doc test platform:rpm]
+  - libyaml-devel [test platform:rpm]
+  - libyaml-dev [test platform:dpkg]
+  - python3-devel [test platform:rpm]
+  - python3 [test platform:rpm]
+  - gcc [compile platform:rpm]
+  - libssh-dev [compile platform:dpkg]
+  - libssh-devel [compile platform:rpm]
+  - python3-Cython [compile platform:fedora-35 platform:rhel-9]
+  - python3-six [platform:centos-9 platform:rhel-9]
+  - python39-six [platform:centos-8 platform:rhel-8]
+  - python3-lxml [platform:centos-9 platform:rhel-9]
+  - python39-lxml [platform:centos-8 platform:rhel-8]
+  - findutils [compile platform:centos-8 platform:rhel-8]
+  - gcc [compile platform:centos-8 platform:rhel-8]
+  - make [compile platform:centos-8 platform:rhel-8]
+  - python3-devel [compile platform:centos-9 platform:rhel-9]
+  - python39-devel [compile platform:centos-8 platform:rhel-8]
+  - python3-cffi [platform:centos-9 platform:rhel-9]
+  - python39-cffi [platform:centos-8 platform:rhel-8]
+  - python3-cryptography [platform:centos-9 platform:rhel-9]
+  - python39-cryptography [platform:centos-8 platform:rhel-8]
+  - python3-pycparser [platform:centos-9 platform:rhel-9]
+  - python39-pycparser [platform:centos-8 platform:rhel-8]
+  ansible.posix:
+  - rsync [platform:redhat]
+  ansible.utils:
+  - gcc-c++ [doc test platform:rpm]
+  - python3-devel [test platform:rpm]
+  - python3 [test platform:rpm]
+  community.crypto:
+  - cryptsetup [platform:dpkg]
+  - cryptsetup [platform:rpm]
+  - openssh-client [platform:dpkg]
+  - openssh-clients [platform:rpm]
+  - openssl [platform:dpkg]
+  - openssl [platform:rpm]
+  - python3-cryptography [platform:dpkg]
+  - python3-cryptography [platform:rpm]
+  - python3-openssl [platform:dpkg]
+  - python3-pyOpenSSL [platform:rpm !platform:rhel !platform:centos !platform:rocky]
+  - python3-pyOpenSSL [platform:rhel-8]
+  - python3-pyOpenSSL [platform:rhel !platform:rhel-6 !platform:rhel-7 !platform:rhel-8
+    epel]
+  - python3-pyOpenSSL [platform:centos-8]
+  - python3-pyOpenSSL [platform:centos !platform:centos-6 !platform:centos-7 !platform:centos-8
+    epel]
+  - python3-pyOpenSSL [platform:rocky-8]
+  - python3-pyOpenSSL [platform:rocky !platform:rocky-8 epel]
+  infra.ah_configuration:
+  - python >=3.5
+  kubernetes.core:
+  - kubernetes-client [platform:fedora]
+  - openshift-clients [platform:rhel-8]
+  openstack.cloud:
+  - gcc [compile platform:centos-8 platform:rhel-8]
+  - python38-cryptography [platform:centos-8 platform:rhel-8]
+  - python38-devel [compile platform:centos-8 platform:rhel-8]
+  - python38-requests [platform:centos-8 platform:rhel-8]
+  redhat.rhel_system_roles:
+  - openssl
+  - dnf
+  redhat.satellite:
+  - python3-rpm [(platform:redhat platform:base-py3)]
+  - rpm-python [(platform:redhat platform:base-py2)]
+  - python38-requests [platform:centos-8 platform:rhel-8]
+  sscheib.insights:
+  - python38-requests [platform:centos-8 platform:rhel-8]
+  theforeman.foreman:
+  - python3-rpm [(platform:redhat platform:base-py3)]
+  - rpm-python [(platform:redhat platform:base-py2)]
+  - python38-requests [platform:centos-8 platform:rhel-8]
+```
+
+That's quite a bunch of system and Python packages :slightly_smiling_face:
+
+Anyway, let's look at the important sub-commands:
+
+- `create`
+- `build`
+
+
