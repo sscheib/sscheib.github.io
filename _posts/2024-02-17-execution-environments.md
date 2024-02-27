@@ -1671,11 +1671,193 @@ system:
   - python38-requests [platform:centos-8 platform:rhel-8]
 ```
 
-That's quite a bunch of system and Python packages :slightly_smiling_face:
+That's quite a bunch of system and Python packages :slightly_smiling_face:.
 
-Anyway, let's look at the important sub-commands:
+Again, `ansible-builder introspect` is not particularly useful, unless you debug an issue with dependencies. I just wanted you to know, that *if* there is an issue with
+dependencies while building EEs, this command can be pretty handy.
+
+Now that we have the the `introspect` out of the way, let's look at the two remaining sub-commands:
 
 - `create`
 - `build`
 
+In a nutshell, `ansible-builder create` creates a so-called *build context* for you - remember, we want to build containers. Building containers is done via a
+[`Containerfile`](https://www.mankier.com/5/Containerfile) (for `podman`) or a [`Dockerfile`](https://docs.docker.com/reference/dockerfile/) (for `docker`) which comes in a
+specific format. `Containerfile` and `Dockerfile` definitions are *largely* interchangeble (there *were* differences in the past, but I don't know if it is the same today).
 
+:information_source: Further in this post I'll use `Containerfile` as reference to make things easier. Just know that *usually* `Containerfile` and `Dockerfile` are
+interchangeable.
+
+`ansible-builder create` essentially translate an [EE definition](https://ansible.readthedocs.io/projects/builder/en/stable/definition/) into container build steps. That is
+useful if you ever need to modify the Containerfile to your *very*, *very* specific needs before building the container image. *Usually*, `ansible-builder` with the new
+Version 3 of the EE definition is enough for the majority of use cases.
+
+Please bear with me a minute, I'll explain shortly what an EE definition looks like.
+
+`ansible-builder build` on the other hand, goes one step further than `ansible-builder create`. Once the build context has been created, it will also run `podman` under the
+hood to actually create and tag your image.
+
+Again, the above explanation is very high level, but we'll go into the details later on.
+
+### Execution Environment definition
+
+Before we dive into it: Just a reminder, I'll be talking about *Version 3* (`ansible-builder` version > 3 is required) of the EE definition. Version 1 has limitations that have
+largely been resolved by Version 3. If you have been building Version 1 EEs previously, please consider migrating to Version 3, as it eases the process a lot - especially for
+complex EEs.
+
+Let's dive into it - finally we get to define something :sunglasses:.
+
+Execution Environment definitions essentially describe *what* you'd like to have within your EE. Typically, the *what* is a combination of these:
+
+1. `ansible-core` and which version of it
+1. `ansible-runner` and which version of it
+1. Ansible collections
+1. Ansible roles
+1. Python packages, both as dependencies of an Ansible collection and as a "user-supplied" package
+1. System packages, both as dependencies of an Ansible collection and as a "user-supplied" package
+1. Additional system configurations, modifications and files, such as certificate authorities of your company or specific proxy settings
+
+:information_source: What I mean by a "user-supplied" package (for both system packages and Python packages) is that you specifically instructed `ansible-builder` to install
+these packages during the EE build.
+
+EE definitions are written entirely in [`YAML`](https://yaml.org/) and should therefore be no trouble writing for anyone who as previously worked with `YAML` - such as
+Ansible users :smile:.
+
+Let's imagine a scenario:
+
+Your Satellite team approached you, that they'd like to automate Red Hat Satellite and therefore need the latest versions of the collections
+[`redhat.satellite`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/) and
+[`redhat.satellite_operations`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/) inside the EE.
+They also want to make use of the latest available `ansible-core` version, which is at the time of this writing 2.16.
+
+That's pretty straight-forward. We have the choice to either use UBI 8 or UBI 9, and we decide to go with UBI 8.
+
+So what we need inside the EE:
+
+1. `ansible-core` in version 2.16
+1. `ansible-runner` in version 2.16
+1. [`redhat.satellite`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/) in the latest version
+1. [`redhat.satellite_operations`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/) in the latest version
+1. The EE should be based on UBI 8
+
+I know, you have waited for a complex EE definition, but you'll be shocked how easy it is to define the above requirements as EE. Have a look at the EE definition
+below:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+
+dependencies:
+  galaxy:
+    collections:
+      - name: 'redhat.satellite'
+      - name: 'redhat.satellite_operations'
+
+options:
+  package_manager_path: '/usr/bin/microdnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+additional_build_steps:
+  prepend_galaxy:
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+...
+```
+
+That's it. Really. Before we dive into what all the options do, let me first explain what `ansible-builder` command to run and check whether all our requirements are met.
+
+I put the above definition in a file called `execution-environment.yml`: That is the default file `ansible-builder` will try to open if you don't pass a specific EE definitions
+file using the `--file` or `-f` switches.
+
+Further, I increased the verbosity (`--verbosity` or `-v` with either 0, 1, 2 or 3 as value) to actually see what's happening during the build and lastly, I
+[tagged](https://docs.podman.io/en/latest/markdown/podman-tag.1.html) (essentially assigned a name and a version to my image) my image as `ee-satellite-rhel-8:latest` using the
+`--tag` or `-t` switches.
+
+The corresponding `ansible-builder build` command is the following:
+
+```shell
+ansible-builder build --tag ee-satellite-rhel-8 --verbosity 3
+```
+
+Pretty easy, right? Once you run that command you'll see something like this as the last messages of the `ansible-builder build` command:
+
+```plaintext
+[4/4] COMMIT ee-satellite-rhel-8
+--> 0ac2e9ef7216
+Successfully tagged localhost/ee-satellite-rhel-8:latest
+0ac2e9ef72169c7104b40e04bde34480b107b46efb5469bbb36ee883fe232e1e
+```
+
+:information_source: Please note, the above checksum you see, is the checksum of the container image and yours definitively *differs*.
+
+You can check all your locally existing container images with `ansible-navigator images` using the TUI interface:
+
+```plaintext
+   Image                                                                                Tag          Execution environment                  Created                    Size
+ 0│ee-minimal-rhel8                                                                     2.16         True                                   3 weeks ago                345 MB
+ 1│ee-satellite-rhel-8                                                                  latest       True                                   17 minutes ago             445 MB
+```
+
+Or if you prefer, using `podman image list`:
+
+```shell
+$ podman images
+REPOSITORY                                                            TAG         IMAGE ID      CREATED         SIZE
+localhost/ee-satellite-rhel-8                                         latest      d9b8762094e4  15 minutes ago  445 MB
+registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8       2.16        74f040829a5c  3 weeks ago     345 MB
+```
+
+Now, let's check if our EE `localhost/ee-satellite-rhel-8` contains `ansible-core 2.16` and the collections `redhat.satellite` and `redhat.satellite_operations`. We are going
+to use `ansible-navigator collections --execution-environment-image localhost/ee-satellite-rhel-8:latest --pull-policy never` for that:
+
+```plaintext
+  Name                                 Version    Shadowed    Type         Path
+0│ansible.builtin                      2.16.3     False       contained    /usr/local/lib/python3.11/site-packages/ansible
+1│redhat.satellite                     4.0.0      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/satellite
+2│redhat.satellite_operations          2.1.0      False       contained    /usr/share/ansible/collections/ansible_collections/redhat/satellite_operations
+```
+
+:information_source: Since we don't have a container registry on our host (which is perfectly normal!) we need to use `--pull-policy` or `--pp` with the value `never`, which
+instructs `ansible-navigator` to not *pull* the EE, which would otherwise fail. This is *only* for EEs that you've built locally or pulled already from a container registry
+and don't want to update it everytime you run `ansible-navigator`. This helps also speed up the ramp-up time of `ansible-navigator` :sunglasses:.
+
+:information_source: `--execution-environment-image` can be shortened with `--eei`. This will give you back plenty of time if you are such a bad typer as I am and type
+`--execution-environment-image` wrong at least twice everytime I try to use it:rofl:.
+
+Okay great, we have the `ansible-core` version as well as the Ansible collections `redhat.satellite` and `redhat.satellite_operations`.
+
+Easy, wasn't it? :slightly_smiling_face:
+
+Let's break down this easy EE definition:
+
+1. [`version` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#version)
+
+   With `version` we specify the EE definition version to use. We want this to be `3`. Version `1` looks a little different and - as said - has quite some limitations.
+   Additionally version 3 is **required** when using `ansible-builder` 3.x (which we do).
+
+2. [`images` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#images)
+
+   `images` is a dictionary, and the only supported attribute within `images` is `base_image`, which itself *must* have a `name` attribute which specifies the base image to use.
+
+    Remember we talked about using existing EEs? We use these existing EEs now to add "on top" of the existing EEs our own content.
+
+3. [`dependencies` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
+
+    I only *briefly* explain these so-called "in-line dependencies". We'll later use seperate files for each of the requirement types - you understand why later on.
+
+    Alright, so `dependencies` can have multiple attributes, but we *only* specified the `galaxy` attribute, which itself can either have a `roles` attribute or a `collections`
+    attribute. The latter of which we used. In there we specify the roles and collections we want to be included in the EE.
+
+    Again, I leave the Python package and system package dependencies out, as well as complexer definitions of collections and roles (with version and source) as we'll later
+    have it in seperate files.
+
+4. [`options` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
+
+    The `options` keyword can have a *bunch* of attributes, but in the context of this minimal EE definition, we simply need to set the `package_manager_path`, which defaults to
+    `/usr/bin/dnf`, which is not present. Instead EEs (and UBI) make use of `/usr/bin/microdnf` a slimmed down version of `dnf`.
