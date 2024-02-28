@@ -1836,18 +1836,18 @@ Easy, wasn't it? :slightly_smiling_face:
 
 Let's break down this easy EE definition:
 
-1. [`version` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#version)
+1. [`version` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#version)
 
    With `version` we specify the EE definition version to use. We want this to be `3`. Version `1` looks a little different and - as said - has quite some limitations.
    Additionally version 3 is **required** when using `ansible-builder` 3.x (which we do).
 
-2. [`images` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#images)
+2. [`images` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#images)
 
    `images` is a dictionary, and the only supported attribute within `images` is `base_image`, which itself *must* have a `name` attribute which specifies the base image to use.
 
     Remember we talked about using existing EEs? We use these existing EEs now to add "on top" of the existing EEs our own content.
 
-3. [`dependencies` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
+3. [`dependencies` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
 
     I only *briefly* explain these so-called "in-line dependencies". We'll later use seperate files for each of the requirement types - you understand why later on.
 
@@ -1857,7 +1857,164 @@ Let's break down this easy EE definition:
     Again, I leave the Python package and system package dependencies out, as well as complexer definitions of collections and roles (with version and source) as we'll later
     have it in seperate files.
 
-4. [`options` keyword](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
+4. [`options` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
 
-    The `options` keyword can have a *bunch* of attributes, but in the context of this minimal EE definition, we simply need to set the `package_manager_path`, which defaults to
-    `/usr/bin/dnf`, which is not present. Instead EEs (and UBI) make use of `/usr/bin/microdnf` a slimmed down version of `dnf`.
+    The `options` option can have a *bunch* of attributes, but in the context of this minimal EE definition, we simply need to set the `package_manager_path`, which defaults to
+    `/usr/bin/dnf`, which is not present. Instead EEs make use of `/usr/bin/microdnf` a slimmed down version of `dnf`.
+
+5. [`additional_build_steps` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-steps)
+
+    The `additional_build_steps` option is probably **the most important** option when it comes to building complex EEs. In our example we copied the `ansible.cfg` to the
+    `/home/runner` directory (which is home directory of the `ansible-runner` user) so that this user is able to reach for instance
+    [Red Hat's Automation Hub](https://console.redhat.com) or your Private Automation Hub.
+
+    We also specified a specific attribute: `prepend_galaxy`, this essentially tells `ansible-builder` to put the build steps in this section **before** the installation
+    of Ansible content.
+
+    :information_source: We'll go into much more details later on this topic.
+
+6. [`additional_build_files` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-files)
+
+    With `additional_build_files` we can copy files we have next to our `execution-environment.yml` into the build context directory. From there we can add it to the EE.
+    This is useful for providing the `ansible.cfg` to the EE, but will also come in handy if we need to add other files - such as certificate authority certificates - to
+    the EE.
+
+Before we move on, let's look at what is in the `context` directory next to your `execution-environment.yml`:
+
+```shell
+$ tree context/
+context/
+├── _build
+│   ├── configs
+│   │   └── ansible.cfg
+│   ├── requirements.yml
+│   └── scripts
+│       ├── assemble
+│       ├── check_ansible
+│       ├── check_galaxy
+│       ├── entrypoint
+│       ├── install-from-bindep
+│       └── introspect.py
+└── Containerfile
+```
+
+So, the `context` directory contains the `_build` directory and a `Containerfile`. Let's have a glimpse at them :sunglasses::
+
+1. `configs`
+
+    We introduced this directory ourselves, as we specified to copy our `ansible.cfg` to `_build/configs`. This is our `ansible.cfg` we specified to copy in the EE definition.
+    If you check the content of your `ansible.cfg` and the one that ended up in the EE, you'll find that they are the same.
+
+    You don't have to specify that config sub-directory, `_build` is enough. I personally just find it cleaner that way, so I know what comes from me in terms of additional files.
+
+2. `requirements.yml`
+
+    Let's quickly look what's in the `requirements.yml`:
+
+    ```shell
+    $ cat context/_build/requirements.yml 
+    collections:
+    - name: redhat.satellite
+    - name: redhat.satellite_operations 
+    ```
+
+    Does that look familiar to you? :slightly_smiling_face:
+
+    These are the collection we specified in our EE definition. They are simply added to a `requirements.yml` by `ansible-builder` when they are specified in-line, as we did.
+    [`requirements.yml`](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) should be known to most Ansible users
+    already: This is the standard format of providing depending collections and roles and can be read by `ansible-galaxy collection install` or `ansible-galaxy role install` when you pass
+    the `--requirements-file` or, more commonly, the `-r` switch to the `ansible-galaxy command` and poin it to the file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
+    This is exactly what `ansible-builder` does during the `galaxy stage` (where roles and collections are installed)
+
+3. `Containerfile`
+
+    This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are pre-defined, but you'll find it contains the options we specified.
+    Let's have a look:
+
+    ```plaintext
+    ARG EE_BASE_IMAGE="registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16"
+    ARG PYCMD="/usr/bin/python3"
+    ARG PKGMGR_PRESERVE_CACHE=""
+    ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS=""
+    ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS=""
+    ARG PKGMGR="/usr/bin/microdnf"
+
+    # Base build stage
+    FROM $EE_BASE_IMAGE as base
+    USER root
+    ARG EE_BASE_IMAGE
+    ARG PYCMD
+    ARG PKGMGR_PRESERVE_CACHE
+    ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+    ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+    ARG PKGMGR
+
+    RUN $PYCMD -m ensurepip
+    COPY _build/scripts/ /output/scripts/
+    COPY _build/scripts/entrypoint /opt/builder/bin/entrypoint
+
+    # Galaxy build stage
+    FROM base as galaxy
+    ARG EE_BASE_IMAGE
+    ARG PYCMD
+    ARG PKGMGR_PRESERVE_CACHE
+    ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+    ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+    ARG PKGMGR
+
+    COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg
+    RUN /output/scripts/check_galaxy
+    COPY _build /build
+    WORKDIR /build
+
+    RUN ansible-galaxy role install $ANSIBLE_GALAXY_CLI_ROLE_OPTS -r requirements.yml --roles-path "/usr/share/ansible/roles"
+    RUN ANSIBLE_GALAXY_DISABLE_GPG_VERIFY=1 ansible-galaxy collection install $ANSIBLE_GALAXY_CLI_COLLECTION_OPTS -r requirements.yml --collections-path "/usr/share/ansible/collections"
+
+    # Builder build stage
+    FROM base as builder
+    WORKDIR /build
+    ARG EE_BASE_IMAGE
+    ARG PYCMD
+    ARG PKGMGR_PRESERVE_CACHE
+    ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+    ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+    ARG PKGMGR
+
+    RUN $PYCMD -m pip install --no-cache-dir bindep pyyaml requirements-parser
+
+    COPY --from=galaxy /usr/share/ansible /usr/share/ansible
+
+    RUN $PYCMD /output/scripts/introspect.py introspect --sanitize --write-bindep=/tmp/src/bindep.txt --write-pip=/tmp/src/requirements.txt
+    RUN /output/scripts/assemble
+
+    # Final build stage
+    FROM base as final
+    ARG EE_BASE_IMAGE
+    ARG PYCMD
+    ARG PKGMGR_PRESERVE_CACHE
+    ARG ANSIBLE_GALAXY_CLI_COLLECTION_OPTS
+    ARG ANSIBLE_GALAXY_CLI_ROLE_OPTS
+    ARG PKGMGR
+
+    RUN /output/scripts/check_ansible $PYCMD
+
+    COPY --from=galaxy /usr/share/ansible /usr/share/ansible
+
+    COPY --from=builder /output/ /output/
+    RUN /output/scripts/install-from-bindep && rm -rf /output/wheels
+    RUN chmod ug+rw /etc/passwd
+    RUN mkdir -p /runner && chgrp 0 /runner && chmod -R ug+rwx /runner
+    WORKDIR /runner
+    RUN $PYCMD -m pip install --no-cache-dir 'dumb-init==1.2.5'
+    RUN rm -rf /output
+    LABEL ansible-execution-environment=true
+    USER 1000
+    ENTRYPOINT ["/opt/builder/bin/entrypoint", "dumb-init"]
+    CMD ["bash"]
+    ```
+
+    I know, if you are not familiar with building containers, most of the file looks like gibberish to you. Don't worry, with Version 3 of the EE definition, you don't need to touch the `Containerfile` itself - *usually*.
+    There might be *very, very* specific use-case where `ansible-builder` cannot fulfill your needs, but I personally haven't encountered it (yet).
+
+    Nevertheless, what you **need** to understand are the various stages the build passes through. This is because you can inject commands to each of those stages (at the very beginning and the very end
+    of each section, essentially), and this is *exactly* what you need to realize complex EEs with proxies, certificates and so on. We'll cover these build stages in the next section.
