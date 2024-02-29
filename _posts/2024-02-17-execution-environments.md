@@ -2584,5 +2584,5 @@ I hope you learned something new :slightly_smiling_face:. Please let me know if 
 
 If you have any questions, just leave a comment and I might be able to incorporate your use-case in this post.
 
-All the best,
+.. until next time,
 Steffen
