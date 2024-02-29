@@ -1,12 +1,12 @@
 ---
-title: Execution Environments - Getting started and building complex execution environments (EEs) using ansible-builder 3
+title: Execution Environments - From Zero to Hero. An in-depth explanation.
 author: Steffen Scheib
 ---
 
 ## Preface
 
 To understand why execution environments (EEs) are such a crucial part of modern Ansible we need to briefly look into the past.
-To a time where there were no EEs, but *something* else to accomodate for certain situations.
+To a time where there were no EEs, but *something* else to accommodate for certain situations.
 
 In the following brief look into the past, I'll cover only the basics. For experienced Ansible users which are aware of Ansible's history this chapter is most likely useless -
 feel free to skip to the next chapter :slightly_smiling_face:.
@@ -40,9 +40,9 @@ We can choose either of the three options above and we should be good to go, rig
 
 *Theoretically*, yes. *Practically*, not really - well, at least it comes with its challenges.
 
-Why? Allow me to tell you little a story that might sound very familar to you :innocent:.
+Why? Allow me to tell you little a story that might sound very familiar to you :innocent:.
 
-Let's assume we'd pick option three, the Python Virtual Environments. `venvs` are usually what most Ansible users would go with, as it 'seperates' the Python packages of the
+Let's assume we'd pick option three, the Python Virtual Environments. `venvs` are usually what most Ansible users would go with, as it 'separates' the Python packages of the
 actual Python system packages and therefore keeps the actual system 'clean'.
 
 Okay great, now you installed both `requests` and `proxmoxer`. It's in your `venv`. Now you can get started with developing the Ansible role you wanted.
@@ -73,7 +73,7 @@ In the above story, I haven't even started pulling in different versions of Ansi
 that role now in production where there are stricter security requirements, of course.
 
 Of course, you could argue that a proper documentation and a well-defined [Python requirements file](https://pip.pypa.io/en/stable/reference/requirements-file-format/)
-basically eleminates all of the issues above. You are right - for the most part at least. There are situtations where a perfect documentation is not sufficient. Just imagine
+basically eliminates all of the issues above. You are right - for the most part at least. There are situations where a perfect documentation is not sufficient. Just imagine
 you develop on Debian and you want to migrate to a different operating system. System package names and system configurations are most definitively different. Sure, you'll be
 able to make it work, but it requires effort. Effort that is unnecessary and a cumbersome burden most people would like to avoid because they can spent their time better with
 something more productive.
@@ -116,7 +116,7 @@ Ansible Content with `venvs`. This time however, since everything is now neatly 
 *everything* you have modified. Be it settings within the EE, installed system packages or Python packages, as well as every Ansible content you depend on when running your
 Ansible code.
 
-EEs effectively eleminate the ".. but it works on my machine!" :sunglasses:.
+EEs effectively eliminate the ".. but it works on my machine!" :sunglasses:.
 
 ### Execution environments: Getting started
 
@@ -145,7 +145,7 @@ Now that we know the *very basics* about EEs, let's look a little deeper.
 The understand the concept behind EEs, please allow me to contextualize the Ansible ecosystem with regards to EEs a little.
 
 There are existing EEs which you can utilize to get started. Both the Ansible community and Red Hat maintain a few EEs. The ones maintained by the
-Ansible community are either hosted on [quay.io](https://quay.io/) or on GitHubs Container Registry [ghcr.io](https://ghcr.io). The ones Red Hat maintains are officially called
+Ansible community are either hosted on [quay.io](https://quay.io/) or on GitHub's Container Registry [ghcr.io](https://ghcr.io). The ones Red Hat maintains are officially called
 *Ansible Automation Platform execution environments*, which are [*Certified Container Images*](https://catalog.redhat.com/software/containers/explore) and are provided via
 Red Hat's Container Registry [registry.redhat.io](https://catalog.redhat.com/). I'll refer to Red Hat's EEs typically as "certified EEs", as it makes communication
 easier :slightly_smiling_face:.
@@ -158,15 +158,15 @@ The difference between EEs of the Ansible community (we at Red Hat, usually refe
 
 The major difference, however, is the level of support you'll get. Upstream in general moves really fast and does not do any
 [backports](https://en.wikipedia.org/wiki/Backporting) for older Ansible versions.
-In contrast, Red Hat supports their EEs for a [defined lifecycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) and backports bugfixes and/or
+In contrast, Red Hat supports their EEs for a [defined life cycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) and backports bug fixes and/or
 security fixes to older EEs which are using older `ansible-core` versions, which are still under support by Red Hat.
 
-Please don't get confused that the [linked lifecycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) points to the Ansible Automation Platform
-lifecycle. That's not a mistake. The reason being that Red Hat treats several components of the Ansible ecosystem (such as Execution and Decision Environments, `ansible-core`,
+Please don't get confused that the [linked life cycle](https://access.redhat.com/support/policy/updates/ansible-automation-platform) points to the Ansible Automation Platform
+life cycle. That's not a mistake. The reason being that Red Hat treats several components of the Ansible ecosystem (such as Execution and Decision Environments, `ansible-core`,
 `ansible-navigator`, `ansible-builder` among other things) as one *platform*. As Ansible Automation Platform subscriber, you'll get a defined set of components in a
 certain version, which ensures that all components are compatible with each other.
 
-Upstream essentially treats various components, such as EEs, `ansible-builder`, `ansible-navigator` etc. as seperate projects and therefore you *might* encounter difficulties
+Upstream essentially treats various components, such as EEs, `ansible-builder`, `ansible-navigator` etc. as separate projects and therefore you *might* encounter difficulties
 using the latest upstream versions together.
 
 **Please don't get me wrong**: I am not saying you should avoid upstream releases. That's not what I am saying at all. Upstream projects are *the core of everything* we do at
@@ -255,8 +255,8 @@ this specific case is just easier.
 In [Red Hat's linked knownledgebase article](https://access.redhat.com/articles/4301321) it is explained *why* this change was introduced for a number of container images if
 you are curious of the *why*. In the context of the *versionless* EEs you only need to know, that it doesn't work :slightly_smiling_face:.
 
-Afterall, users typically want the latest available version of `ansible-core` within the same *minor version* (the second digit in e.g 2.**15**.9).
-It is not a good idea to jump from say `ansible-core` 2.15 to `ansible-core` 2.16 *without* evaluating what *changed* inbetween those versions. On the other hand,
+After all, users typically want the latest available version of `ansible-core` within the same *minor version* (the second digit in e.g 2.**15**.9).
+It is not a good idea to jump from say `ansible-core` 2.15 to `ansible-core` 2.16 *without* evaluating what *changed* in between those versions. On the other hand,
 you'd most likely want to have the *latest 2.15* version, e.g. 2.15.9, as *usually* there are no *breaking* or *major* changes within the same minor version.
 
 If that's a use-case you can relate to, then I have good news for you: You can specify the tag `2.15` on the execution environment, e.g.
@@ -287,7 +287,7 @@ Just keep on reading :sunglasses:.
 
 ## Using existing EEs with `ansible-navigator`
 
-After we've learnt a lot about EEs in the previous chapters, let's actually use them :slightly_smiling_face:. To use the EEs on the CLI, let me first
+After we've learned a lot about EEs in the previous chapters, let's actually use them :slightly_smiling_face:. To use the EEs on the CLI, let me first
 introduce you to `ansible-navigator`. In an earlier chapter I have briefly touched on `ansible-navigator`, but `ansible-navigator` is crucial for developing and testing
 EEs before actually putting them into production - so we need to have a deeper look into it to actually leverage its functionalities.
 
@@ -333,7 +333,7 @@ For `ansible-navigator` to be able to work with EEs, you either need [`podman`](
 containers and naturally need *something* to handle them :slightly_smiling_face:. I'll use `podman` for the remainder of this post, but all commands I am going to use with
 `podman` are working exactly the same when replacing `podman` with `docker`.
 
-Afterall, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
+After all, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
 
 :information_source: The upstream variant of `ansible-navigator` is not exclusively available on RHEL; You can install it on a few more operating systems. Please refer to the
 [installation documentation](https://ansible.readthedocs.io/projects/navigator/installation/) to get an overview of all supported operating systems.
@@ -355,7 +355,7 @@ As I mentioned already, `ansible-navigator` is meant to extend the current CLI t
 - etc.
 
 Extending the functionality of the 'original' CLI tools of Ansible means for `ansible-navigator` - in a nutshell - that it can work with EEs. First, you'd maybe think that
-only `ansible-playbook` should be extended or superseeded, as this command is where we actually run playbooks.
+only `ansible-playbook` should be extended or superseded, as this command is where we actually run playbooks.
 
 Let's talk about this hypothesis.
 
@@ -487,7 +487,7 @@ Storing signatures
 43│vyos.vyos                            4.0.2      False       contained    /usr/share/ansible/collections/ansible_collections/vyos/vyos
 ```
 
-:information_source: I copied the collection list from the text-based user interface of `ansible-navigator`. A text-based user interfac might be known to you from e.g.
+:information_source: I copied the collection list from the text-based user interface of `ansible-navigator`. A text-based user interface might be known to you from e.g.
 `nmtui`, `tmux` or `vim`. All of them are based on the same library: [`ncurses`](https://en.wikipedia.org/wiki/Ncurses), that's why it might look familiar to you.
 
 Looking at the above output, we can notice that there's quite a difference to the previous `ansible-galaxy collection list`.
@@ -541,7 +541,7 @@ Subcommands:
 That's quite a lot of sub-commands, but how do they map to the original Ansible CLI tools?
 
 The answer is not as straight-forward as you might think. First off: `ansible-navigator` is an **extension** to the original Ansible CLI tools, **not** a **replacement**.
-Having said that, *some* original Ansible CLI tools are incooperated into `ansible-navigator`:
+Having said that, *some* original Ansible CLI tools are incorporated into `ansible-navigator`:
 
 Let me start with the obvious ones:
 
@@ -614,7 +614,7 @@ Lastly, there are also some sub-commands that are specific to `ansible-navigator
 - `replay`
 - `settings`
 
-Let me start with the ones, where I do not see a benefit in using them directly with `ansible-navigator`, but your milage my vary:
+Let me start with the ones, where I do not see a benefit in using them directly with `ansible-navigator`, but your mileage my vary:
 
 - `builder`: You could theoretically build EEs using `ansible-navigator builder`, but under the hood it basically calls `ansible-builder`, so I decided to stick to
   `ansible-builder` directly
@@ -741,7 +741,7 @@ Below you'll find one of configurations I am using. I don't have a configuration
 `ansible-navigator.yml` and various other configurations in a 'project' directory. This project directory is structured per use-case and that's why I have special settings in
 each `ansible-navigator.yml` and `ansible.cfg` - such as number of forks, the Ansible remote user and the EE to use.
 
-I'll write a seperate blog post about how and why I structure my projects this way in the distant future, as I have been asked a couple of times already how I develop
+I'll write a separate blog post about how and why I structure my projects this way in the distant future, as I have been asked a couple of times already how I develop
 Ansible code and how I organize things - but that's a topic for the other blog post.
 
 Below is the configuration of my `ansible-navigator.yml` for my project `ansible-project-satellite`:
@@ -796,7 +796,7 @@ ansible-navigator:
 ...
 ```
 
-It is a very minimal configuration and should not be taken as "the correct configuration to use". This is my preferrence, your's probably differ.
+It is a very minimal configuration and should not be taken as "the correct configuration to use". This is my preference, yours probably differ.
 
 Following a quick summary of the settings I applied:
 
@@ -1347,14 +1347,16 @@ Perfect! Right? :thinking:
 Well, yes, but no :rofl:. Here is the thing: If you'd use a customized EE that contains itself also roles, the above `volume mount` would effectively overwrite the directory
 in that sense, that the `volume mount` would overlay the existing roles.
 
-To accomodate for that scenario we have two options:
+To accommodate for that scenario we have two options:
 
 1. Specify a different roles directory using an Ansible configuration option:
-[`roles_path`](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#default-roles-path`). We could also specify it via the environment variable
-`ANSIBLE_ROLES_PATH`
+
+    [`roles_path`](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#default-roles-path). We could also specify it via the environment variable
+    `ANSIBLE_ROLES_PATH`
+
 1. Mount our local roles directory to a different directory that is checked by Ansible by default
 
-If we recall the error from above, where it couldn't find the role, there was an important piece of information in the error message - the search paths for Ansible roles:
+    If we recall the error from above, where it couldn't find the role, there was an important piece of information in the error message - the search paths for Ansible roles:
 
 ```plaintext
 ERROR! the role 'file_deployment' was not found in /home/steffen/sources/ansible-project-satellite/playbooks/roles:/home/runner/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/home/steffen/sources/ansible-project-satellite/playbooks
@@ -1437,10 +1439,10 @@ Awesome :sunglasses:!
 But wait a minute - why does it know about my files in `playbooks/files` and even about the `host_vars` and all that?
 
 `ansible-navigator` mounts the current directory ('project directory') automatically inside the EE. This is why everything is working
-[automagically](https://ansible.readthedocs.io/projects/navigator/faq/#where-should-the-ansiblecfg-file-go-when-using-an-execution-environment) :rocket:.
+[auto-magically](https://ansible.readthedocs.io/projects/navigator/faq/#where-should-the-ansiblecfg-file-go-when-using-an-execution-environment) :rocket:.
 
 :warning: It is great to play around like that on your development machine, but this is not something that should be used in production. **Instead building custom EEs is the
-way to go**. This ensures portability and eleminates the typical problems of ".. but it works on my machine!". I just wanted to show case what's possible with
+way to go**. This ensures portability and eliminates the typical problems of ".. but it works on my machine!". I just wanted to show case what's possible with
 `ansible-navigator` :sweat_smile:
 
 ## Building custom EEs with `ansible-builder`
@@ -1492,7 +1494,7 @@ For `ansible-builder` to be able to build EEs, you either need [`podman`](https:
 build containers and naturally need *something* to handle them :slightly_smiling_face:. I'll use `podman` for the remainder of this post, but all commands I am going to use
 with `podman` are working exactly the same when replacing `podman` with `docker`.
 
-Afterall, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
+After all, we really only run **one** command with `podman`. The remainder will be handled by `ansible-builder` :sunglasses:.
 
 :information_source: The upstream variant of `ansible-builder` is not exclusively available on RHEL; You can install it on a few more operating systems. Please refer to the
 [installation documentation](https://ansible.readthedocs.io/projects/builder/en/latest/installation/) to get an overview of all supported operating systems.
@@ -1683,7 +1685,7 @@ Now that we have the the `introspect` out of the way, let's look at the two rema
 
 In a nutshell, `ansible-builder create` creates a so-called *build context* for you - remember, we want to build containers. Building containers is done via a
 [`Containerfile`](https://www.mankier.com/5/Containerfile) (for `podman`) or a [`Dockerfile`](https://docs.docker.com/reference/dockerfile/) (for `docker`) which comes in a
-specific format. `Containerfile` and `Dockerfile` definitions are *largely* interchangeble (there *were* differences in the past, but I don't know if it is the same today).
+specific format. `Containerfile` and `Dockerfile` definitions are *largely* interchangeable (there *were* differences in the past, but I don't know if it is the same today).
 
 :information_source: Further in this post I'll use `Containerfile` as reference to make things easier. Just know that *usually* `Containerfile` and `Dockerfile` are
 interchangeable.
@@ -1825,10 +1827,10 @@ to use `ansible-navigator collections --execution-environment-image localhost/ee
 
 :information_source: Since we don't have a container registry on our host (which is perfectly normal!) we need to use `--pull-policy` or `--pp` with the value `never`, which
 instructs `ansible-navigator` to not *pull* the EE, which would otherwise fail. This is *only* for EEs that you've built locally or pulled already from a container registry
-and don't want to update it everytime you run `ansible-navigator`. This helps also speed up the ramp-up time of `ansible-navigator` :sunglasses:.
+and don't want to update it every time you run `ansible-navigator`. This helps also speed up the ramp-up time of `ansible-navigator` :sunglasses:.
 
 :information_source: `--execution-environment-image` can be shortened with `--eei`. This will give you back plenty of time if you are such a bad typer as I am and type
-`--execution-environment-image` wrong at least twice everytime I try to use it:rofl:.
+`--execution-environment-image` wrong at least twice every time I try to use it:rofl:.
 
 Okay great, we have the `ansible-core` version as well as the Ansible collections `redhat.satellite` and `redhat.satellite_operations`.
 
@@ -1849,13 +1851,13 @@ Let's break down this easy EE definition:
 
 3. [`dependencies` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
 
-    I only *briefly* explain these so-called "in-line dependencies". We'll later use seperate files for each of the requirement types - you understand why later on.
+    I only *briefly* explain these so-called "in-line dependencies". We'll later use separate files for each of the requirement types - you understand why later on.
 
     Alright, so `dependencies` can have multiple attributes, but we *only* specified the `galaxy` attribute, which itself can either have a `roles` attribute or a `collections`
     attribute. The latter of which we used. In there we specify the roles and collections we want to be included in the EE.
 
-    Again, I leave the Python package and system package dependencies out, as well as complexer definitions of collections and roles (with version and source) as we'll later
-    have it in seperate files.
+    Again, I leave the Python package and system package dependencies out, as well as more complex definitions of collections and roles (with version and source) as we'll later
+    have it in separate files.
 
 4. [`options` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
 
@@ -1923,7 +1925,7 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
     These are the collection we specified in our EE definition. They are simply added to a `requirements.yml` by `ansible-builder` when they are specified in-line, as we did.
     [`requirements.yml`](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) should be known to most Ansible users
     already: This is the standard format of providing depending collections and roles and can be read by `ansible-galaxy collection install` or `ansible-galaxy role install` when you pass
-    the `--requirements-file` or, more commonly, the `-r` switch to the `ansible-galaxy command` and poin it to the file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
+    the `--requirements-file` or, more commonly, the `-r` switch to the `ansible-galaxy command` and point it to the file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
     This is exactly what `ansible-builder` does during the `galaxy stage` (where roles and collections are installed)
 
 3. `Containerfile`
@@ -2018,3 +2020,569 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
 
     Nevertheless, what you **need** to understand are the various stages the build passes through. This is because you can inject commands to each of those stages (at the very beginning and the very end
     of each section, essentially), and this is *exactly* what you need to realize complex EEs with proxies, certificates and so on. We'll cover these build stages in the next section.
+
+### Execution Environment stages
+
+During an EE build, we actually build *multiple* intermediate images. We call these intermediate images **stages**.
+
+If we take the `Containerfile` from the previous section, we can see the following statements in it:
+
+```plaintext
+[..]
+FROM $EE_BASE_IMAGE as base  # first image
+[..]
+FROM base as galaxy  # second image
+[..]
+FROM base as builder  # third image
+[..]
+FROM base as final  # fourth image
+[..]
+```
+
+With these `FROM X as Y` statements we start building *a new image*.
+
+First, we start with the `base` stage. Next, is the `galaxy` stage, followed by the `builder` stage and lastly the `final` stage.
+For all these stages, you can prepend or append container build commands yourself - this makes it highly flexible.
+
+In below table you'll see which `additional_build_steps` attribute needs to be used for which stage:
+
+| stage                 | attribute                                    | position                |
+| :-------------------- | :------------------------------------------- | :---------------------- |
+| `base`                | `prepend_base`                               | beginning of `base`     |
+| `base`                | `append_base`                                | end of `base`           |
+| `galaxy`              | `prepend_galaxy`                             | beginning of `galaxy`   |
+| `galaxy`              | `append_galaxy`                              | end of `galaxy`         |
+| `builder`             | `prepend_builder`                            | beginning of `builder`  |
+| `builder`             | `append_builder`                             | end of `builder`        |
+| `final`               | `prepend_final`                              | beginning of `final`    |
+| `final`               | `append_final`                               | end of `final`          |
+
+To be able to use these stages effectively, we'll need to understand what each of the sections does - let's have a look.
+
+#### `base` stage
+
+The `base` stages begins by ensuring that `pip` is available (`RUN $PYCMD -m ensurepip`). This is important, as we'll use the intermediate image `base` as our base for the other intermediate images - hence the name `base`.
+
+Next, we copy the scripts we have in `_build/scripts` to `/output/scripts` and copy the `entrypoint` script to its destination at `/opt/builder/bin/entrypoint`. The `entrypoint` script will later on be the entry point for the `final` image.
+
+The `scripts` contain scripts which we need during the build of our intermediate containers. Usually, you don't need to look at them and understand what's happening. For troubleshooting it's surely worthwhile to have a look :slightly_smiling_face:.
+
+#### `galaxy` stage
+
+Within the `galaxy` stage we'll only install all Ansible collections and roles that are asked to be installed. That's it :slightly_smiling_face:.
+
+#### `builder` stage
+
+The builder stage first copies what we've installed in the `galaxy` stage to `/usr/share/ansible` and then we `introspect` the content of it. Which means in other words, we extract the dependencies that each collection requires and write them into
+`/tmp/src/bindep.txt` for system package dependencies or `/tmp/src/requirements.txt` for Python packages.
+
+:information_source:
+Remember the `ansible-builder introspect` a few sections earlier? That's essentially the same.
+
+Finally we run a mysterious script `/output/scripts/assemble`. That's one of the scripts that are in the `context/scripts` directory when you run `ansible-builder create` only.
+
+What this script essentially does is resolving Python package dependencies and installing them to `/output`, which we need for the next stage. Additionally system packages are installed and a list of them is collected and written for the next stage into `/output`.
+
+We also cache what we've downloaded for Python packages, so the next stage progresses quicker :sunglasses:.
+
+#### `final` stage
+
+This is - who would have guessed it - the final image. Essentially we combine everything now.
+
+First we copy from the `galaxy` stage the Ansible collections and roles to `/usr/share/ansible/`, then we copy the result of the `builder` stage from `output` to `output` and re-install the cached Python packages and as well the system package dependencies.
+
+### Complex execution environments
+
+With all the knowledge from the previous chapters, we can finally start creating complex execution environments :sunglasses:.
+
+I'll make up a completely random scenario where we install a bunch of collections, Python and system packages. In my imaginary scenario, we'll need to set a proxy, a custom Python package repository and we also need to install custom certificate authority certificates.
+Further, we'll disable and enable repositories.
+
+#### Specifying dependencies as files
+
+A few sections earlier, we specified the Ansible collections we wanted to install via in-line dependencies. Above I said, we'll be using files. The reason being, that - from my point of view - the more collections, Python and system packages you want to install,
+the harder to read the EE definition gets.
+
+For this reason I've decided for myself to always use files to specify the dependencies - no matter how much I have.
+
+We have three types of dependencies we can specify:
+
+1. Ansible collections and roles
+1. Python packages
+1. System packages
+
+They all have a very specific format; They are easy to remember formats, however. At least from my perspective.
+
+#### Installing Ansible collections and roles
+
+Defining Ansible collections and roles should be the easiest of all. The [format](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) is probably known to most Ansible users.
+
+For this example, I've copied one of my own `requirements.yml` and placed it next to my `execution-environment.yml`. I use the below `requirements.yml` for automating Satellite end-to-end. It contains a few collections, as well as some roles:
+
+```yaml
+---
+collections:
+  - name: 'redhat.satellite'
+    version: '>=3.10.0'
+
+  - name: 'redhat.satellite_operations'
+    version: '>=1.3.0'
+
+  - name: 'redhat.rhel_system_roles'
+    version: '>=1.21.1'
+
+  - name: 'ansible.posix'
+    version: '>=1.5.4'
+
+  - name: 'community.crypto'
+    version: '>=2.3.2'
+
+  # NOTE: Temporarily disabling the official redhat.insights collection and adding
+  #       a temporary publish of the insights collection within my own namespace
+  #       which contains PR https://github.com/RedHatInsights/ansible-collections-insights/pull/90.
+  #       This PR provides required functionality for the insights role (obfuscating)
+  #       and I didn't want to work around this issue.
+  #       Another PR was also cherry-picked to this collection to fix the Insights client
+  #       registration (https://github.com/RedHatInsights/ansible-collections-insights/pull/89)
+  #
+  #  - name: 'redhat.insights'
+  #    version: '>=1.2.0'
+
+  - name: 'sscheib.insights'
+    version: '0.0.2'
+
+roles:
+  - name: 'rhel_iso_kickstart'
+    src: 'https://github.com/sscheib/ansible-role-rhel_iso_kickstart.git'
+    scm: 'git'
+    version: 'v2.0.6'
+
+  - name: 'user_deployment'
+    src: 'https://github.com/sscheib/ansible-role-user_deployment.git'
+    scm: 'git'
+    version: 'v1.0.5'
+
+  - name: 'package_installation'
+    src: 'https://github.com/sscheib/ansible-role-package_installation.git'
+    scm: 'git'
+    version: 'v1.0.1'
+
+  - name: 'service_management'
+    src: 'https://github.com/sscheib/ansible-role-service_management.git'
+    scm: 'git'
+    version: 'v1.0.2'
+
+  - name: 'generate_ssl_key_pairs'
+    src: 'https://github.com/sscheib/ansible-role-generate_ssl_key_pairs.git'
+    scm: 'git'
+    version: 'v1.1.5'
+
+  - name: 'register_to_satellite'
+    src: 'https://github.com/sscheib/ansible-role-register_to_satellite.git'
+    scm: 'git'
+    version: 'v1.0.4'
+
+  - name: 'satellite_create_host'
+    src: 'https://github.com/sscheib/ansible-role-satellite_create_host.git'
+    scm: 'git'
+    version: 'v1.0.2'
+
+  - name: 'satellite_publish_promote_content_views'
+    src: 'https://github.com/sscheib/ansible-role-satellite_publish_promote_content_views.git'
+    scm: 'git'
+    version: 'v1.0.2'
+
+  - name: 'satellite_prepare_installation'
+    src: 'https://github.com/sscheib/ansible-role-satellite_prepare_installation.git'
+    scm: 'git'
+    version: 'v1.0.3'
+
+  - name: 'satellite_template_synchronization'
+    src: 'https://github.com/sscheib/ansible-role-satellite_template_synchronization.git'
+    scm: 'git'
+    version: 'v1.0.2'
+
+  - name: 'satellite_global_parameters'
+    src: 'https://github.com/sscheib/ansible-role-satellite_global_parameters.git'
+    scm: 'git'
+    version: 'v1.0.1'
+
+  - name: 'file_deployment'
+    src: 'https://github.com/sscheib/ansible-role-file_deployment.git'
+    scm: 'git'
+    version: 'v1.0.1'
+...
+```
+
+As you see, I am using both community and certified collections. The roles are all my own :slightly_smiling_face:.
+
+To make `ansible-builder` aware of this file, we need to specify the following in our `execution-environment.yml`:
+
+```yaml
+[..]
+dependencies:
+  galaxy: 'requirements.yml'
+[..]
+```
+
+#### Installing Python packages
+
+Python package requirements follow also a very specific [format](https://pip.pypa.io/en/stable/reference/requirements-file-format/). Below I'll made up a random set of Python packages to install in different versions.
+
+:information_source: If you don't specify a version for a Python package, it'll default to use the latest possible version.
+
+```plaintext
+pytz
+python-dateutil>=2.7.0
+awxkit
+proxmoxer
+ansible-pylibssh>=0.2.0
+jxmlease
+ncclient
+netaddr
+paramiko
+xmltodict
+grpcio
+protobuf
+jsonschema
+textfsm
+ttp
+xmltodict
+PyYAML
+```
+
+We'll place the above content into the file `requirements.txt`, next to our `execution-environment.yml`.
+
+To make `ansible-builder` aware of this file, we need to specify the following in our `execution-environment.yml`:
+
+```yaml
+[..]
+dependencies:
+  python: 'requirements.txt'
+[..]
+```
+
+#### Installing system packages
+
+Last but not least, we have the system packages. Also these follow a specific [format](https://docs.opendev.org/opendev/bindep/latest/readme.html).
+
+I made up again a random list of system packages to install:
+
+```plaintext
+libyaml-devel [test platform:rpm]
+libyaml-dev [test platform:dpkg]
+python3-devel [test platform:rpm]
+python3 [test platform:rpm]
+gcc [compile platform:rpm]
+libssh-dev [compile platform:dpkg]
+libssh-devel [compile platform:rpm]
+python3-Cython [compile platform:fedora-35 platform:rhel-9]
+python3-six [platform:centos-9 platform:rhel-9]
+python39-six [platform:centos-8 platform:rhel-8]
+python3-lxml [platform:centos-9 platform:rhel-9]
+python39-lxml [platform:centos-8 platform:rhel-8]
+findutils [compile platform:centos-8 platform:rhel-8]
+gcc [compile platform:centos-8 platform:rhel-8]
+make [compile platform:centos-8 platform:rhel-8]
+python3-devel [compile platform:centos-9 platform:rhel-9]
+python39-devel [compile platform:centos-8 platform:rhel-8]
+python3-cffi [platform:centos-9 platform:rhel-9]
+jq
+```
+
+The format is the most complex of the three, and I encourage you to [read up on it](https://docs.opendev.org/opendev/bindep/latest/readme.html) to understand it. For basic requirements, you can simply name the RPM you'd like to have installed - like I did with
+`jq` above.
+
+We'll place the above content in the file `bindep.txt`, again next to our `execution-environment.yml`.
+
+To make `ansible-builder` aware of this file, we need to specify the following in our `execution-environment.yml`:
+
+```yaml
+[..]
+dependencies:
+  system: 'bindep.txt'
+[..]
+```
+
+#### Adding certificates to an EE
+
+Adding certificates is essentially the same as with every RHEL-like system. In the case of EEs, we need to copy the certificates first into our `_build` directory (as with the `ansible.cfg`).
+
+Let's imagine we have a file called `ca.cert.pem` and another one `intermediate.cert.pem` next to our `execution-environments.yml` file.
+
+To add these certificates to the EE, we first need to tell `ansible-builder` to copy these files to the `_build` directory:
+
+```yaml
+[..]
+additional_build_files:
+    - src: 'ca.cert.pem'
+      dest: 'certs/'
+
+    - src: 'intermediate.cert.pem'
+      dest: 'certs/'
+[..]
+```
+
+With the above, we'll copy both `ca.cert.pem` and `intermediate.cert.pem` to `_build/certs` inside the build context directory.
+
+Next we need to copy these files actually to their correct destination. For that, we need to inject build steps into one of the stages we talked about.
+
+Now often the question comes up: Which stage?
+
+The answer is, as so often, it depends :rofl:.
+
+If you need the certificates to validate your connection to your private automation hub, then you'll need them in the `galaxy` stage. Do you require certificate validation with your proxy, and need to access the internet or some internal systems
+via a proxy, then you'll probably need the certificates in all stages (but the `base` stage, probably).
+
+As you see, the answer really depends on your specific requirement.
+
+Nevertheless, the procedure is always the same when you specify it in the EE definition:
+
+```yaml
+[..]
+additional_build_steps:
+  prepend_galaxy:
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'RUN update-ca-trust'
+[..]
+```
+
+In the case above, I added it to the beginning of the `galaxy` stage. If you need to use it in another `stage`, simply replace `prepend_galaxy` with the corresponding attribute for the [stage](#execution-environment-stages) required.
+
+#### Defining a proxy
+
+Defining a proxy really depends on your use case - again. Most commonly, you'd have to run all connections that go outside of your corporate network through the proxy. This means, every time we install something. Which means, you'll need it in
+all `stages` :slightly_smiling_face:.
+
+Further, we need to differentiate between a system proxy and a proxy only for `pip`.
+
+Let's first go with the system proxy. A system proxy is set via the environment variables `http_proxy` and `https_proxy`. And if you want to exclude (sub-)domains, you can make use of `no_proxy`.
+
+If you've never encountered any of these variables before, you might want to review the [documentation](https://www.gnu.org/software/wget/manual/html_node/Proxies.html) of them prior to using them.
+
+In `ansible-builder` we can do it like this:
+
+```yaml
+[..]
+additional_build_steps:
+  prepend_builder:
+    - 'ENV http_proxy=http://my.proxy.example.com:3128'
+    - 'ENV https_proxy=http://my.proxy.example.com:3128'
+    - 'ENV no_proxy=sub.example.org,another.domain.evil.corp'
+[..]
+```
+
+When it comes to the `pip` proxy, we need to set it independently using the `pip config` command:
+
+```yaml
+[..]
+additional_build_steps:
+  prepend_builder:
+    'RUN pip3 config --user set global.proxy http://my.proxy.example.com:3128'
+[..]
+```
+
+In which stage you'll add these, is totally up to you and depends on your *specific* use case.
+
+#### Custom Python package repository
+
+Some users might have their Python packages scanned and published on a custom repository. It is easy to also set that in an EE definition:
+
+```yaml
+[..]
+additional_build_steps:
+  prepend_builder:
+    - 'RUN pip3 config --user set global.index-url http://custom.repository.example.com/simple'
+    - 'RUN pip3 config --user set global.trusted-host custom.repository.example.com'
+[..]
+```
+
+:information_source: It is important to note, that you not only need to set the `index-url`, but also need to flag the host as trusted. Otherwise `pip` will refuse installation.
+
+#### Enabling and disabling repositories
+
+Sometimes you'll have the need to enable other repositories than the default UBI and RHEL repositories within the EE build context. For instance to install a custom package.
+
+If you have read the blog post in its entirety then you know that we need to make use of `microdnf` instead of `dnf` in an EE context.
+
+Enabling and disabling repositories is as easy as the tasks above, but this time we need to override an existing environment variable: `PKGMGR_OPTS`.
+
+By default, the environment variable `PKGMGR_OPTS` has the following value (at the time of this writing):
+
+```plaintext
+--nodocs --setopt=install_weak_deps=0
+```
+
+We'll simply extend that by adding our `--disablerepo=` and `--enablerepo=` switches to it:
+
+```plaintext
+--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"
+```
+
+In the above code, we'll disable all repositories and only enable the UBI 8 repositories.
+
+We'll define that like the following in the EE definition:
+
+```yaml
+additional_build_steps:
+  prepend_builder:
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"'
+```
+
+#### The complete complex execution environment: Making use of advanced YAML syntax
+
+If we combine all the previously discussed customizations into one EE definition, we'll end up with something like this:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+
+dependencies:
+  galaxy: 'requirements.yml'
+  python: 'requirements.txt'
+  system: 'bindep.txt'
+
+options:
+  package_manager_path: '/usr/bin/microdnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+    - src: 'ca.cert.pem'
+      dest: 'certs/'
+
+    - src: 'intermediate.cert.pem'
+      dest: 'certs/'
+
+additional_build_steps:
+  prepend_base:
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'RUN update-ca-trust'
+    - 'ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple'
+    - 'RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me'
+    - 'RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128'
+
+  prepend_galaxy:
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'RUN update-ca-trust'
+    - 'ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+
+  prepend_builder:
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'RUN update-ca-trust'
+    - 'RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple'
+    - 'RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me'
+    - 'RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"'
+
+  prepend_final:
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'RUN update-ca-trust'
+    - 'RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple'
+    - 'RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me'
+    - 'RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"'
+...
+```
+
+As you surely noticed, we are doing the same things often multiple times. That's due to the different images we build.
+
+There is a little something, that can make this a lot more tidy than it is currently: [`YAML anchors and aliases`](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_advanced_syntax.html#yaml-anchors-and-aliases-sharing-variable-values).
+
+It is not used *that* widely with Ansible to my knowledge, as it can make things pretty quickly, pretty messy, so be careful when using it.
+
+With YAML anchors and aliases, you can include repetitive definitions in place. This not only looks tidier, but it has the benefit that you'll only need to update *one* reference if you, for instance, change your proxy - instead of updating all of the occurrences.
+
+Let's look into what it looks like when using it:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+
+dependencies:
+  galaxy: 'requirements.yml'
+  python: 'requirements.txt'
+  system: 'bindep.txt'
+
+options:
+  package_manager_path: '/usr/bin/microdnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+    - src: 'ca.cert.pem'
+      dest: 'certs/'
+
+    - src: 'intermediate.cert.pem'
+      dest: 'certs/'
+
+additional_build_steps:
+  prepend_base:
+    - &copy-certs |-
+         COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/
+         COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors
+         RUN update-ca-trust
+
+    - &system-proxy |-
+        ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128
+        ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128
+    - &pip |-
+        RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple
+        RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me
+        RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128
+
+  prepend_galaxy:
+    - *copy-certs
+    - *system-proxy
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+
+  prepend_builder:
+    - *copy-certs
+    - *system-proxy
+    - *pip
+    - &disable-repos >-
+       ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"
+
+  prepend_final:
+    - *copy-certs
+    - *system-proxy
+    - *pip
+    - *disable-repos
+...
+```
+
+Doesn't that look **much** cleaner now? :sunglasses:.
+
+## Conclusion
+
+I *think* I am done. Honestly, I kind of lost the overview with all the topics - it turned out to be longer than I anticipated :rofl:.
+
+I hope you learned something new :slightly_smiling_face:. Please let me know if you find anything to be incorrect!
+
+If you have any questions, just leave a comment and I might be able to incorporate your use-case in this post.
+
+All the best,
+Steffen
