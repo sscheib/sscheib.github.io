@@ -154,7 +154,8 @@ The difference between EEs of the Ansible community (we at Red Hat, usually refe
 *downstream*) is that upstream EEs are *usually* based on CentOS stream, while downstream EEs are based on
 [Red Hat's Universal Base Image (UBI)](https://catalog.redhat.com/software/base-images) and are *essentially* Red Hat Enterprise Linux (RHEL) in containers, if you will.
 
-:information_source: To use Red Hat certified EEs you need to be a Red Hat subscriber If you don't own any subscriptions, you can make use of                                   [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
+:information_source: To use Red Hat certified EEs you need to be a Red Hat subscriber If you don't own any subscriptions, you can make use of
+[Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
 
 The major difference, however, is the level of support you'll get. Upstream in general moves really fast and does not do any
 [backports](https://en.wikipedia.org/wiki/Backporting) for older Ansible versions.
@@ -230,7 +231,8 @@ basically.
 Nowadays, we encourage customers to make use of the *versionless* or *multi stream* EEs as *versioned* or *single stream* EEs are going to go away in the future.
 I prefer using the terms *versionless* and *versioned* over *multi stream* and *single stream*, as it - in my opinion - more accurately describes what is meant.
 
-*Versioned* in this specific case refers to EEs that are build for a *specific* Ansible Automation Platform **version** - such as `ansible-automation-platform-24/ee-minimal-rhel9`. From this example, the Ansible Automation Platform version that contains the EE `ee-minimal-rhel9` is 2.4. This is how EEs where distributed in the past.
+*Versioned* in this specific case refers to EEs that are build for a *specific* Ansible Automation Platform **version** - such as `ansible-automation-platform-24/ee-minimal-rhel9`.
+From this example, the Ansible Automation Platform version that contains the EE `ee-minimal-rhel9` is 2.4. This is how EEs where distributed in the past.
 
 Nowadays, EEs are rather independent of the Ansible Automation Platform version and are distributed '*independently*', meaning not tied to a specific Ansible Automation
 Platform version in that sense. Hence: *versionless*.
@@ -496,10 +498,11 @@ Why's that?
 
 First, the EE image gets pulled. **After** the EE image was pulled, it started `ansible-navigator` in the text-based user interface (TUI), and then finally the collections are listed.
 
-Now it might become clear why the majority of the `ansible-navigator` commands are run in an EE: To show correct information, `ansible-navigator` needs to access the Ansible version inside the EE and with it all the
-collections, the documentation, the Python packages and so on and so forth.
+Now it might become clear why the majority of the `ansible-navigator` commands are run in an EE: To show correct information, `ansible-navigator` needs to access the Ansible
+version inside the EE and with it all the collections, the documentation, the Python packages and so on and so forth.
 
-That is why I can run `ansible-navigator doc vyos.vyos.vyos_static_routes` and get the documentation for it, but when I run the equivalent comment with `ansible-doc`, Ansible only shows a warning:
+That is why I can run `ansible-navigator doc vyos.vyos.vyos_static_routes` and get the documentation for it, but when I run the equivalent comment with `ansible-doc`, Ansible
+only shows a warning:
 
 ```shell
 $ ansible-doc vyos.vyos.vyos_static_routes
@@ -817,11 +820,11 @@ Following a quick summary of the settings I applied:
 
 At first, this might sound boring and not useful at all, but here is the thing which makes it great:
 
-You can replay any playbook (using `ansible-navigator replay`) by using the created playbook artifact. This allows for easier troubleshooting as every task is written to the artifact file with both the arguments it was
-executed with and what the result of it was.
+You can replay any playbook (using `ansible-navigator replay`) by using the created playbook artifact. This allows for easier troubleshooting as every task is written to the
+artifact file with both the arguments it was executed with and what the result of it was.
 
-This can be beneficial as you are able to troubleshoot easier. And if you ever hit a roadblock and simply cannot find out what's wrong, you just share the artifact with one of your colleagues and can get your colleague's
-help that way.
+This can be beneficial as you are able to troubleshoot easier. And if you ever hit a roadblock and simply cannot find out what's wrong, you just share the artifact with one of
+your colleagues and can get your colleague's help that way.
 
 I personally don't use them at all times. I enable the artifact creation when I need it.
 
@@ -939,11 +942,11 @@ Image: ee-supported-rhel8:latest (primary) (Information about ansible and ansibl
 
 Now I can see what Ansible collections are part of the EE, great :slightly_smiling_face:.
 
-If you have more than 9 options available, you need to make use of `:10`, followed by pressing enter to get to the 10th item, or `:35` followed by pressing enter to get to the 35th item.
-This is exactly the way you'd navigate to line numbers in `vim` :sunglasses:.
+If you have more than 9 options available, you need to make use of `:10`, followed by pressing enter to get to the 10th item, or `:35` followed by pressing enter to get to
+the 35th item. This is exactly the way you'd navigate to line numbers in `vim` :sunglasses:.
 
-:information_source: Whenever there is nothing more `ansible-navigator` can show to you by selecting an item from the list - like with the collections above - it'll simply do nothing. So when I would want to get more information
-about the Satellite collection, which is item 38 and type `:38` followed by enter, `ansible-navigator` will do nothing.
+:information_source: Whenever there is nothing more `ansible-navigator` can show to you by selecting an item from the list - like with the collections above - it'll simply do
+nothing. So when I would want to get more information about the Satellite collection, which is item 38 and type `:38` followed by enter, `ansible-navigator` will do nothing.
 
 ### Running playbooks in `ansible-navigator`
 
@@ -1923,14 +1926,17 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
     Does that look familiar to you? :slightly_smiling_face:
 
     These are the collection we specified in our EE definition. They are simply added to a `requirements.yml` by `ansible-builder` when they are specified in-line, as we did.
-    [`requirements.yml`](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) should be known to most Ansible users
-    already: This is the standard format of providing depending collections and roles and can be read by `ansible-galaxy collection install` or `ansible-galaxy role install` when you pass
-    the `--requirements-file` or, more commonly, the `-r` switch to the `ansible-galaxy command` and point it to the file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
+    [`requirements.yml`](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) should be known to
+    most Ansible users already: This is the standard format of providing depending collections and roles and can be read by `ansible-galaxy collection install` or
+    `ansible-galaxy role install` when you pass the `--requirements-file` or, more commonly, the `-r` switch to the `ansible-galaxy command` and point it to the
+    file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
     This is exactly what `ansible-builder` does during the `galaxy stage` (where roles and collections are installed)
 
 3. `Containerfile`
 
-    This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are pre-defined, but you'll find it contains the options we specified.
+    This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are pre-defined, but you'll find it contains the
+    options we specified.
+
     Let's have a look:
 
     ```plaintext
@@ -2015,11 +2021,13 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
     CMD ["bash"]
     ```
 
-    I know, if you are not familiar with building containers, most of the file looks like gibberish to you. Don't worry, with Version 3 of the EE definition, you don't need to touch the `Containerfile` itself - *usually*.
+    I know, if you are not familiar with building containers, most of the file looks like gibberish to you. Don't worry, with Version 3 of the EE definition, you don't need to
+    touch the `Containerfile` itself - *usually*.
     There might be *very, very* specific use-case where `ansible-builder` cannot fulfill your needs, but I personally haven't encountered it (yet).
 
-    Nevertheless, what you **need** to understand are the various stages the build passes through. This is because you can inject commands to each of those stages (at the very beginning and the very end
-    of each section, essentially), and this is *exactly* what you need to realize complex EEs with proxies, certificates and so on. We'll cover these build stages in the next section.
+    Nevertheless, what you **need** to understand are the various stages the build passes through. This is because you can inject commands to each of those stages
+    (at the very beginning and the very end of each section, essentially), and this is *exactly* what you need to realize complex EEs with proxies, certificates and so on.
+    We'll cover these build stages in the next section.
 
 ### Execution Environment stages
 
@@ -2061,11 +2069,14 @@ To be able to use these stages effectively, we'll need to understand what each o
 
 #### `base` stage
 
-The `base` stages begins by ensuring that `pip` is available (`RUN $PYCMD -m ensurepip`). This is important, as we'll use the intermediate image `base` as our base for the other intermediate images - hence the name `base`.
+The `base` stages begins by ensuring that `pip` is available (`RUN $PYCMD -m ensurepip`). This is important, as we'll use the intermediate image `base` as our base for the
+other intermediate images - hence the name `base`.
 
-Next, we copy the scripts we have in `_build/scripts` to `/output/scripts` and copy the `entrypoint` script to its destination at `/opt/builder/bin/entrypoint`. The `entrypoint` script will later on be the entry point for the `final` image.
+Next, we copy the scripts we have in `_build/scripts` to `/output/scripts` and copy the `entrypoint` script to its destination at `/opt/builder/bin/entrypoint`. The
+`entrypoint` script will later on be the entry point for the `final` image.
 
-The `scripts` contain scripts which we need during the build of our intermediate containers. Usually, you don't need to look at them and understand what's happening. For troubleshooting it's surely worthwhile to have a look :slightly_smiling_face:.
+The `scripts` contain scripts which we need during the build of our intermediate containers. Usually, you don't need to look at them and understand what's happening.
+For troubleshooting it's surely worthwhile to have a look :slightly_smiling_face:.
 
 #### `galaxy` stage
 
@@ -2073,15 +2084,17 @@ Within the `galaxy` stage we'll only install all Ansible collections and roles t
 
 #### `builder` stage
 
-The builder stage first copies what we've installed in the `galaxy` stage to `/usr/share/ansible` and then we `introspect` the content of it. Which means in other words, we extract the dependencies that each collection requires and write them into
-`/tmp/src/bindep.txt` for system package dependencies or `/tmp/src/requirements.txt` for Python packages.
+The builder stage first copies what we've installed in the `galaxy` stage to `/usr/share/ansible` and then we `introspect` the content of it. Which means in other words,
+we extract the dependencies that each collection requires and write them into `/tmp/src/bindep.txt` for system package dependencies or `/tmp/src/requirements.txt`
+for Python packages.
 
 :information_source:
 Remember the `ansible-builder introspect` a few sections earlier? That's essentially the same.
 
 Finally we run a mysterious script `/output/scripts/assemble`. That's one of the scripts that are in the `context/scripts` directory when you run `ansible-builder create` only.
 
-What this script essentially does is resolving Python package dependencies and installing them to `/output`, which we need for the next stage. Additionally system packages are installed and a list of them is collected and written for the next stage into `/output`.
+What this script essentially does is resolving Python package dependencies and installing them to `/output`, which we need for the next stage. Additionally system packages are
+installed and a list of them is collected and written for the next stage into `/output`.
 
 We also cache what we've downloaded for Python packages, so the next stage progresses quicker :sunglasses:.
 
@@ -2089,19 +2102,20 @@ We also cache what we've downloaded for Python packages, so the next stage progr
 
 This is - who would have guessed it - the final image. Essentially we combine everything now.
 
-First we copy from the `galaxy` stage the Ansible collections and roles to `/usr/share/ansible/`, then we copy the result of the `builder` stage from `output` to `output` and re-install the cached Python packages and as well the system package dependencies.
+First we copy from the `galaxy` stage the Ansible collections and roles to `/usr/share/ansible/`, then we copy the result of the `builder` stage from `/output` to
+`/output` and re-install the cached Python packages and as well the system package dependencies.
 
 ### Complex execution environments
 
 With all the knowledge from the previous chapters, we can finally start creating complex execution environments :sunglasses:.
 
-I'll make up a completely random scenario where we install a bunch of collections, Python and system packages. In my imaginary scenario, we'll need to set a proxy, a custom Python package repository and we also need to install custom certificate authority certificates.
-Further, we'll disable and enable repositories.
+I'll make up a completely random scenario where we install a bunch of collections, Python and system packages. In my imaginary scenario, we'll need to set a proxy,
+a custom Python package repository and we also need to install custom certificate authority certificates. Further, we'll disable and enable repositories.
 
 #### Specifying dependencies as files
 
-A few sections earlier, we specified the Ansible collections we wanted to install via in-line dependencies. Above I said, we'll be using files. The reason being, that - from my point of view - the more collections, Python and system packages you want to install,
-the harder to read the EE definition gets.
+A few sections earlier, we specified the Ansible collections we wanted to install via in-line dependencies. Above I said, we'll be using files.
+The reason being, that - from my point of view - the more collections, Python and system packages you want to install, the harder to read the EE definition gets.
 
 For this reason I've decided for myself to always use files to specify the dependencies - no matter how much I have.
 
@@ -2115,9 +2129,12 @@ They all have a very specific format; They are easy to remember formats, however
 
 #### Installing Ansible collections and roles
 
-Defining Ansible collections and roles should be the easiest of all. The [format](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) is probably known to most Ansible users.
+Defining Ansible collections and roles should be the easiest of all. The
+[format](https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-roles-and-collections-from-the-same-requirements-yml-file) is probably known to most
+Ansible users.
 
-For this example, I've copied one of my own `requirements.yml` and placed it next to my `execution-environment.yml`. I use the below `requirements.yml` for automating Satellite end-to-end. It contains a few collections, as well as some roles:
+For this example, I've copied one of my own `requirements.yml` and placed it next to my `execution-environment.yml`. I use the below
+`requirements.yml` for automating Satellite end-to-end. It contains a few collections, as well as some roles:
 
 ```yaml
 ---
@@ -2227,7 +2244,8 @@ dependencies:
 
 #### Installing Python packages
 
-Python package requirements follow also a very specific [format](https://pip.pypa.io/en/stable/reference/requirements-file-format/). Below I'll made up a random set of Python packages to install in different versions.
+Python package requirements follow also a very specific [format](https://pip.pypa.io/en/stable/reference/requirements-file-format/). Below I'll made up a random set
+of Python packages to install in different versions.
 
 :information_source: If you don't specify a version for a Python package, it'll default to use the latest possible version.
 
@@ -2290,8 +2308,8 @@ python3-cffi [platform:centos-9 platform:rhel-9]
 jq
 ```
 
-The format is the most complex of the three, and I encourage you to [read up on it](https://docs.opendev.org/opendev/bindep/latest/readme.html) to understand it. For basic requirements, you can simply name the RPM you'd like to have installed - like I did with
-`jq` above.
+The format is the most complex of the three, and I encourage you to [read up on it](https://docs.opendev.org/opendev/bindep/latest/readme.html) to understand it. For basic
+requirements, you can simply name the RPM you'd like to have installed - like I did with `jq` above.
 
 We'll place the above content in the file `bindep.txt`, again next to our `execution-environment.yml`.
 
@@ -2306,7 +2324,8 @@ dependencies:
 
 #### Adding certificates to an EE
 
-Adding certificates is essentially the same as with every RHEL-like system. In the case of EEs, we need to copy the certificates first into our `_build` directory (as with the `ansible.cfg`).
+Adding certificates is essentially the same as with every RHEL-like system. In the case of EEs, we need to copy the certificates first into our `_build`
+directory (as with the `ansible.cfg`).
 
 Let's imagine we have a file called `ca.cert.pem` and another one `intermediate.cert.pem` next to our `execution-environments.yml` file.
 
@@ -2331,8 +2350,8 @@ Now often the question comes up: Which stage?
 
 The answer is, as so often, it depends :rofl:.
 
-If you need the certificates to validate your connection to your private automation hub, then you'll need them in the `galaxy` stage. Do you require certificate validation with your proxy, and need to access the internet or some internal systems
-via a proxy, then you'll probably need the certificates in all stages (but the `base` stage, probably).
+If you need the certificates to validate your connection to your private automation hub, then you'll need them in the `galaxy` stage. Do you require certificate validation with
+your proxy, and need to access the internet or some internal systems via a proxy, then you'll probably need the certificates in all stages (but the `base` stage, probably).
 
 As you see, the answer really depends on your specific requirement.
 
@@ -2348,18 +2367,21 @@ additional_build_steps:
 [..]
 ```
 
-In the case above, I added it to the beginning of the `galaxy` stage. If you need to use it in another `stage`, simply replace `prepend_galaxy` with the corresponding attribute for the [stage](#execution-environment-stages) required.
+In the case above, I added it to the beginning of the `galaxy` stage. If you need to use it in another `stage`, simply replace `prepend_galaxy` with the corresponding
+attribute for the [stage](#execution-environment-stages) required.
 
 #### Defining a proxy
 
-Defining a proxy really depends on your use case - again. Most commonly, you'd have to run all connections that go outside of your corporate network through the proxy. This means, every time we install something. Which means, you'll need it in
-all `stages` :slightly_smiling_face:.
+Defining a proxy really depends on your use case - again. Most commonly, you'd have to run all connections that go outside of your corporate network through the proxy.
+This means, every time we install something. Which means, you'll need it in all `stages` :slightly_smiling_face:.
 
 Further, we need to differentiate between a system proxy and a proxy only for `pip`.
 
-Let's first go with the system proxy. A system proxy is set via the environment variables `http_proxy` and `https_proxy`. And if you want to exclude (sub-)domains, you can make use of `no_proxy`.
+Let's first go with the system proxy. A system proxy is set via the environment variables `http_proxy` and `https_proxy`. And if you want to exclude (sub-)domains,
+you can make use of `no_proxy`.
 
-If you've never encountered any of these variables before, you might want to review the [documentation](https://www.gnu.org/software/wget/manual/html_node/Proxies.html) of them prior to using them.
+If you've never encountered any of these variables before, you might want to review the [documentation](https://www.gnu.org/software/wget/manual/html_node/Proxies.html) of
+them prior to using them.
 
 In `ansible-builder` we can do it like this:
 
@@ -2509,7 +2531,8 @@ There is a little something, that can make this a lot more tidy than it is curre
 
 It is not used *that* widely with Ansible to my knowledge, as it can make things pretty quickly, pretty messy, so be careful when using it.
 
-With YAML anchors and aliases, you can include repetitive definitions in place. This not only looks tidier, but it has the benefit that you'll only need to update *one* reference if you, for instance, change your proxy - instead of updating all of the occurrences.
+With YAML anchors and aliases, you can include repetitive definitions in place. This not only looks tidier, but it has the benefit that you'll only need to update *one*
+reference if you, for instance, change your proxy - instead of updating all of the occurrences.
 
 Let's look into what it looks like when using it:
 
