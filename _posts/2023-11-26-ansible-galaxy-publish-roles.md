@@ -2,7 +2,7 @@
 title: Publishing roles to Ansible Galaxy - with or without GitHub Actions
 author: Steffen Scheib
 ---
-### Preface
+## Preface
 
 First off, this is going to be a small blog post. I personally found it too difficult to figure out how to publish my roles to
 [Ansible Galaxy](https://galaxy.ansible.com/ui/), that's why I didn't used do it for my roles right from the start.
@@ -19,7 +19,7 @@ help getting some roles published to Ansible Galaxy.
 
 So I decided to write this small blog post to provide a little bit of guidance. Once you know where to look, it really is easy.
 
-### Requirements
+## Requirements
 
 What you'll need to follow along is the following:
 
@@ -38,7 +38,7 @@ cannot have a `roles/` directory inside your git repository and publish any role
 If you struggle to understand what I mean, please look at one of my roles (e.g.
 [ansible-role-rhel_iso_kickstart](https://github.com/sscheib/ansible-role-rhel_iso_kickstart)) to understand the role structure I am referring to.
 
-### Publishing roles using the command line
+## Publishing roles using the command line
 
 Once you meet all the requirements, let's look into publishing your role using the command line first.
 
@@ -149,7 +149,7 @@ Import completed
 Once that's completed successfully, you can now login to [`https://galaxy.ansible.com`](https://galaxy.ansible.com) and browse to your profile and see the imported role.
 In my case, you can find it on my [Ansible Galaxy profile](https://galaxy.ansible.com/ui/standalone/roles/sscheib/dummy/).
 
-#### Updating a role
+### Updating a role
 
 I intentionally did not fully adjust the `README.md` which I copied from one of my other roles, so I'll be able to showcase what updating a role looks like.
 
@@ -203,7 +203,7 @@ Import completed
 
 This time the output looks a little different, as it found an existing role (which we pushed earlier) and now only updates it.
 
-#### Tagging releases
+### Tagging releases
 
 The last thing to do is to create a new [`git tag`](https://git-scm.com/book/en/v2/Git-Basics-Tagging) to have a proper version on the role in Ansible Galaxy.
 
@@ -285,7 +285,7 @@ Browsing now to my role on [Ansible Galaxy](https://galaxy.ansible.com/ui/standa
 
 Mission accomplished :sunglasses:.
 
-### Publishing roles using GitHub Actions
+## Publishing roles using GitHub Actions
 
 Lastly, I'd like to show you an automated way of publishing your roles to Ansible Galaxy by using [GitHub Actions](https://github.com/features/actions).
 
@@ -350,10 +350,16 @@ Finally, push the changed code to GitHub and enjoy an automated upload of your r
 You can always check for the status of the workflow by visiting your GitHub repository's page, click on `Actions` and check on the latest run. From there you can also
 run the workflow manually again (thanks to the definition of `workflow_dispatch: {}` in the workflow file), should you have the need for it.
 
-### Closing thoughts
+## Closing thoughts
 
 A small blog post this time around, but I hope you learned something new! :slightly_smiling_face:
 
 Until next time,
 
 Steffen :sunglasses:
+
+## Change log
+
+### 2024-02-02
+
+- `markdownlint` fixes
