@@ -267,6 +267,16 @@ If that's a use-case you can relate to, then I have good news for you: You can s
 If you want to be more specific, you can do that too, simply specify a tag with an additional z-version (the last digit in e.g. 2.15.**9**), e.g.
 `ansible-automation-platform/ee-minimal-rhel8:2.15.9`
 
+And if you want to make *extra sure* that the image your a pulling does not *change* even if you specify a z-version, you can include the `SHA checksum` (also called
+`digest`) of the image in the name:
+`registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8@sha256:2a17184e6ea2200b1335c0a39d04159fd040d5ce7fc1990a9d424cc20cfacd4d`. This name refers to
+`ee-minimal-rhel-8: 2.15.9-4`.
+
+This way you ensure that you *never* get any other image than you used. In turn, however, this means you need to update the name regularly.
+
+I, personally, don't include the `digest` in the name, as I trust Red Hat to not replace an existing image version with a new one. In terms of security, however,
+**a bad actor** *could* replace the image version with a new one. Specifying the `digest` will prevent you from pulling that image version.
+
 One last thing to discuss is the absence of the `supported` variants (the ones that contain besides `ansible-core` also *some* **supported** Ansible collections) of EEs, as
 well as the absence of the *special EE* (`ee-29-rhel8`) in *versionless* EEs.
 
@@ -2136,6 +2146,15 @@ Ansible users.
 For this example, I've copied one of my own `requirements.yml` and placed it next to my `execution-environment.yml`. I use the below
 `requirements.yml` for automating Satellite end-to-end. It contains a few collections, as well as some roles:
 
+:information_source: If you don't specify a version for a collection or role, it'll default to use the latest possible version.
+
+If you want reproducibility for your EEs (so that it builds the same *every time*, even months after you created the initial EE), you *must* specify fixed versions of
+collections and roles. `>=` means "bigger than or equal to" (as seen in the code block below), which results in the installation of new versions of the
+respective collections and roles if they are available.
+
+This is only for the "user-specified" Ansible collections and roles. Once you install Ansible collections, they can come with their own dependencies, which you
+cannot influence in that sense. So even if you specify fixed versions of your "user-supplied" Ansible collections, it doesn't mean that your EE is 100% reproducible.
+
 ```yaml
 ---
 collections:
@@ -2249,6 +2268,13 @@ of Python packages to install in different versions.
 
 :information_source: If you don't specify a version for a Python package, it'll default to use the latest possible version.
 
+If you want reproducibility for your EEs (so that it builds the same *every time*, even months after you created the initial EE), you *must* specify fixed versions for
+Python packages. `>=` means "bigger than or equal to" (as seen in the code block below), which results in the installation of new versions of the
+respective Python packages if they are available and `pip` dependency resolution finds it will not cause dependency issues.
+
+This is only for the "user-specified" Python packages. Once you install Ansible collections and Python packages, they come with their own dependencies, which you
+cannot influence in that sense. So even if you specify fixed versions of your "user-supplied" Python packages, it doesn't mean that your EE is 100% reproducible.
+
 ```plaintext
 pytz
 python-dateutil>=2.7.0
@@ -2284,6 +2310,15 @@ dependencies:
 
 Last but not least, we have the system packages. Also these follow a specific [format](https://docs.opendev.org/opendev/bindep/latest/readme.html).
 
+:information_source: If you don't specify a version for a system package, it'll default to use the latest possible version.
+
+If you want reproducibility for your EEs (so that it builds the same *every time*, even months after you created the initial EE), you *must* specify a fixed version for
+your system packages.
+
+This is only for the "user-specified" system packages. Once you install Ansible collections, Python packages and system packages, they can come with their own
+dependencies, which you cannot influence in that sense. So even if you specify fixed versions of your "user-supplied" system packages, it doesn't mean that your EE
+is 100% reproducible.
+
 I made up again a random list of system packages to install:
 
 ```plaintext
@@ -2306,10 +2341,13 @@ python3-devel [compile platform:centos-9 platform:rhel-9]
 python39-devel [compile platform:centos-8 platform:rhel-8]
 python3-cffi [platform:centos-9 platform:rhel-9]
 jq
+grep == 3.3
 ```
 
 The format is the most complex of the three, and I encourage you to [read up on it](https://docs.opendev.org/opendev/bindep/latest/readme.html) to understand it. For basic
 requirements, you can simply name the RPM you'd like to have installed - like I did with `jq` above.
+
+I've also added an example for specifying a fixed version of the package `grep`.
 
 We'll place the above content in the file `bindep.txt`, again next to our `execution-environment.yml`.
 
@@ -2599,6 +2637,147 @@ additional_build_steps:
 
 Doesn't that look **much** cleaner now? :sunglasses:.
 
+### Using custom base images
+
+The last topic I'd like to cover is using your very own `base` images. As you've seen in the above EE definition we often repeat the same steps. Such things as copying the
+certificates, and setting the system proxy.
+
+If you know that you **always** need certain things in your EE, we can apply a simple concept: Build your own `base` image, based on one of the official EEs.
+
+Things that you might always need are, for instance:
+
+- Specific system proxy
+- Specific EE modifications you need to perform always
+- Adding your corporate certificates
+
+Again, this *only* applies to things that you need in *all* your EEs.
+
+The process itself is straight forward. We'll define a EE as we used to do, but with the bare minimum of options, and leaving out *everything* that we don't need *always*.
+In my case that's Python packages as well as Ansible content:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+
+dependencies:
+  system: 'bindep.txt'
+
+options:
+  package_manager_path: '/usr/bin/microdnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+    - src: 'ca.cert.pem'
+      dest: 'certs/'
+
+    - src: 'intermediate.cert.pem'
+      dest: 'certs/'
+
+additional_build_steps:
+  prepend_base:
+    # copy files
+    - 'COPY _build/certs/ca.cert.pem /etc/pki/ca-trust/source/anchors/'
+    - 'COPY _build/certs/intermediate.cert.pem /etc/pki/ca-trust/source/anchors'
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+    - 'RUN update-ca-trust'
+
+    # override pip proxy and package repository
+    - 'RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple'
+    - 'RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me'
+    - 'RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128'
+
+    # set the system proxy
+    - 'ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+    - 'ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128'
+
+    # disable all repositories but the UBI ones
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"'
+...
+```
+
+In my imaginary scenario above I *always* need:
+
+- The certificates of my public key infrastructure inside my EE
+- Proxy configuration, for both the system itself and `pip`
+- We are also going to use a custom Python package repository
+- I need one package, that is defined in `bindep.txt`: `socat [platform:rpm]`
+- Also I want to ensure that only UBI repositories are enabled
+
+You can also include Ansible content and as well Python packages you always want to have in *each* EE. But please remember: If you don't require it *always*,
+but only in specific EEs, you should not consider adding that to your custom `base image`.
+
+Let's build the `base` image:
+
+```shell
+$ ansible-builder build -f base.yml -t ee-base-rhel-8:latest -v3
+[..]
+[3/3] COMMIT ee-base-rhel-8:latest
+--> ff13573ab020
+Successfully tagged localhost/ee-base-rhel-8:latest
+ff13573ab0209bdbc8cdcee3d0aaae4d8d643d91d87f1c38449806e983a15e46
+```
+
+Now we have the EE on our local machine and `ansible-navigator images` knows about it:
+
+```shell
+   Image                                                                            Tag         Execution environment                 Created                          Size
+ 1│ee-base-rhel-8                                                                   latest      True                                  About a minute ago               359 MB
+ 2│ee-minimal-rhel8                                                                 2.16        True                                  4 weeks ago                      345 MB
+ 3│ee-satellite-rhel-8                                                              latest      True                                  3 days ago                       446 MB
+```
+
+Perfect. How do we utilize it now in `ee-satellite-rhel-8`?
+
+That's easy: Can you recall the following section of the EE definition?
+
+```yaml
+[..]
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+[..]
+```
+
+Guess what? We'll replace that now with our just created image `localhost/ee-base-rhel-8:latest` :sunglasses:.
+
+The final `execution-environment.yml` for our EE `ee-satellite-rhel-8:latest` will look like this:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'localhost/ee-base-rhel-8:latest'
+
+dependencies:
+  galaxy: 'requirements.yml'
+  python: 'requirements.txt'
+  system: 'bindep.txt'
+
+options:
+  package_manager_path: '/usr/bin/microdnf'
+...
+```
+
+We handle all the necessary extra steps already (certificates, proxy, etc.) in our own `base` image, so you don't have to worry about that anymore when building your
+"real" EE. This also has the benefit we only need to do it *once*, compared to the previous multiple times - depending on your use case, of course.
+
+You can push the new `base` EE now to your Automation Hub, or any other container registry you have in your company. That way everybody can use this new corporate
+base EE :slightly_smiling_face:.
+
+Easy, wasn't it? :sunglasses:
+
+:warning:
+**A word of caution**: Since we now effectively decoupled pulling Red Hat's certified EE of our "real" EE, you **need** to update your custom `base` EE
+**regularly** as well. Otherwise you don't receive updates of the certified EEs.
+
 ## Conclusion
 
 I *think* I am done. Honestly, I kind of lost the overview with all the topics - it turned out to be longer than I anticipated :rofl:.
@@ -2608,4 +2787,15 @@ I hope you learned something new :slightly_smiling_face:. Please let me know if 
 If you have any questions, just leave a comment and I might be able to incorporate your use-case in this post.
 
 .. until next time,
+
 Steffen
+
+## Change log
+
+### 2024-02-02
+
+- Adding Section about custom `base` images
+- Adding `SHA` digest image "pinning" -
+  Thanks to my colleague [Michaela Lang](https://at.linkedin.com/in/michaela-lang-900603b9) for pointing this out!
+- Clarification about reproducibility with regards to Ansible content, Python and system packages -
+  Thanks to my colleague [Michaela Lang](https://at.linkedin.com/in/michaela-lang-900603b9) for pointing this out!
