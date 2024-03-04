@@ -6,7 +6,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  markdown_link_check:
+  build:
+    name: 'markdown link check'
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@master'
