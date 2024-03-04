@@ -2796,6 +2796,6 @@ Steffen
 
 - Adding Section about custom `base` images
 - Adding `SHA` digest image "pinning" -
-  Thanks to my colleague [Michaela Lang](https://at.linkedin.com/in/michaela-lang-900603b9) for pointing this out!
+  Thanks to my colleague [Michaela Lang](https://github.com/michaelalang) for pointing this out!
 - Clarification about reproducibility with regards to Ansible content, Python and system packages -
-  Thanks to my colleague [Michaela Lang](https://at.linkedin.com/in/michaela-lang-900603b9) for pointing this out!
+  Thanks to my colleague [Michaela Lang](https://github.com/michaelalang) for pointing this out!
