@@ -2,33 +2,46 @@
 title: Ansible role rhel_iso_kickstart
 author: Steffen Scheib
 ---
-### Preface
-I have been playing around with the idea of writing a blog post series about my Ansible roles for quite a while now. Not only to 'promote' my Ansible roles, but also to show case how extremely flexible Ansible really is.
-Often times people think of Ansible as "just another configuration management tool". While this is absolutely true, Ansible - in my opinion - is so much more than that. Ansible is great in automating a series of tasks across multiple systems - that is really the **strength of Ansible**.
+## Preface
+
+I have been playing around with the idea of writing a blog post series about my Ansible roles for quite a while now. Not only to 'promote' my Ansible roles, but also to show case
+how extremely flexible Ansible really is. Often times people think of Ansible as "just another configuration management tool". While this is absolutely true, Ansible - in my
+opinion - is so much more than that. Ansible is great in automating a series of tasks across multiple systems - that is really the **strength of Ansible**.
 
 To disclose it right away: I am working at Red Hat as Senior Technical Account Manager Ansible - so please take the above with a grain of salt, as I am most probably biased.
 
 With that being said, let's dive into my Ansible role [`rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) :sunglasses:
 
-### Introduction
-I regularly deploy new [Red Hat Satellite](https://www.redhat.com/de/technologies/management/satellite) instances - for testing purposes. Or when I broke one of the Satellite instances (again) while playing around a bit *too much*. Or when I (once again) move to a new server or basically revamp my complete infrastructure. So you see, I have quite a need for that :grin:.
+## Introduction
 
-I also noticed that a few of my colleagues had the same need, as well as some of our customers. I couldn't find an existing *automated way* of downloading a given RHEL ISO and implanting a Kickstart into it, while also allowing to customize certain things, such as enabling [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards).
+I regularly deploy new [Red Hat Satellite](https://www.redhat.com/de/technologies/management/satellite) instances - for testing purposes. Or when I broke one of the Satellite
+instances (again) while playing around a bit *too much*. Or when I (once again) move to a new server or basically revamp my complete infrastructure. So you see, I have quite a
+need for that :grin:.
+
+I also noticed that a few of my colleagues had the same need, as well as some of our customers. I couldn't find an existing *automated way* of downloading a given RHEL ISO and
+implanting a Kickstart into it, while also allowing to customize certain things, such as enabling [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards).
 
 So I decided, I'll just write an Ansible role for everybody to use to ease this regular task.
 
-### Prerequisite: Obtaining an API token to authenticate to the Red Hat Customer Portal
-First off, to download an ISO from the [Red Hat Customer Portal](https://access.redhat.com) you need to be a Red Hat subscriber. If you don't own any subscriptions, you can make use of [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
+## Prerequisite: Obtaining an API token to authenticate to the Red Hat Customer Portal
 
-Once you created your account and are able to download from the Red Hat Customer Portal, you need to create an API Token, which we'll use to authenticate to the Red Hat Customer Portal. For that, simply login to Red Hat's Customer Portal and create an [API Token](https://access.redhat.com/management/api).
+First off, to download an ISO from the [Red Hat Customer Portal](https://access.redhat.com) you need to be a Red Hat subscriber. If you don't own any subscriptions, you can
+make use of [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
+
+Once you created your account and are able to download from the Red Hat Customer Portal, you need to create an API Token, which we'll use to authenticate to the Red Hat
+Customer Portal. For that, simply login to Red Hat's Customer Portal and create an [API Token](https://access.redhat.com/management/api).
 
 Note down that token, as we are going to need it for the role to function.
 
-### Prerequisite: Obtaining the checksum of an ISO to download
-The Red Hat Customer Portal API enables downloading of ISO images only **by checksum**. To download an ISO, you first need to identify the checksum to pass to the role. This checksum can be retrieved for any ISO on the Red Hat Customer Portal and can be found on the respective download page of the ISO itself.
+## Prerequisite: Obtaining the checksum of an ISO to download
 
-For RHEL you can visit [https://access.redhat.com/downloads/content/rhel](https://access.redhat.com/downloads/content/rhel) and simply click on **Show details**. As an example, the **Red Hat Enterprise Linux 8.8 Binary DVD** will show the following additional details:
-```
+The Red Hat Customer Portal API enables downloading of ISO images only **by checksum**. To download an ISO, you first need to identify the checksum to pass to the role. This
+checksum can be retrieved for any ISO on the Red Hat Customer Portal and can be found on the respective download page of the ISO itself.
+
+For RHEL you can visit [https://access.redhat.com/downloads/content/rhel](https://access.redhat.com/downloads/content/rhel) and simply click on **Show details**.
+As an example, the **Red Hat Enterprise Linux 8.8 Binary DVD** will show the following additional details:
+
+```shell
 File name: rhel-8.8-x86_64-dvd.iso
 File Size: 11.7 GB
 SHA-256 Checksum: 517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09 
@@ -37,10 +50,13 @@ Last Updated: 2023-04-26
 
 We are going to need the **SHA-256 Checksum** :slightly_smiling_face:.
 
-### Installation
-Installation is easy and straight forward. I tag my Role releases using [semantic versioning](https://semver.org/) on GitHub. Installing a specific tag works through providing a `requirements.yml` to the `ansible-galaxy` command.
+## Installation
+
+Installation is easy and straight forward. I tag my Role releases using [semantic versioning](https://semver.org/) on GitHub. Installing a specific tag works through providing
+a `requirements.yml` to the `ansible-galaxy` command.
 
 If you'd want to install v2.0.0 of my Role, you could use the following `requirements.yml`:
+
 ```yaml
 ---
 roles:
@@ -51,49 +67,59 @@ roles:
 ```
 
 Installing it is as easy as that:
-```
+
+```shell
 ansible-galaxy role install -r requirements.yml
 ```
 
-### A deeper look into the role
+## A deeper look into the role
+
 So what actually does this role?
 
 The role does the following:
+
 1. Download a RHEL ISO to your local filesystem - that can be your local machine or a server in a data center
-2. Optional: Unpack the ISO
-3. Optional: Add a custom Kickstart or the Kickstart shipped with the role to the unpacked ISO
-4. Optional: Adjust the Kickstart to set a root password, create users and add custom `%post` sections
-5. Optional: Validate the Kickstart using `ksvalidator`
-6. Optional: Adjust the kernel parameters to load the Kickstart automatically
-7. Optional: Enable FIPS in the kernel parameters
-8. Optional: Adjust the timeout of GRUB, so you don't have to wait 60 seconds for the installation to start
-9. Optional: Adjust the GRUB menu entry to use; Either validate the ISO before installing or directly install it
-10. Optional: Create the actual ISO
-11. Optional: Make the ISO bootable on BIOS and UEFI systems
-12. Optional: Implant an MD5 sum so it can be checked during booting
+1. Optional: Unpack the ISO
+1. Optional: Add a custom Kickstart or the Kickstart shipped with the role to the unpacked ISO
+1. Optional: Adjust the Kickstart to set a root password, create users and add custom `%post` sections
+1. Optional: Validate the Kickstart using `ksvalidator`
+1. Optional: Adjust the kernel parameters to load the Kickstart automatically
+1. Optional: Enable FIPS in the kernel parameters
+1. Optional: Adjust the timeout of GRUB, so you don't have to wait 60 seconds for the installation to start
+1. Optional: Adjust the GRUB menu entry to use; Either validate the ISO before installing or directly install it
+1. Optional: Create the actual ISO
+1. Optional: Make the ISO bootable on BIOS and UEFI systems
+1. Optional: Implant an MD5 sum so it can be checked during booting
 
 TL;DR: Quite a lot.
 
-Chances are that you do not need or want to use certain features of the role, such as enabling FIPS. Then I have good news for you: All steps but the very first are optional and can be configured through variables. :sunglasses:
+Chances are that you do not need or want to use certain features of the role, such as enabling FIPS. Then I have good news for you: All steps but the very first are optional and
+can be configured through variables. :sunglasses:
 
-### Use cases
+## Use cases
+
 I have identified three major use cases for the role:
-1. Only download an ISO, don't touch it
-2. Download the ISO and enable FIPS, so you don't have to do it manually every time before the ISO boots, but do not perform any other changes to the ISO
-3. Embed a customized Kickstart into the ISO to use it for unattended installing
 
-I am sure, there plenty of other use cases I haven't thought of yet. If you happen to have a different use case, consider contributing with a feature request or simply comment on this blog post :slightly_smiling_face:
+1. Only download an ISO, don't touch it
+1. Download the ISO and enable FIPS, so you don't have to do it manually every time before the ISO boots, but do not perform any other changes to the ISO
+1. Embed a customized Kickstart into the ISO to use it for unattended installing
+
+I am sure, there plenty of other use cases I haven't thought of yet. If you happen to have a different use case, consider contributing with a feature request or
+simply comment on this blog post :slightly_smiling_face:
 
 Now, let's take look at the above use cases and how to configure the role to achieve each of them.
 
-#### Downloading an ISO
+### Downloading an ISO
+
 Downloading the ISO is the easiest of the three use cases. You'll only need to configure:
+
 - Which ISO to download
 - Where to download it to
 - The permissions of both the download directory and the ISO
 - Provide the API token to authenticate against the Red Hat Customer Portal
 
 An example of a playbook could look something like this:
+
 ```yaml
 - hosts: 'localhost'
   gather_facts: false
@@ -115,9 +141,10 @@ An example of a playbook could look something like this:
           [..]
 ```
 
+### Downloading an ISO and enabling FIPS for the ISO
 
-#### Downloading an ISO and enabling FIPS for the ISO
 Enabling FIPS on top of downloading the image is not much more complicated. You need to configure the following:
+
 - Which ISO to download
 - Where to download it to
 - The permissions of both the download directory and the ISO
@@ -131,6 +158,7 @@ Enabling FIPS on top of downloading the image is not much more complicated. You 
 - Enabling the option to implanting an MD5 checksum which can be checked during booting
 
 An example playbook could look something like this:
+
 ```yaml
 - hosts: 'localhost'
   gather_facts: false
@@ -167,8 +195,10 @@ An example playbook could look something like this:
           $ANSIBLE_VAULT;1.1;AES256
 ```
 
-#### Download a RHEL ISO, implant a Kickstart, create users, add custom `%post` sections, implant an MD5 checksum and enable FIPS
+### Download a RHEL ISO, implant a Kickstart, create users, add custom `%post` sections, implant an MD5 checksum and enable FIPS
+
 This use case leverages basically all the functionality the role offers. It will:
+
 - Download a RHEL ISO
 - Implant a Kickstart into the ISO
 - Add create user statements to the Kickstart
@@ -177,9 +207,11 @@ This use case leverages basically all the functionality the role offers. It will
 - Implant a MD5 checksum
 - Enable FIPS
 
-A thorough example of the possible usage can be found down below. Some of the variables are redundant, as they merely reflect the defaults already set, but I wanted to show *what* can be changed.
+A thorough example of the possible usage can be found down below. Some of the variables are redundant, as they merely reflect the defaults already set, but I wanted to show
+*what* can be changed.
 
 Example playbook:
+
 ```yaml
 {% raw %}
 ---
@@ -273,6 +305,6 @@ Example playbook:
 {% endraw %}
 ```
 
-### Conclusion
+## Conclusion
 
 I hope this role spares you a little time in your day to day work. That's already it for the time being - I hope you enjoyed it :sunglasses:
