@@ -238,7 +238,7 @@ done
 ```
 
 ### Formatting partitions and setting up the encrypted LVM
-The goal of this section is to end up with a partition layout using the [Logical Volume Manager](https://en.wikipedia.org/wiki/Logical_Volume_Manager_Linux) (LVM).
+The goal of this section is to end up with a partition layout using the [Logical Volume Manager](https://en.wikipedia.org/wiki/Logical_volume_management) (LVM).
 In order to achieve this we are going to create an encrypted [Linux Unified Key Setup](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) (LUKS) partition on which we will create our LVM.
 The partition table should look ideally similar to the one in the table below. As I am currently setting up a server to use with [Proxmox](https://www.proxmox.com) the sizing might be different from your choice.
 
@@ -1042,11 +1042,10 @@ root@rescue ~ #
 Finally we can start the installation of Debian Bullseye within our live system.
 For the installation we are going to use a program called [Debootstrap](https://wiki.debian.org/Debootstrap). Debootstrap is basically used to install a Debian system within a Debian system (our live environment). The latest version can always be found [package repository of debian.org](http://ftp.debian.org/debian/pool/main/d/debootstrap/) - we need the version, which is packaged using `.deb`.
 
-Currently the latest version is [1.0.131](http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.131_all.deb).
-
 ### Downloading Debootstrap and modify it
 First, we need to download the .deb using wget or curl:
-{% highlight shell %}
+
+```shell
 root@rescue ~ # cd /tmp/
 root@rescue /tmp # wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.124_all.deb
 --2021-08-22 12:42:35--  http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.124_all.deb
@@ -1061,7 +1060,7 @@ debootstrap_1.0.124_all.deb                100%[================================
 2021-08-22 12:42:35 (2.30 MB/s) - ‘debootstrap_1.0.124_all.deb’ saved [76416/76416]
 
 root@rescue /tmp #
-{% endhighlight %}
+```
 
 After we downloaded it, we need to unpack it:
 {% highlight shell %}
