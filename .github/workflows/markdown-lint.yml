@@ -7,10 +7,11 @@ on:
 
 jobs:
   build:
-    name: 'markdownlint-cli'
+    name: 'markdownlint'
     runs-on: 'ubuntu-latest'
     steps:
-      - name: 'markdownlint-cli'
+      - uses: 'actions/checkout@master'
+      - name: 'markdownlint'
         uses: 'nosborn/github-action-markdown-cli@v3.3.0'
         with:
           files: '_posts/*.md'
