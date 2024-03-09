@@ -14,4 +14,5 @@ jobs:
       - uses: 'gaurav-nelson/github-action-markdown-link-check@v1'
         with:
           folder-path: '_posts/'
+          config-file: '.markdown-link-check.json'
 ...
