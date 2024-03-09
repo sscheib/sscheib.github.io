@@ -1140,7 +1140,7 @@ Nevertheless, for the time being you can use the playbook :sunglasses:
 ### Documentation
 <!-- markdownlint-enable MD024 -->
 
-- [Module satellite.scap_content](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/module/scap_content/)
+- [Module `satellite.scap_content`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/module/scap_content/)
 - [OpenSCAP](https://www.open-scap.org/)
 
 <!-- markdownlint-disable MD024 -->
@@ -1202,6 +1202,7 @@ Steffen
 ### 2024-03-09
 
 - `markdownlint` fixes
+- Typo fixes
 - Adding a note that RHEL 8.8 and RHEL 8.9 with Ansible Core 2.15.4 has been tested
 - Adding a note that this has been tested on Satellite 6.13 and Satellite 6.14
 
