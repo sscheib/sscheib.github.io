@@ -442,7 +442,7 @@ ensure that the content we retrieve is retrieved without any modification (throu
 Red Hat repositories are validated by default.
 
 <!-- markdownlint-disable MD024 -->
-## Documentation
+### Documentation
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/)
@@ -493,7 +493,7 @@ variable the role `redhat.satellite.repositories` requires.
 If you know another way, kindly let me know in the comments below.
 
 <!-- markdownlint-disable MD024 -->
-## Documentation
+### Documentation
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.repositories`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/repositories/)
@@ -575,7 +575,7 @@ If you know another way, kindly let me know in the comments below.
 To ensure our content is kept up to date, we are going to create Sync Plans in the next step.
 
 <!-- markdownlint-disable MD024 -->
-## Documentation
+### Documentation
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.sync_plans`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/sync_plans/)
