@@ -1,0 +1,42 @@
+---
+spellchecker: 'aspell'
+jobs: 4
+matrix:
+  - name: 'markdown'
+    dictionary:
+      wordlists:
+        - '.github/spellcheck/wordlist.txt'
+      output: '.github/spellcheck/spellcheck.dic'
+    pipeline:
+      - pyspelling.filters.markdown:
+          markdown_extensions:
+            - pymdownx.superfences: {}
+            - pymdownx.highlight: {}
+          
+      - pyspelling.filters.html:
+          comments: false
+          ignores:
+            - ':matches(code, pre)'
+
+      - pyspelling.filters.context:
+          context_visible_first: true
+          delimiters:
+            # ignore gists
+            - open: '{% gist (?:[0-9a-f]){32}'
+              close: ' %}'
+            # ignore text between inline back ticks
+            - open: '(?P<open>`+)'
+              close: '(?P=open)'
+
+      - pyspelling.filters.url: {}
+
+    sources:
+      - '_posts/*automating-satellite.md'
+
+    default_encoding: 'utf-8'
+    aspell:
+      lang: 'en'
+      d: 'en_US'
+      mode: 'markdown'
+      ignore-case: true
+...
