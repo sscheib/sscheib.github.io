@@ -2793,7 +2793,7 @@ Steffen
 
 ### 2024-03-10
 
-- markdownlint fixes
+- `markdownlint` fixes
 
 ### 2024-02-02
 

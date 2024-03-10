@@ -51,7 +51,7 @@ We are going to configure three partitions:
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary><i>Example output of <b>gdisk</b></i></summary>
-{% highlight plaintext %}
+{% highlight terminal %}
 root@rescue ~ # gdisk /dev/nvme0n1
 GPT fdisk (gdisk) version 1.0.9
 
@@ -102,7 +102,7 @@ The operation has completed successfully.
 
 At the end we will have partitions, which should look similar to the following output (besides the last partition size, which depends - of course - on the overall disk size):
 
-```plaintext
+```terminal
 root@rescue ~ # gdisk -l /dev/nvme0n1
 GPT fdisk (gdisk) version 1.0.9
 [..]
@@ -126,14 +126,14 @@ Now, let's continue with the procedure.
 First, we need to copy the partition table to our additional disk using `sgdisk -R /dev/nvme1n1 /dev/nvme0n1`. `nvme0n1` is the disk we modified manually above,
 and `nvme1n1` is the additional disk:
 
-```plaintext
+```terminal
 root@rescue ~ # sgdisk -R /dev/nvme1n1 /dev/nvme0n1
 The operation has completed successfully.
 ```
 
 This will leave us with the following two **identical** partition tables:
 
-```plaintext
+```terminal
 root@rescue ~ # gdisk -l /dev/nvme0n1
 GPT fdisk (gdisk) version 1.0.9
 [..]
@@ -157,7 +157,7 @@ Number  Start (sector)    End (sector)  Size       Code  Name
 I want you to pay close attention to the `Disk identifier (GUID)` column: They are **the same**.
 What we now need to do, is to randomize the newly created partition table (in terms of its GUID) using `sgdisk -G /dev/nvme1n1`:
 
-```plaintext
+```terminal
 root@rescue ~ # sgdisk -G /dev/nvme1n1
 The operation has completed successfully.
 root@rescue ~ # gdisk -l /dev/nvme1n1
@@ -181,23 +181,23 @@ Let's move on to creating the RAID 1s with those NVMe disks.
 
 Creating a RAID 1 is super easy with `mdadm`. We need four things for that:
 
-* A RAID label (common would be `md0` for the first array, `md1` for the second, etc.)
-* The RAID level (e.g. 1, 5, 6, 60, etc.)
-* The number of RAID devices (in our case 2)
-* The RAID devices, which are the partitions we created earlier
+- A RAID label (common would be `md0` for the first array, `md1` for the second, etc.)
+- The RAID level (e.g. 1, 5, 6, 60, etc.)
+- The number of RAID devices (in our case 2)
+- The RAID devices, which are the partitions we created earlier
 
 Here is the deal: We need two RAID 1 arrays. One, which will hold our `/boot` partition (which is the second partition we created on the NVMe devices) and the second one
 will be holding all our encrypted data (which is the third partition on the NVMe devices).
 
 The command to run would look something like this:
 
-```shell
+```plaintext
 mdadm --create /dev/md/<LABEL> --level=<RAID_LEVEL> --raid-devices=<RAID_DEVICES_NUMBER> <PATH_TO_PARTITION_OF_RAID_DEVICE_1> <PATH_TO_PARTITION_OF_RAID_DEVICE_2> <PATH_TO_PARTITION_OF_RAID_DEVICE_n> [--metadata=N]
 ```
 
 In my case, it looks like this for the first RAID (`/boot`):
 
-```shell
+```plaintext
 mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/nvme0n1p2 /dev/nvme1n1p2 --metadata=0.90
 ```
 
@@ -206,7 +206,7 @@ earlier days it was for sure. Feel free to try it out and let me know! :slightly
 
 Next, we'll create the second RAID for our encrypted data:
 
-```shell
+```terminal
 mdadm --create /dev/md1 --level=1 --raid-devices=2 /dev/nvme0n1p3 /dev/nvme1n1p3 --metadata=1.2
 ```
 
@@ -215,7 +215,7 @@ to 1.2. You can read up on them on the [manpage of `mdadm`](https://linux.die.ne
 
 Now we can check on the progress of the RAID re-synchronization via `/proc/mdstat`:
 
-```plaintext
+```terminal
 root@rescue ~ # cat /proc/mdstat 
 Personalities : [raid1] 
 md1 : active raid1 nvme1n1p3[1] nvme0n1p3[0]
@@ -232,14 +232,14 @@ root@rescue ~ #
 
 You can greatly speed up the RAID re-synchronization using the following parameters:
 
-* `sysctl -w dev.raid.speed_limit_min=<NUMBER>`, e.g. `sysctl -w dev.raid.speed_limit_min=500000`
-* `sysctl -w dev.raid.speed_limit_max=<NUMBER>`, e.g. `sysctl -w dev.raid.speed_limit_max=500000`
+- `sysctl -w dev.raid.speed_limit_min=<NUMBER>`, e.g. `sysctl -w dev.raid.speed_limit_min=500000`
+- `sysctl -w dev.raid.speed_limit_max=<NUMBER>`, e.g. `sysctl -w dev.raid.speed_limit_max=500000`
 
 :information_source: This will have a significant performance impact on your system!
 
 With the above I could speed up my RAID re-synchronization a lot :sunglasses::
 
-```plaintext
+```terminal
 root@rescue ~ # cat /proc/mdstat 
 Personalities : [raid1] 
 md1 : active raid1 nvme1n1p3[1] nvme0n1p3[0]
@@ -301,7 +301,7 @@ partition layout or even extend the size of the different point mounts - thanks 
 After creating the partitions on the system disk (`/dev/md0`) earlier, we are going to format the partition (which we will use as `/boot`) using `XFS` as filesystem. For
 that we'll use `mkfs.xfs /dev/md0`:
 
-```plaintext
+```terminal
 root@rescue ~ # mkfs.xfs /dev/md0
 meta-data=/dev/md0               isize=512    agcount=8, agsize=261088 blks
          =                       sectsz=4096  attr=2, projid32bit=1
@@ -322,7 +322,7 @@ Next, we want to have all remaining partitions (e.g. `/`, `/home`, `/tmp`, etc.)
 
 In order to encrypt the partition, following command is executed:
 
-```shell
+```plaintext
 cryptsetup -s 512 -c aes-xts-plain64 luksFormat /dev/md1
 ```
 
@@ -332,7 +332,7 @@ After you confirmed it, you will be prompted to enter a password for the encrypt
 :warning: Make sure to save the password in your password safe (or remember it :open_mouth: ), otherwise you will not be able to access the system ever again - all data
 will be lost. **There is no way to recover them**.
 
-```plaintext
+```terminal
 root@rescue ~ # cryptsetup -s 512 -c aes-xts-plain64 luksFormat /dev/md1
 
 WARNING!
@@ -347,14 +347,14 @@ root@rescue ~ #
 
 Quickly verify, whether the encrypted LUKS partition is setup properly using the following command:
 
-```shell
+```plaintext
 cryptsetup luksOpen /dev/md1 crypted_system
 ```
 
 The system will ask you for the password to decrypt the LUKS partition. After you entered the correct password, you will be able to see a new
 device: `/dev/mapper/crypted_system`
 
-```plaintext
+```terminal
 root@rescue ~ # cryptsetup luksOpen /dev/md1 crypted_system 
 Enter passphrase for /dev/md1: 
 root@rescue ~ # ls -la /dev/mapper/
@@ -371,10 +371,10 @@ root@rescue ~ #
 Basically, the same steps as we used for the LUKS partition that holds our system partitions have to be applied for the data partitions.
 The differences are only a few simple things:
 
-* The device is now `/dev/md2`
-* We will encrypt the device as a whole and not creating partitions before hand - simply because we don't need to.
-* With `cryptsetup luksOpen` we need to specify a different name for the device, which holds the decrypted data: `crypted_data`
-* **Ideally** you want to use a different password as for the system LUKS partition. We will later replace the password with a key file on the encrypted root file
+- The device is now `/dev/md2`
+- We will encrypt the device as a whole and not creating partitions before hand - simply because we don't need to.
+- With `cryptsetup luksOpen` we need to specify a different name for the device, which holds the decrypted data: `crypted_data`
+- **Ideally** you want to use a different password as for the system LUKS partition. We will later replace the password with a key file on the encrypted root file
   system in order to make the unlocking of the system during the boot easier
 
 ## Setting up LVM: Creating a physical volume, a volume group and several logical volumes for the encrypted LUKS partition
@@ -391,13 +391,13 @@ The first step is to create a physical volume on top of the LUKS partition. This
 
 Following command is used to create the physical volume:
 
-```shell
+```plaintext
 pvcreate /dev/mapper/crypted_system
 ```
 
 The output will look similar to the following:
 
-```plaintext
+```terminal
 root@rescue ~ # pvcreate /dev/mapper/crypted_system
   Physical volume "/dev/mapper/crypted_system" successfully created.
 root@rescue ~ # 
@@ -414,7 +414,7 @@ vgcreate vg_system /dev/mapper/crypted_system
 
 The output will look similar to the following:
 
-```plaintext
+```terminal
 root@rescue ~ # vgcreate vg_system /dev/mapper/crypted_system
   Volume group "vg_system" successfully created
 root@rescue ~ # 
@@ -424,13 +424,13 @@ root@rescue ~ #
 
 The last step is to create logical volumes on top of the just created volume group. Following command is used to create a logical volume:
 
-```shell
+```plaintext
 lvcreate -L <size> -n <name> <volume_group_name>
 ```
 
 For example:
 
-```shell
+```plaintext
 lvcreate -L 16G -n root vg_system
 ```
 
@@ -444,7 +444,7 @@ This is the best practice approach, which I have implemented on many servers/inf
 
 The output will look similar to the following:
 
-```plaintext
+```terminal
 root@rescue ~ # lvcreate -L 16G -n root vg_system
   Logical volume "root" created.
 root@rescue ~ # lvcreate -L 4G -n home vg_system
@@ -466,7 +466,7 @@ root@rescue ~ #
 
 And will leave us with following logical volumes:
 
-```plaintext
+```terminal
 root@rescue ~ # lvs
   LV            VG        Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
   home          vg_system -wi-a-----  4.00g                                                    
@@ -482,7 +482,7 @@ root@rescue ~ #
 
 .. and plenty of space left in the volume group:
 
-```plaintext
+```terminal
 root@rescue ~ # vgs
   VG        #PV #LV #SN Attr   VSize    VFree   
   vg_system   1   8   0 wz--n- <886.11g <800.11g
@@ -494,7 +494,7 @@ root@rescue ~ #
 As for the system partition, the same approach needs to be done for the data disk. As I briefly explained the exact approach and implementation above, here just the command
 output:
 
-```plaintext
+```terminal
 root@rescue ~ # pvcreate /dev/mapper/crypted_data 
   Physical volume "/dev/mapper/crypted_data" successfully created
 root@rescue ~ # vgcreate vg_data /dev/mapper/crypted_data 
@@ -533,7 +533,7 @@ done
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Following a sample output:</summary>
-{% highlight plaintext %}
+{% highlight terminal %}
 root@rescue ~ # #!/bin/bash
 # define the filesystem to use here
 declare -r filesystem_type="xfs"
@@ -639,7 +639,7 @@ root@rescue ~ #
 
 Note: If you have volume groups defined in the script, which are non-existent, you will retrieve some error messages, like the following (obviously `vg_data` did not exist):
 
-```shell
+```terminal
 Error accessing specified device /dev/mapper/vg_data-*: No such file or directory
 Usage: mkfs.xfs
 /* blocksize */         [-b size=num]
@@ -680,7 +680,7 @@ To easy this process again - and save me some manual work again - I created a sc
 To be able to use this script, we need to "close", both the volume group `vg_system` and - if you created - the volume group `vg_data` and afterwards close the LUKS partition.
 This can be done using the following commands:
 
-```shell
+```plaintext
 # "close" the volume groups
 lvchange -a n vg_system
 lvchange -a n vg_data
@@ -692,7 +692,7 @@ cryptsetup luksClose /dev/mapper/crypted_data
 
 The output (or well, no output) will look similar to this (depending on - as already mentioned - whether you have chosen to create `vg_data` or not):
 
-```shell
+```terminal
 root@rescue ~ # lvchange -a n vg_system
 root@rescue ~ # lvchange -a n vg_data
 root@rescue ~ # cryptsetup luksClose /dev/mapper/crypted_system 
@@ -702,7 +702,7 @@ root@rescue ~ #
 
 You can verify, whether we “closed” the volume group and the LUKS partition with the following commands:
 
-```shell
+```terminal
 root@rescue ~ # ls -la /dev/mapper/
 total 0
 drwxr-xr-x  2 root root      60 Aug 28 21:38 .
@@ -713,10 +713,10 @@ root@rescue ~ #
 
 To explain the general approach a bit, this is what the following script is doing:
 
-* Unlock both the system and data LUKS partition (if defined) - will ask for a password obviously :slightly_smiling_face:
-* In order to install a system within a live system, we need to mount the root LV somewhere - in our case it's `/mnt`
-* To be able to mount the LVs we need to create the necessary directories beforehand (e.g. `/mnt/var`, `/mnt/var/log`, `/mnt/home`, etc.)
-* Finally the LVs get mounted to those created directories
+- Unlock both the system and data LUKS partition (if defined) - will ask for a password obviously :slightly_smiling_face:
+- In order to install a system within a live system, we need to mount the root LV somewhere - in our case it's `/mnt`
+- To be able to mount the LVs we need to create the necessary directories beforehand (e.g. `/mnt/var`, `/mnt/var/log`, `/mnt/home`, etc.)
+- Finally the LVs get mounted to those created directories
 
 ```bash
 #!/bin/bash
@@ -887,7 +887,7 @@ esac
 
 To be able to copy the script right into the command line, you can use the following approach:
 
-```shell
+```plaintext
 cat <<-'#EOF' > mount.sh
 #!/bin/bash
 # name of the volume group for the system
@@ -1062,7 +1062,7 @@ executing it (done via `chmod +x mount.sh && ./mount.sh mount`).
 
 The output will look similar to the following (depending again, whether you have an additional data drive or not):
 
-```plaintext
+```terminal
 root@rescue ~ # bash mount.sh mount
 Mounting chroot
 Trying to decrypt system crypt device '/dev/md1'
@@ -1079,7 +1079,7 @@ Data partition defined :3
 Finally you should check whether the script has been successfully run and the partitions are mounted to your needs (the last lines are showing the mounted partitions
 from the script):
 
-```plaintext
+```terminal
 root@rescue ~ # mount
 proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
 sys on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
@@ -1122,7 +1122,7 @@ root@rescue ~ #
 
 As the last step, we need to set the proper permissions on the mounted tmp folder (`/mnt/tmp`):
 
-```shell
+```terminal
 root@rescue ~ # chmod 1777 /mnt/tmp
 root@rescue ~ #
 ```
@@ -1138,7 +1138,7 @@ within a Debian system (our live environment). The latest version can always be 
 
 First, we need to download the .deb using wget or curl:
 
-```plaintext
+```terminal
 root@rescue ~ # cd /tmp/
 root@rescue /tmp # wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.124_all.deb
 --2021-08-22 12:42:35--  http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.124_all.deb
@@ -1157,7 +1157,7 @@ root@rescue /tmp #
 
 After we downloaded it, we need to unpack it:
 
-```shell
+```terminal
 root@rescue /tmp # ar x debootstrap_1.0.131_all.deb
 root@rescue /tmp # tar xfz control.tar.gz 
 root@rescue /tmp # tar xfz data.tar.gz 
@@ -1172,7 +1172,7 @@ If there is no output at all, the files do not differ - if there is output, the 
 (it shouldn't happen at all - **never!**). Although it could be a bug from the Debian team, while creating the package (very, very unlikely!).
 If the local MD5 checksums still differ from the shipped MD5 checksums, consider re-downloading an older version (doesn't really matter) and file a bug report over at Debian.
 
-```shell
+```terminal
 root@rescue /tmp # cat md5sums | cut -d " " -f 3 | xargs md5sum $1 > md5sums.local; diff md5sums md5sums.local
 root@rescue /tmp #
 ```
@@ -1182,19 +1182,19 @@ This is necessary in order to run the script from `/tmp` (where we are in the mo
 
 You can either do it by hand or run following command:
 
-```shell
+```plaintext
 sed 's@\/usr\/share\/debootstrap@/tmp/usr/share/debootstrap@' -i usr/sbin/debootstrap
 ```
 
 .. and check afterwards if the change has been done successfully using the following command:
 
-```shell
+```plaintext
 grep [[:space:]]DEBOOTSTRAP_DIR= usr/sbin/debootstrap
 ```
 
 The output should be similar to following:
 
-```shell
+```terminal
 root@rescue /tmp # sed 's@\/usr\/share\/debootstrap@/tmp/usr/share/debootstrap@' -i usr/sbin/debootstrap
 root@rescue /tmp # grep [[:space:]]DEBOOTSTRAP_DIR= usr/sbin/debootstrap
                 DEBOOTSTRAP_DIR=/debootstrap
@@ -1212,7 +1212,7 @@ usr/sbin/debootstrap --arch amd64 bookworm /mnt/ http://ftp2.de.debian.org/debia
 
 The installation will take a couple of minutes/seconds (depending on the performance of your system) and the output will look similar to this (truncated):
 
-```plaintext
+```terminal
 root@rescue /tmp # usr/sbin/debootstrap --arch amd64 bookworm /mnt/ http://ftp2.de.debian.org/debian | tee /mnt/install.log
 [..]
 I: Validating libstdc++6 12.2.0-14
@@ -1269,7 +1269,7 @@ root@rescue /tmp #
 
 After the installation has been sucessfully finished, we need to mount the necessary system partitions, in order to configure the system, using the following commands:
 
-```shell
+```terminal
 root@rescue /tmp # mount -o bind /dev/ /mnt/dev/
 root@rescue /tmp # mount -t devpts devpts /mnt/dev/pts
 root@rescue /tmp # mount -t proc proc /mnt/proc/
@@ -1280,7 +1280,7 @@ root@rescue /tmp #
 
 .. or “copy-paste-friendlier”:
 
-```shell
+```plaintext
 mount -o bind /dev/ /mnt/dev/; mount -t devpts devpts /mnt/dev/pts; mount -t proc proc /mnt/proc/; mount -t sysfs sys /mnt/sys/; mount -o bind /run /mnt/run
 ```
 
@@ -1290,7 +1290,7 @@ Finally we have the system installed and ready to configure - we still have a co
 
 First we want to chroot to the environment:
 
-```shell
+```terminal
 root@rescue /tmp # XTERM=xterm-color LANG=C.UTF-8 chroot /mnt /bin/bash
 root@rescue:/# pwd
 /
@@ -1299,13 +1299,13 @@ root@rescue:/#
 
 We need to set the proper permissions for `/tmp`:
 
-```shell
+```terminal
 root@rescue:/# chmod 1777 /tmp/
 ```
 
 Next, we want to change the root password, as it is currently not set (use a **complex** and **unique** password!):
 
-```plaintext
+```terminal
 root@rescue:/# passwd
 Enter new UNIX password: 
 Retype new UNIX password: 
@@ -1316,7 +1316,7 @@ root@rescue:/#
 Then we want to set both the hostname (`/etc/hostname`) and mailname (`/etc/mailname` - this will come in handy later, when we install `postfix`) and as well add
 ourselves to `/etc/hosts`:
 
-```shell
+```terminal
 root@rescue:/# echo "pven.scheib.me" > /etc/hostname
 root@rescue:/# echo "pven.scheib.me" > /etc/mailname
 root@rescue:/# echo "$(ip addr show eth0 | grep inet[[:space:]] | awk '{print $2}' | sed -E 's@\/[[:digit:]]+$@@') $(cat /etc/hostname) $(cat /etc/hostname | sed 's@\.@ @g' | awk '{ print $1 }')" >> /etc/hosts
@@ -1325,7 +1325,7 @@ root@rescue:/#
 
 As next step we want to configure our network adapter(s) within `/etc/network/interfaces` - mine looks like the following:
 
-```plaintext
+```terminal
 root@rescue:/# cat /etc/network/interfaces
 # interfaces(5) file used by ifup(8) and ifdown(8)
 # Include files from /etc/network/interfaces.d:
@@ -1344,7 +1344,7 @@ pre-up          /sbin/ip addr flush dev eth0 || true
 root@rescue:/#
 ```
 
-Please note, I modified the IP addresses and they do not reflect an actual system. Please adjust the file accordingly.
+:information_source: Please note, I modified the IP addresses and they do not reflect an actual system. Please adjust the file accordingly.
 
 The `pre-up` command `/sbin/ip addr flush dev eth0 || true` has to be used, as we have an IP address already *before* the final system is up and running. This is due
 to the `Dropbear instance` that is running which allows as to unlock the LUKS partition(s) - more on that later.
@@ -1352,7 +1352,7 @@ to the `Dropbear instance` that is running which allows as to unlock the LUKS pa
 Of course we want to set our nameservers correctly - in this case I am using the nameservers from
 [Cloudflare](https://www.cloudflare.com/de-de/learning/dns/what-is-1.1.1.1/) and [Google](https://developers.google.com/speed/public-dns):
 
-```plaintext
+```terminal
 root@rescue:/# cat /etc/resolv.conf 
 nameserver 1.1.1.1
 nameserver 1.0.0.1
@@ -1360,11 +1360,11 @@ nameserver 8.8.8.8
 root@rescue:/#
 ```
 
-:information_source: I am not using `systemd-resolved`, hence I can simply edit `/etc/resolv.conf`
+:information_source: I am not using `systemd-resolved`, therefore I can simply edit `/etc/resolv.conf`
 
 Also we want to set the sources for aptitude correctly (change it to your needs):
 
-```shell
+```terminal
 cat > /etc/apt/sources.list << "#EOF"
 deb http://ftp.de.debian.org/debian/ bookworm main non-free non-free-firmware contrib
 deb-src http://ftp.de.debian.org/debian/ bookworm main non-free non-free-firmware contrib
@@ -1377,7 +1377,7 @@ deb-src http://ftp.de.debian.org/debian/ bookworm-updates main non-free non-free
 
 .. which will result in the following file:
 
-```plaintext
+```terminal
 root@rescue:/# cat /etc/apt/sources.list
 deb http://ftp.de.debian.org/debian/ bookworm main non-free non-free-firmware contrib
 deb-src http://ftp.de.debian.org/debian/ bookworm main non-free non-free-firmware contrib
@@ -1393,7 +1393,7 @@ root@rescue:/#
 
 Let’s update the cache .. :slightly_smiling_face:
 
-```shell
+```terminal
 root@rescue:/# apt-get update
 Fetched 22.9 MB in 3s (8565 kB/s)                              
 [..]
@@ -1405,14 +1405,14 @@ root@rescue:/#
 
 Finally we want to install and configure the `locales` (I use `en_US.UTF-8` as the system language), using the following command:
 
-```shell
+```plaintext
 apt-get install -y locales && dpkg-reconfigure locales
 ```
 
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Sample output:</summary>
-{% highlight plaintext %}
+{% highlight terminal %}
 root@rescue:/# apt-get install -y locales && dpkg-reconfigure locales
 Reading package lists... Done
 Building dependency tree... Done
@@ -1449,7 +1449,7 @@ root@rescue:/#
 Additionally we need to set a few more locale settings in `/etc/environment`, which are not set by default, but are causing warning messages when not set,
 while installing packages using `aptitude`:
 
-```shell
+```terminal
 cat > /etc/environment << "EOF"
 export LANGUAGE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -1460,7 +1460,7 @@ EOF
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Sample output:</summary>
-{% highlight plaintext %}
+{% highlight terminal %}
 root@rescue:/# cat > /etc/environment << "EOF"
 > export LANGUAGE=en_US.UTF-8
 > export LC_ALL=en_US.UTF-8
@@ -1477,14 +1477,14 @@ root@rescue:/#
 
 Next, we want to set the correct timezone using `tzdata` and the following command:
 
-```shell
+```plaintext
 dpkg-reconfigure tzdata
 ```
 
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Sample output:</summary>
-{% highlight shell %}
+{% highlight terminal %}
 root@rescue:/# dpkg-reconfigure tzdata
 
 Current default time zone: 'Europe/Berlin'
@@ -1501,14 +1501,14 @@ the package for i386). During the installation also the keyboard is configured -
 
 The following command will be used to install the needed packages:
 
-```shell
+```plaintext
 apt-get install -y linux-image-amd64 cryptsetup
 ```
 
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Sample output:</summary>
-{% highlight plaintext %}
+{% highlight terminal %}
 root@rescue:/# apt-get install -y linux-image-amd64 cryptsetup
 Reading package lists... Done
 Building dependency tree... Done
@@ -1614,7 +1614,7 @@ update-initramfs: Generating /boot/initrd.img-6.1.0-11-amd64
 Next up is the configuration of [/etc/crypttab](https://linux.die.net/man/5/crypttab) and [/etc/fstab](https://wiki.debian.org/fstab).
 First, we'll be starting with `/etc/crypttab` - to do so, we first have to read out the UUID of our system LUKS partition by using (adapt to your crypt device if necessary):
 
-```shell
+```plaintext
 cryptsetup luksDump /dev/md1 | grep UUID
 ```
 
@@ -1628,7 +1628,7 @@ Substitute *\<LUKS_device_name\>* with the name of your LUKS device (e.g. `crypt
 
 You can either do it by hand or use the following one liner (you can adjust the name of the luks partition):
 
-```shell
+```plaintext
 echo "crypted_system UUID="$(cryptsetup luksDump /dev/md1 | grep UUID | awk '/UUID/ { print $2 }')" none luks" > /etc/crypttab
 ```
 
@@ -1636,7 +1636,7 @@ The next step is to configure `/etc/fstab`.
 To do so, we first need to read out the UUID for both the `/boot` partition (which is stored on `/dev/md0`) and all partitions that LVM is managing for us.
 Again depending whether you have multiple VGs (e.g. another drive holding data) or not. This can be easily achieved using `blkid`:
 
-```plaintext
+```terminal
 root@rescue:/# blkid /dev/md0 
 /dev/md0: UUID="67619dac-48fd-4140-9040-d31c1d3bba0f" TYPE="xfs" PARTLABEL="Linux filesystem" PARTUUID="e435544d-b8df-4e6a-bf74-7f094c3007e1"
 root@rescue:/# blkid /dev/mapper/vg_system-*
@@ -1677,7 +1677,7 @@ Please note, the hardening mount options are taken from the [CIS Benchmark for D
 
 The end result will look something like this:
 
-```plaintext
+```terminal
 root@rescue:/# cat /etc/fstab 
 # file system                                   mount point     type    options                 dump    pass
 UUID=c1934670-c520-4d57-b87c-69a376fa51e4       /               xfs     defaults                0       1
@@ -1692,21 +1692,21 @@ UUID=a2f49117-66f0-489b-9092-6548c272766d       none            swap    sw      
 root@rescue:/#
 ```
 
-#### Optional: Configuring automatical unlock of the data partition
+### Optional: Configuring automatical unlock of the data partition
 
 In order to unlock the data LUKS partition after the system LUKS has been unlocked, we can make use of a
 so-called [keyfile](https://wiki.archlinux.org/title/dm-crypt/Device_encryption#Keyfiles).
 
 What we can to do is:
 
-* Create a keyfile
-* Restrict the permissions of the keyfile, so only the user root has access to it
-* Add the keyfile to the data LUKS partition
-* Add an additional entry in `/etc/crypttab`, so the data LUKS partition gets automatically unlocked, when the system LUKS partition gets unlocked
+- Create a keyfile
+- Restrict the permissions of the keyfile, so only the user root has access to it
+- Add the keyfile to the data LUKS partition
+- Add an additional entry in `/etc/crypttab`, so the data LUKS partition gets automatically unlocked, when the system LUKS partition gets unlocked
 
 First, we need to create a keyfile:
 
-```shell
+```terminal
 root@rescue:/# dd if=/dev/urandom of=/root/keyfile bs=1024 count=4
 4+0 records in
 4+0 records out
@@ -1716,7 +1716,7 @@ root@rescue:/#
 
 Next, we set the appropriate permissions on this file:
 
-```shell
+```terminal
 root@rescue:/# chmod 0400 /root/keyfile 
 root@rescue:/#
 ```
@@ -1724,7 +1724,7 @@ root@rescue:/#
 Now, we add the keyfile to the data LUKS partition.
 For this process you need to enter the password, which you used to create the LUKS (data) partition:
 
-```shell
+```terminal
 root@rescue:/# cryptsetup luksAddKey /dev/md2 /root/keyfile 
 Enter any existing passphrase: 
 root@rescue:/#
@@ -1732,7 +1732,7 @@ root@rescue:/#
 
 We can verify, that adding of the keyfile worked properly using `cryptsetup luksDump` - here we can see, that two key slots are taken:
 
-```plaintext
+```terminal
 root@rescue:/# cryptsetup luksDump /dev/md2
 LUKS header information for /dev/md2
  
@@ -1771,7 +1771,7 @@ root@rescue:/#
 
 Finally we add the device `/dev/md2` with its UUID (taken from `cryptsetup luksDump`) to `/etc/crypttab` with a reference to the keyfile:
 
-```shell
+```terminal
 root@rescue:/# echo 'crypted_data UUID=4132d4a6-929e-4ab0-8bdd-ee43065b4b03 /root/keyfile luks' >> /etc/crypttab 
 root@rescue:/# cat /etc/crypttab 
 crypted_system UUID=e6864adb-dd67-42a1-867c-6a241b4119b5 none luks
@@ -1779,18 +1779,18 @@ crypted_data UUID=4132d4a6-929e-4ab0-8bdd-ee43065b4b03 /root/keyfile luks
 root@rescue:/# 
 ```
 
-### Installing additional software
+## Installing additional software
 
 Within this section, we are going to install additional packages. Not all packages I am going to install are needed by the operating system to function properly.
 First, install the **required packages**:
 
-```shell
+```plaintext
 apt-get install -y makedev lvm2 ssh dropbear busybox initramfs-tools bash-completion kbd console-setup pciutils psmisc grub-pc git plymouth sudo man xfsprogs ntp python3 dropbear-initramfs
 ```
 
 **Optionally**, install more packages, such as:
 
-```shell
+```plaintext
 apt-get -y install vim iftop iotop htop screen postfix mailutils fail2ban mdadm
 ```
 
@@ -1799,7 +1799,7 @@ all **physical devices** during GRUB installation, when the installer asks you w
 
 :warning: Physical devices are for instance `/dev/sda`, `/dev/sdb`; **NOT** the partitions of those devices (such as `/dev/sda1`, etc.).
 
-### Post-installation tasks
+## Post-installation tasks
 
 Generally the system is fully installed and can be rebooted.
 **However**, the remote unlock via SSH is not configured yet and as well some optional post-installation setup tasks are not done (yet).
@@ -1810,20 +1810,20 @@ This includes adding an additional user, configuring vim, installing fail2ban as
 With later versions of vim it is (by default) not possible anymore to copy/paste from vim using your mouse. In order to be able to copy/paste from vim, one needs to
 create a `.vimrc` in every users home directory with the following content:
 
-```shell
+```vim
 set clipboard=unnamed
 ```
 
 It is a pain if you have to do this (and even remembering to do so) every time you add a new user. This is why we make use of `/etc/skel` and simply add a file in
 there called `.vimrc` with the line from above.
 
-```shell
+```plaintext
 echo 'set clipboard=unnamed' > /etc/skel/.vimrc
 ```
 
 By now every new user will have this file in its home directory automatically. As the user root is already created, we need to copy this file to its home directory:
 
-```shell
+```terminal
 root@rescue:/# cp /etc/skel/.vimrc /root/
 root@rescue:/# ls -la /root/
 total 20
@@ -1840,7 +1840,7 @@ root@rescue:/#
 
 Adding an additional user is pretty easy and does not need much explanation.
 
-```shell
+```terminal
 root@rescue:/# adduser steffen --disabled-password --gecos "steffen"
 Adding user `steffen' ...
 Adding new group `steffen' (1000) ...
@@ -1852,7 +1852,7 @@ root@rescue:/#
 
 Adding the user to sudoers:
 
-```shell
+```terminal
 root@rescue:/# usermod -aG sudo steffen
 root@rescue:/# groups steffen
 steffen : steffen sudo
@@ -1861,7 +1861,7 @@ root@rescue:/#
 
 Add (an) SSH public key(s) to the users `authorized_keys` file:
 
-```shell
+```terminal
 root@rescue:/# mkdir /home/steffen/.ssh
 root@rescue:/# cat >  /home/steffen/.ssh/authorized_keys << "EOF"
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINmwi1h1337Q/hIomn3VWjw5Ky2vd2ujnYyaTLuil5sh Key1
@@ -1877,14 +1877,14 @@ Of course, the SSH keys above have been modified :slightly_smiling_face:
 
 Set the default editor to vim:
 
-```shell
+```terminal
 root@rescue:/# update-alternatives --set editor /usr/bin/vim.basic
 update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/editor (editor) in manual mode
 ```
 
 Adding an Ansible user to be able to automate the system later on:
 
-```shell
+```terminal
 root@rescue:/# adduser remote-ansible --disabled-password --gecos "Ansible Remote User"
 Adding user `remote-ansible' ...
 Adding new group `remote-ansible' (1001) ...
@@ -1896,7 +1896,7 @@ root@rescue:/#
 
 Adding the Ansible user to sudoers:
 
-```shell
+```terminal
 root@rescue:/# usermod -aG sudo remote-ansible
 root@rescue:/# groups remote-ansible
 remote-ansible : remote-ansible sudo
@@ -1905,7 +1905,7 @@ root@rescue:/#
 
 Add a public key to the Ansible user's `authorized_keys` file:
 
-```shell
+```terminal
 root@rescue:/# mkdir /home/remote-ansible/.ssh
 root@rescue:/# cat >  /home/remote-ansible/.ssh/authorized_keys << "EOF"
 ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj313373/ok5i5CSwUuK8y8Zn2URC/ex1cQBfVBANQlfhAe7P4eFK43IdSsnp3uEigsLOr9Uju9QvuniTNuIudkfonmeL91znWyP0KyCciOxZO2O7Mtf6V9GLaA== root@ansible.servers.local
@@ -1928,7 +1928,7 @@ The system should be hardened - at least a bit. In the next few lines I'll show 
 First, we want to harden the SSHd.
 My configuration file (`/etc/ssh/sshd.conf`) looks like follows:
 
-```plaintext
+```terminal
 root@rescue:/# cat /etc/ssh/sshd_config 
 [..]
 Port 32764
@@ -2004,7 +2004,7 @@ root@rescue:/#
 
 Installing `Fail2Ban` is best-practice with systems facing the internet directly:
 
-```plaintext
+```terminal
 root@rescue:/# apt-get install -y fail2ban
 Reading package lists... Done
 Building dependency tree       
@@ -2048,7 +2048,7 @@ Setting up python3-pyinotify (0.9.6-1) ...
 In my case I only enabled the `sshd jail`.
 For that simply create the file `/etc/fail2ban/jail.local` with the following content:
 
-```shell
+```terminal
 root@rescue:/# cat /etc/fail2ban/jail.local
 [sshd]
  
@@ -2069,7 +2069,7 @@ configure both Dropbear and GRUB for that.
 
 First, we copy the public SSH key, we just added to the created user, to the `authorized_keys` file for Dropbear.
 
-```shell
+```terminal
 root@rescue:/# cp /home/steffen/.ssh/authorized_keys /etc/dropbear/initramfs/authorized_keys
 root@rescue:/#
 ```
@@ -2086,20 +2086,20 @@ Next we configure Dropbear. We will be using the following settings, which can b
 
 You can set those settings easily using the below command:
 
-```shell
+```plaintext
 sed 's/#DROPBEAR_OPTIONS=""/DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"/' -i /etc/dropbear/initramfs/dropbear.conf
 ```
 
 Verify, whether the settings where set correctly:
 
-```shell
+```plaintext
 grep DROPBEAR_OPTIONS /etc/dropbear/initramfs/dropbear.conf 
 ```
 
 <!-- markdownlint-disable MD033 -->
 <details>
 <summary>Sample output:</summary>
-{% highlight shell %}
+{% highlight terminal %}
 root@rescue:/# sed 's/#DROPBEAR_OPTIONS=""/DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"/' -i /etc/dropbear/initramfs/dropbear.conf
 root@rescue:/# grep DROPBEAR_OPTIONS /etc/dropbear/initramfs/dropbear.conf
 DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"
@@ -2119,7 +2119,7 @@ device to use for the remote connection.
 Following is the format of the IP parameter (a detailed explanation can be looked up at [kernel.org](https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt)):
 
 ```plaintext
-ip=<ip>::<gateway>:<netmask>::<ethernet device>:none"
+ip=<ip>::<gateway>:<netmask>::<ethernet device>:none
 ```
 
 Substitute *\<ip\>*, *\<gateway\>*, *\<netmask\>* and *\<ethernet device\>* with your values.
@@ -2137,7 +2137,7 @@ is necessary to provide the correct drivers to the `initramfs image`.
 
 You can find out which driver your ethernet device uses with the following command:
 
-```shell
+```terminal
 root@rescue:/# grep DRIVER /sys/class/net/eth0/device/uevent 
 DRIVER=igb
 root@rescue:/#
@@ -2145,7 +2145,7 @@ root@rescue:/#
 
 Now we need to tell `initramfs-tools` to include the above driver in our `initramfs image`:
 
-```shell
+```terminal
 root@rescue:/# echo "igb" >> /etc/initramfs-tools/modules
 root@rescue:/# cat /etc/initramfs-tools/modules 
 # List of modules that you want to include in your initramfs.
@@ -2173,7 +2173,7 @@ rebooting, it cannot hurt to update the `/etc/mdadm/mdadm.conf` with the proper 
 
 First, lets ensure that the RAIDs are being detected perfectly fine by `mdadm`:
 
-```shell
+```terminal
 root@rescue:/# mdadm --detail --scan
 ARRAY /dev/md0 metadata=0.90 UUID=c8745d1f:ed8dd7dc:776c2c25:004bd7b2
 ARRAY /dev/md/1 metadata=1.2 name=rescue:1 UUID=a0e88eb6:4fae8ddc:a2214f58:4324028a
@@ -2183,7 +2183,7 @@ root@rescue:/#
 
 Looks good to me, let's populate `/etc/mdadm/mdadm.conf` with that content:
 
-```shell
+```terminal
 root@rescue:/# mdadm --detail --scan > /etc/mdadm/mdam.conf
 ARRAY /dev/md0 metadata=0.90 UUID=c8745d1f:ed8dd7dc:776c2c25:004bd7b2
 ARRAY /dev/md/1 metadata=1.2 name=rescue:1 UUID=a0e88eb6:4fae8ddc:a2214f58:4324028a
@@ -2206,7 +2206,7 @@ that's `/dev/nvme0n1` and `/dev/nvme1n1`.
 
 Updating both initramfs and GRUB is necessary as we changed the configuration and/or added new drivers to the `initramfs image`:
 
-```shell
+```terminal
 root@rescue:/boot# update-initramfs -u -k all
 update-initramfs: Generating /boot/initrd.img-4.19.0-10-amd64
 root@rescue:/boot# update-grub
@@ -2234,7 +2234,7 @@ In order to re-mount the system as done during the installation, you can use the
 In this case I will do it manually, just to show the general approach behind this procedure.
 First, we need to unlock the system's LUKS partition and - if you have it - the data LUKS partition:
 
-```shell
+```terminal
 root@rescue ~ # cryptsetup luksOpen /dev/sda3 crypted_system
 Enter passphrase for /dev/sda3:
 root@rescue ~ # cryptsetup luksOpen /dev/sdb crypted_data
@@ -2251,7 +2251,7 @@ root@rescue ~ #
 
 Next, we need to make the system aware of our volume groups. This can easily be done using `vgchange -aay`, which will automatically detect all volume groups and active them:
 
-```shell
+```terminal
 root@rescue ~ # vgchange -aay
   1 logical volume(s) in volume group "vg_data" now active
   7 logical volume(s) in volume group "vg_system" now active
@@ -2260,7 +2260,7 @@ root@rescue ~ #
 
 Now, we can mount all volumes again to `/mnt`:
 
-```shell
+```terminal
 root@rescue ~ # ls -la /dev/mapper/*
 crw------- 1 root root 10, 236 Aug 27 16:28 /dev/mapper/control
 lrwxrwxrwx 1 root root       7 Aug 27 16:29 /dev/mapper/crypted_data -> ../dm-1
@@ -2318,7 +2318,7 @@ root@rescue ~ #
 
 Before we can chroot into the environment, we need to mount the necessary system partitions:
 
-```shell
+```terminal
 root@rescue ~ # mount -o bind /dev/ /mnt/dev/
 root@rescue ~ # mount -t devpts devpts /mnt/dev/pts/
 root@rescue ~ # mount -t proc proc /mnt/proc/
@@ -2333,7 +2333,7 @@ Now you can change, whatever you need to, unmount everything and reboot the syst
 
 Don't forget to close everything properly:
 
-```shell
+```terminal
 root@rescue ~ # lvchange -a n vg_system
 root@rescue ~ # lvchange -a n vg_data
 root@rescue ~ # cryptsetup luksClose crypted_system
@@ -2342,6 +2342,11 @@ root@rescue ~ #
 ```
 
 ## Change log
+
+### 2024-03-10
+
+- Unifying code blocks for better readability
+- Fixing header levels
 
 ### 2024-02-02
 
