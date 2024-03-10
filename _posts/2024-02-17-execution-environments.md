@@ -1856,13 +1856,13 @@ Let's break down this easy EE definition:
    With `version` we specify the EE definition version to use. We want this to be `3`. Version `1` looks a little different and - as said - has quite some limitations.
    Additionally version 3 is **required** when using `ansible-builder` 3.x (which we do).
 
-2. [`images` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#images)
+1. [`images` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#images)
 
    `images` is a dictionary, and the only supported attribute within `images` is `base_image`, which itself *must* have a `name` attribute which specifies the base image to use.
 
     Remember we talked about using existing EEs? We use these existing EEs now to add "on top" of the existing EEs our own content.
 
-3. [`dependencies` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
+1. [`dependencies` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#dependencies)
 
     I only *briefly* explain these so-called "in-line dependencies". We'll later use separate files for each of the requirement types - you understand why later on.
 
@@ -1872,12 +1872,12 @@ Let's break down this easy EE definition:
     Again, I leave the Python package and system package dependencies out, as well as more complex definitions of collections and roles (with version and source) as we'll later
     have it in separate files.
 
-4. [`options` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
+1. [`options` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#options)
 
     The `options` option can have a *bunch* of attributes, but in the context of this minimal EE definition, we simply need to set the `package_manager_path`, which defaults to
     `/usr/bin/dnf`, which is not present. Instead EEs make use of `/usr/bin/microdnf` a slimmed down version of `dnf`.
 
-5. [`additional_build_steps` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-steps)
+1. [`additional_build_steps` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-steps)
 
     The `additional_build_steps` option is probably **the most important** option when it comes to building complex EEs. In our example we copied the `ansible.cfg` to the
     `/home/runner` directory (which is home directory of the `ansible-runner` user) so that this user is able to reach for instance
@@ -1888,7 +1888,7 @@ Let's break down this easy EE definition:
 
     :information_source: We'll go into much more details later on this topic.
 
-6. [`additional_build_files` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-files)
+1. [`additional_build_files` option](https://ansible.readthedocs.io/projects/builder/en/stable/definition/#additional-build-files)
 
     With `additional_build_files` we can copy files we have next to our `execution-environment.yml` into the build context directory. From there we can add it to the EE.
     This is useful for providing the `ansible.cfg` to the EE, but will also come in handy if we need to add other files - such as certificate authority certificates - to
@@ -1922,7 +1922,7 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
 
     You don't have to specify that config sub-directory, `_build` is enough. I personally just find it cleaner that way, so I know what comes from me in terms of additional files.
 
-2. `requirements.yml`
+1. `requirements.yml`
 
     Let's quickly look what's in the `requirements.yml`:
 
@@ -1942,7 +1942,7 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
     file, e.g.: `ansible-galaxy collection install -r requirements.yml`.
     This is exactly what `ansible-builder` does during the `galaxy stage` (where roles and collections are installed)
 
-3. `Containerfile`
+1. `Containerfile`
 
     This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are pre-defined, but you'll find it contains the
     options we specified.
@@ -2791,6 +2791,10 @@ If you have any questions, just leave a comment and I might be able to incorpora
 Steffen
 
 ## Change log
+
+### 2024-03-10
+
+- markdownlint fixes
 
 ### 2024-02-02
 
