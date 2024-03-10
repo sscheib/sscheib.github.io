@@ -2,7 +2,6 @@
 title: Execution Environments - From Zero to Hero. An in-depth explanation.
 author: Steffen Scheib
 ---
-
 ## Preface
 
 To understand why execution environments (EEs) are such a crucial part of modern Ansible we need to briefly look into the past.

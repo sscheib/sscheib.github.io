@@ -2,7 +2,6 @@
 title: Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6
 author: Steffen Scheib
 ---
-
 ## Introduction
 
 Following my [Red Hat Satellite 6 concept suggestion blog post](https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html), I thought it made sense to share my highly
