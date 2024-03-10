@@ -20,6 +20,18 @@ repos:
 
   - repo: 'local'
     hooks:
+      - id: 'yamllint'
+        name: 'yamllint'
+        language: 'python'
+        entry: 'yamllint'
+        pass_filenames: true
+        verbose: true
+        types:
+          - 'file'
+          - 'yaml'
+
+  - repo: 'local'
+    hooks:
       - id: 'markdown-link-check'
         name: 'markdown-link-check'
         language: 'node'
