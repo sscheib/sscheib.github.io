@@ -1,0 +1,18 @@
+---
+name: 'pyspelling'
+on:
+  pull_request:
+    branches: ['main']
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: 'pyspelling'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@master'
+      - name: 'pyspelling'
+        uses: 'rojopolis/spellcheck-github-actions@v0'
+        with:
+          config_path: '.github/spellcheck/spellcheck.yml'
+...

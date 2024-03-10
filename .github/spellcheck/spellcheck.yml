@@ -16,22 +16,27 @@ matrix:
       - pyspelling.filters.html:
           comments: false
           ignores:
-            - ':matches(code, pre)'
+            - ':matches(code, pre, details)'
+
+      - pyspelling.filters.url: {}
 
       - pyspelling.filters.context:
           context_visible_first: true
+          escapes: '\\[\\`~]'
           delimiters:
+            # ignore liquid code blocks
+            - open: '{% highlight [A-Za-z]+ %}'
+              close: '{% endhighlight %}'
             # ignore gists
             - open: '{% gist (?:[0-9a-f]){32}'
-              close: ' %}'
+              close: '%}'
             # ignore text between inline back ticks
             - open: '(?P<open>`+)'
               close: '(?P=open)'
 
-      - pyspelling.filters.url: {}
 
     sources:
-      - '_posts/*highly*.md'
+      - '_posts/*.md'
 
     default_encoding: 'utf-8'
     aspell:

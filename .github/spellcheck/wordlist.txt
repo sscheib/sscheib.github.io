@@ -7,3 +7,10 @@ Remediations
 Kickstarting
 params
 APIs
+manpage
+HDD
+HDDs
+NVME
+NVMEs
+GUID
+GUIDs
