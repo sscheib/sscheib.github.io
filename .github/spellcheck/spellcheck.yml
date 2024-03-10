@@ -3,10 +3,23 @@ spellchecker: 'aspell'
 jobs: 4
 matrix:
   - name: 'markdown'
+    default_encoding: 'utf-8'
+    expect_match: true
+    sources:
+      - '_posts/*.md'
+
     dictionary:
       wordlists:
         - '.github/spellcheck/wordlist.txt'
+
       output: '.github/spellcheck/spellcheck.dic'
+
+    aspell:
+      lang: 'en'
+      d: 'en_US'
+      mode: 'markdown'
+      ignore-case: true
+
     pipeline:
       - pyspelling.filters.markdown:
           markdown_extensions:
@@ -19,7 +32,6 @@ matrix:
             - ':matches(code, pre, details)'
 
       - pyspelling.filters.url: {}
-
       - pyspelling.filters.context:
           context_visible_first: true
           escapes: '\\[\\`~]'
@@ -33,15 +45,4 @@ matrix:
             # ignore text between inline back ticks
             - open: '(?P<open>`+)'
               close: '(?P=open)'
-
-
-    sources:
-      - '_posts/*.md'
-
-    default_encoding: 'utf-8'
-    aspell:
-      lang: 'en'
-      d: 'en_US'
-      mode: 'markdown'
-      ignore-case: true
 ...
