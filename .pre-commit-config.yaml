@@ -1,0 +1,34 @@
+---
+repos:
+  - repo: 'local'
+    hooks:
+      - id: 'jsonlint'
+        name: 'jsonlint'
+        language: 'node'
+        entry: 'jsonlint'
+        pass_filenames: false
+        verbose: true
+
+  - repo: 'local'
+    hooks:
+      - id: 'pyspelling'
+        name: 'pyspelling'
+        language: 'python'
+        entry: 'pyspelling -c .github/spellcheck/spellcheck.yml -v'
+        pass_filenames: false
+        verbose: true
+
+  - repo: 'local'
+    hooks:
+      - id: 'markdown-link-check'
+        name: 'markdown-link-check'
+        language: 'node'
+        entry: "find _posts/ -type f -iname '*.md' -exec markdown-link-check -vp -c .markdown-link-check.json {} \\;"
+        pass_filenames: false
+        verbose: true
+
+  - repo: 'https://github.com/igorshubovych/markdownlint-cli'
+    rev: 'v0.39.0'
+    hooks:
+      - id: 'markdownlint'
+...
