@@ -6,7 +6,7 @@
     },
     {
       "___comment___": "cloudflare *always* returns 403, probably because of their DDoS protection",
-      "pattern": "^https?://(?:www\\.)?cloudflare.com"
+      "pattern": "^https?://(:?www\\.)?cloudflare.com"
     },
     {
       "___comment___": "ignoring SSHd ciphers",
