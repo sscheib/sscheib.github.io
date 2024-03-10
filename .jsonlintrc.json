@@ -1,0 +1,11 @@
+{
+  "patterns": [
+    "**/*.json",
+    ".markdown-link-check.json",
+    ".jsonlintrc.json"
+  ],
+  "quiet": true,
+  "validate": true,
+  "enforce-double-quotes": true,
+  "log-files": true
+}
