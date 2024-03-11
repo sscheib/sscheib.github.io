@@ -68,3 +68,4 @@ namespace
 browsable
 CentOS
 ad-hoc
+hoc
