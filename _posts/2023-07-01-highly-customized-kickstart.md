@@ -96,21 +96,21 @@ Satellite provides the following Template types:
 Our focus will be on *Partition Tables* and *Provisioning Templates*. Provisioning Templates are further separated into several
 [Provisioning Template Types](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/provisioning_hosts/configuring_provisioning_resources_provisioning#types-of-provisioning-templates_provisioning):
 
-| Provisioning Template Types      |
-| :------------------------------  |
-| Provision                        |
-| PXELinux                         |
-| PXEGrub                          |
-| PXEGrub2                         |
-| Finish                           |
-| user_data                        |
-| cloud_init                       |
-| Bootdisk                         |
-| Kernel Execution (kexec)         |
-| Script                           |
-| ZTP                              |
-| POAP                             |
-| iPXE                             |
+| Provisioning Template Types        |
+| :--------------------------------- |
+| `Provision`                        |
+| `PXELinux`                         |
+| `PXEGrub`                          |
+| `PXEGrub2`                         |
+| `Finish`                           |
+| `user_data`                        |
+| `cloud_init`                       |
+| `Bootdisk`                         |
+| `Kernel Execution (kexec)`         |
+| `Script`                           |
+| `ZTP`                              |
+| `POAP`                             |
+| `iPXE`                             |
 
 As you see, there a lot of different Provisioning Templates available. In this blog post I'll focus on the following two:
 
@@ -118,7 +118,7 @@ As you see, there a lot of different Provisioning Templates available. In this b
 - `Provision`
 
 We'll use the `PXELinux` template to render the parameters that are transmitted to a server that will boot into the
-[Preboot Execution Environment (PXE)](https://de.wikipedia.org/wiki/Preboot_Execution_Environment). And the `Provision` template is where all the magic will happen. This will
+[`Preboot Execution Environment` (`PXE`)](https://de.wikipedia.org/wiki/Preboot_Execution_Environment). And the `Provision` template is where all the magic will happen. This will
 define the Kickstart in its entirety.
 
 There is one 'Template type' we haven't talked about. [Snippets](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/template_writing_reference_managing-hosts#Example_Template_Snippets_managing-hosts).
@@ -137,11 +137,11 @@ os_minor = @host.operatingsystem.minor.to_i
 <% end -%>
 ```
 
-As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (ERB), specifically. Usually. I say usually, because the `%post` section
+As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (`ERB`), specifically. Usually. I say usually, because the `%post` section
 of the Provisioning Template can be anything, really. That all depends on the options passed to the `%post` section. The `%post` section accepts an
 `--interpreter=` [argument](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#post-script-section-options_post-script-in-kickstart-file).
-With that, we can make use of BASH (the default) or make use of Python, etc. as our `interpreter`. The great thing about this is that we can still make use of ERB in the
-`%post` section. That is because Satellite *renders* the template *before* transmitting it to the client. So ERB code is evaluated before passing it to the client.
+With that, we can make use of BASH (the default) or make use of Python, etc. as our `interpreter`. The great thing about this is that we can still make use of `ERB` in the
+`%post` section. That is because Satellite *renders* the template *before* transmitting it to the client. So `ERB` code is evaluated before passing it to the client.
 
 With that we can still use for instance `@host.operatingsystem.major.to_i` in any section of the Kickstart as it will be rendered by Satellite before the client actually uses it.
 
@@ -175,11 +175,15 @@ snt-subscription_manager_registration.erb
 
 As you can see, I have implemented a basic name concept:
 
+{% comment %}begin nospell{% endcomment %}
+
 | Prefix            | Meaning                        |
 | :---------------- | :----------------------------- |
 | `pt-`             | **P**artition **T**able        |
 | `pvt-`            | **P**ro**v**ision **T**emplate |
 | `snt-`            | **Sn**ippe**t**                |
+
+{% comment %}end nospell{% endcomment %}
 
 And I make heavy use of Snippets to make the Provision Template a little smaller and easier to read through.
 
@@ -226,16 +230,16 @@ changelog:
 #Dynamic
 
 # Define some variables
-<% 
+<%
    os_major = @host.operatingsystem.major.to_i
    fs_type = 'xfs'
    vg_name = 'system'
 -%>
 
 if [ -e /dev/sda ]; then
-  dev_device="sda" 
+  dev_device="sda"
 elif [ -e /dev/vda ]; then
-  dev_device="vda" 
+  dev_device="vda"
 fi
 
 cat <<EOF > /tmp/diskpart.cfg
@@ -278,7 +282,7 @@ EOF
 
 The Partition Table itself is pretty straight forward, but I'd like to point out two things.
 
-First, I start *every* template with a comment block of ERB (`<%# #%>`) which contains metadata for Satellite's Template Sync (more on that in a later blog post).
+First, I start *every* template with a comment block of `ERB` (`<%# #%>`) which contains metadata for Satellite's `TemplateSync` (more on that in a later blog post).
 
 Secondly, the next comment block is *not* used by Satellite, but rather by myself to quickly look up what I changed when. I know, this is rather an old-school technique, but
 for me it works to keep track of what I have changed when and why. Yes, the same is present as well in `git log`, but I find it quite handy to have such things in each template
@@ -312,7 +316,7 @@ custom snippets:
 
 snippets:
   none
-  
+
 supported host parameters:
 > host parameter name                    | type      | snippet/template name                        | description                                     <
 -----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
@@ -335,7 +339,7 @@ supported host parameters:
 *                                        |           |                                              | BASH
 *                                        |           |                                              | Default: false
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> syspurpose_role                        | string    | snt-subscription_manager_registration        | If set, sets the syspurpose role within 
+> syspurpose_role                        | string    | snt-subscription_manager_registration        | If set, sets the syspurpose role within
 *                                        |           |                                              | subscription-manager
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
@@ -351,23 +355,23 @@ supported host parameters:
 *                                        |           |                                              | subscription-manager
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> additional_repositories                | string    | snt-subscription_manager_registration        | Additional repositories to enable to the already 
-*                                        |           |                                              | enabled within the activation key. Repositories 
-*                                        |           |                                              | have to be passed as comma-seperated string 
+> additional_repositories                | string    | snt-subscription_manager_registration        | Additional repositories to enable to the already
+*                                        |           |                                              | enabled within the activation key. Repositories
+*                                        |           |                                              | have to be passed as comma-seperated string
 *                                        |           |                                              | Example: 'repo1,repo2'
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> idm_ssh                                | boolean   | snt-idm_register                             | If false, disables sssd ssh integration with 
+> idm_ssh                                | boolean   | snt-idm_register                             | If false, disables sssd ssh integration with
 *                                        |           |                                              | command line parameter --no-ssh
 *                                        |           |                                              | Default: true
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> idm_mkhomedir                          | boolean   | snt-idm_register                             | If false, disables the configuration of ssd for 
-*                                        |           |                                              | automatical creation of home 
-*                                        |           |                                              | directories (--mkhomedir will not be passed as 
+> idm_mkhomedir                          | boolean   | snt-idm_register                             | If false, disables the configuration of ssd for
+*                                        |           |                                              | automatical creation of home
+*                                        |           |                                              | directories (--mkhomedir will not be passed as
 *                                        |           |                                              | argument)
 *                                        |           |                                              | Default: true
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> idm_opts                               | string    | snt-idm_register                             | If set, these additional command line parameters 
+> idm_opts                               | string    | snt-idm_register                             | If set, these additional command line parameters
 *                                        |           |                                              | will be passed to the ipa-client-install command
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
@@ -378,21 +382,21 @@ supported host parameters:
 > remote_execution_ssh_user_comment      | string    | snt-remote_execution_ssh_keys                | Comment to set for the user
 *                                        |           |                                              | Default: 'RedHat Satellite Remote User'
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> p-remote_execution_ssh_keys            | string    | snt-remote_execution_ssh_keys                | Public keys to be put in 
+> p-remote_execution_ssh_keys            | string    | snt-remote_execution_ssh_keys                | Public keys to be put in
 *                                        |           |                                              | <ssh_user>/.ssh/authorized_keys
 *                                        |           |                                              | One key per line should be added
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> dns_alt_names                          | string    | snt-puppet                                   | If set, sets the alternative dns name in the 
+> dns_alt_names                          | string    | snt-puppet                                   | If set, sets the alternative dns name in the
 *                                        |           |                                              | Puppet configuration file
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> p-ks_debug_network                     | boolean   | snt-networking_setup_post_installation       | If true, writes networking information for 
-*                                        |           |                                              | debugging purposed to 
+> p-ks_debug_network                     | boolean   | snt-networking_setup_post_installation       | If true, writes networking information for
+*                                        |           |                                              | debugging purposed to
 *                                        |           |                                              | /root/network_during_installation.log
 *                                        |           |                                              | Default: Unset
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> p-crypted_system_initial_passphrase    | string    | snt-luks_encryption                          | This passphrase was used to initially create the 
+> p-crypted_system_initial_passphrase    | string    | snt-luks_encryption                          | This passphrase was used to initially create the
 *                                        |           |                                              | luks partition and within this snippet will be
 *                                        |           |                                              | removed again
 *                                        |           |                                              | Default: Some Secret Password :)
@@ -401,11 +405,11 @@ supported host parameters:
 *                                        |           |                                              | should be done
 *                                        |           |                                              | Default: true
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> p-ansible_host_config_key              | string    | snt-ansible_provisioning_callback_service    | Host config key to pass to the Ansible 
+> p-ansible_host_config_key              | string    | snt-ansible_provisioning_callback_service    | Host config key to pass to the Ansible
 *                                        |           |                                              | Automation Controller call
 *                                        |           |                                              | Default: None
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
-> p-ansible_job_template_id              | integer   | snt-ansible_provisioning_callback_service    | ID of the job template to trigger of the 
+> p-ansible_job_template_id              | integer   | snt-ansible_provisioning_callback_service    | ID of the job template to trigger of the
 *                                        |           |                                              | Ansible Automation Controller
 *                                        |           |                                              | Default: None
 +----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
@@ -450,7 +454,7 @@ exit codes:
 
 Note: These are only the *defined* exit codes! If a command exits with an error (exit code not equals zero) within the main %post section,
       this exit code will be used to exit the post installation.
-      
+
 log files:
 > log file path                                         | description <
 +-------------------------------------------------------+--------------------------------------------------------------------------------------------+
@@ -575,8 +579,8 @@ useful the BASH options are and with every use of `||` you can be less and less 
 Obviously, this is a very strict way of deploying systems. And one could argue even cumbersome. You can do a post provisioning check with your preferred automation tool *after*
 provisioning.
 
-While that it is correct, I found my way more intuitive and more *'fail-proof'*, compared to a post provisioning check, as I can rule out e.g. DNS issues due to a failed IdM
-enrollment (which would render my post provisioning check useless, as I am unable to reach it via DNS).
+While that it is correct, I found my way more intuitive and more *'fail-proof'*, compared to a post provisioning check, as I can rule out e.g. `DNS` issues due to a failed `IdM`
+enrollment (which would render my post provisioning check useless, as I am unable to reach it via `DNS`).
 
 #### Snippet: `snt-networking_setup_post_installation`
 
@@ -593,19 +597,19 @@ customized on *my* use case, I don't need to split the Snippets as I don't reuse
 of: "*I might be able to reuse it!*". For me this is not necessary and introduces more complexity when troubleshooting (you need to switch between different Snippets all the
 time), so I merged all of them.
 
-Additionally, my customized version supports VLANs. Something that the original Snippets do not.
+Additionally, my customized version supports `VLANs`. Something that the original Snippets do not.
 
 Further, I modified it in such a way, that the Snippet is actually readable (with a few comments added as well), as I find the original one is hard to read and thus hard to
 troubleshoot should you encounter issues.
 
-Here is the thing: You can make Templates in Satellite with ERB readable in two ways. Either you indent the ERB code itself like so:
+Here is the thing: You can make Templates in Satellite with `ERB` readable in two ways. Either you indent the `ERB` code itself like so:
 
 ```erb
     # Loop 1.1: iterate over all managed slave interfaces of this bond
   <% @host.interfaces_with_identifier(bond.attached_devices_identifiers).each do |interface| -%>
     <% next if !interface.managed? -%>
 
-    <% 
+    <%
     subnet = interface.subnet
     virtual = interface.virtual?
     vlan = virtual && (subnet.has_vlanid? || interface.vlanid.present?)
@@ -614,7 +618,7 @@ Here is the thing: You can make Templates in Satellite with ERB readable in two 
     -%>
 ```
 
-Or, you indent the code inside the ERB tags, like so:
+Or, you indent the code inside the `ERB` tags, like so:
 
 ```erb
 <%- @host.bond_interfaces.each do |bond| -%>
@@ -622,14 +626,14 @@ Or, you indent the code inside the ERB tags, like so:
 <%=   "# #{bond.identifier} interface" %>
 ```
 
-The difference is, that Ruby, well ERB, does *not care* about indentation inside the ERB tags (`<%- -%>`, `<%=  %>`, etc.). This will result in a rendered file which has the
+The difference is, that Ruby, well `ERB`, does *not care* about indentation inside the `ERB` tags (`<%- -%>`, `<%=  %>`, etc.). This will result in a rendered file which has the
 beginning of each line at the very start without any spaces in front.
 
-If you chose my method (which I find more readable), you'll end up with a *rendered* file (after ERB was processed) that looks like this:
+If you chose my method (which I find more readable), you'll end up with a *rendered* file (after `ERB` was processed) that looks like this:
 
 ```shell
     BOOTPROTO=dhcp
-      IPADDR=172.31.3.254    
+      IPADDR=172.31.3.254
       NETMASK=255.255.255.0
         GATEWAY=172.31.3.1
 
@@ -660,7 +664,7 @@ indentation is simply correct.
 Next up is the Snippet `snt-subscription_manager_registration`. It is derived of `redhat_register` and has been overly simplified. It does *not* support an HTTP proxy, for
 instance, as I don't need it.
 
-The one specialty I'd like to point out is that it checks for [Extra Packages for Enterprise Linux (EPEL)](https://docs.fedoraproject.org/en-US/epel) repositories and disables
+The one specialty I'd like to point out is that it checks for [Extra Packages for Enterprise Linux (`EPEL`)](https://docs.fedoraproject.org/en-US/epel) repositories and disables
 them right after registering with Satellite.
 
 The responsible code Snippet is the following:
@@ -705,31 +709,31 @@ fi
 You might have noticed that the `__PRODUCT_NAME` and `__REPOSITORY_NAME` is based on my naming concept for Satellite[^naming_concept]. The definition of the `__REPOSITORY_ID` on
 the other hand is Satellite's default for custom repositories and is not influenced by me in any way.
 
-Now to the reason why this is important: There are situations where you'd like to have EPEL repositories enabled, but there is catch with that. EPEL often times contains more
+Now to the reason why this is important: There are situations where you'd like to have `EPEL` repositories enabled, but there is catch with that. `EPEL` often times contains more
 updated version of packages. This becomes an issue, when you mix and match the dependencies with packages from RHEL, as they are usually not meant to work with dependencies that
-have a newer version than what is shipped in RHEL (e.g. EPEL). To prevent issues right from the get-go, I disable EPEL before installing or updating any packages. After the
-provisioning has been done, the EPEL repository will be enabled again (that is done by the Snippet [`snt-enable_epel`](#snippet-snt-enable_epel)) if the EPEL repository is enabled
+have a newer version than what is shipped in RHEL (e.g. `EPEL`). To prevent issues right from the get-go, I disable `EPEL` before installing or updating any packages. After the
+provisioning has been done, the `EPEL` repository will be enabled again (that is done by the Snippet [`snt-enable_epel`](#snippet-snt-enable_epel)) if the `EPEL` repository is enabled
 within the Activation Key.
 
 #### Snippet: `snt-configure_time_synchronization`
 
-The snippet `snt-configure_time_synchronization` has one job: Configuring the time synchronization either via NTPd (RHEL 7) or (RHEL 8 and above) chronyd. It deploys a
-**minimalist** configuration for either of the daemons to ensure that the time is correct before we register the system to Red Hat's Identity Management (IdM). If the time deviates
-too much of the actual time, enrolling to IdM would fail (Microsoft Active Directory (AD) would refuse to add the system as well). This is because LDAP is (usually!) based on SSL
+The snippet `snt-configure_time_synchronization` has one job: Configuring the time synchronization either via `NTPd` (RHEL 7) or (RHEL 8 and above) `chronyd`. It deploys a
+**minimalist** configuration for either of the daemons to ensure that the time is correct before we register the system to Red Hat's Identity Management (`IdM`). If the time deviates
+too much of the actual time, enrolling to `IdM` would fail (Microsoft Active Directory (AD) would refuse to add the system as well). This is because `LDAP` is (usually!) based on SSL
 and SSL needs to have correct date and time set otherwise it will not work properly.
 
-The NTP server to use, however, is determined way earlier in the Kickstart process. It is gathered in [`pvt-provisioning`](#template-pvt-provision) with the following code:
+The `NTP` server to use, however, is determined way earlier in the Kickstart process. It is gathered in [`pvt-provisioning`](#template-pvt-provision) with the following code:
 
 ```erb
 declare -r __NTP_SERVER="$(dig +short _ntp._udp.<%= @host.domain -%> SRV | awk '{print $4}' | sed 's/\.$//')"
 ```
 
-The above code snippet queries the DNS and asks for a [service (SRV) record](https://en.wikipedia.org/wiki/SRV_record) at `_ntp._udp.example.com`. This means that you need to have
-an SRV record for `_ntp._udp.example.com` as otherwise the provisioning will fail (early in the Kickstart). Of course, you need to substitute `example.com` with the domain the
+The above code snippet queries the `DNS` and asks for a [service (`SRV`) record](https://en.wikipedia.org/wiki/SRV_record) at `_ntp._udp.example.com`. This means that you need to have
+an `SRV` record for `_ntp._udp.example.com` as otherwise the provisioning will fail (early in the Kickstart). Of course, you need to substitute `example.com` with the domain the
 host is going to be provisioned.
 
-To as why the NTP server is determined early in the Kickstart and not in this Snippet: In the beginning of the Kickstart (*almost* at start of the `%post` section), I determine
-everything that is required for the installation to proceed. Amongst these things is the NTP server. This is a benefit, because the installation will fail quicker and that way you
+To as why the `NTP` server is determined early in the Kickstart and not in this Snippet: In the beginning of the Kickstart (*almost* at start of the `%post` section), I determine
+everything that is required for the installation to proceed. Among these things is the `NTP` server. This is a benefit, because the installation will fail quicker and that way you
 save some time. :sunglasses:
 
 #### Snippet: `snt-idm_register`
@@ -740,7 +744,7 @@ It is important to note, that *before* we install the `ipa-client` we updated th
 the latest available `ipa-client` on an older RHEL version, which *can* cause issues.
 
 Moreover, the
-[IdM documentation](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/installing_identity_management/preparing-the-system-for-ipa-client-installation_installing-identity-management#installing-idm-client-packages-from-the-idm-client-stream_preparing-the-system-for-ipa-client-installation)
+[`IdM` documentation](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/installing_identity_management/preparing-the-system-for-ipa-client-installation_installing-identity-management#installing-idm-client-packages-from-the-idm-client-stream_preparing-the-system-for-ipa-client-installation)
 notes that installing the `ipa-client` on RHEL 8 should be done by enabling the respective `module` instead of installing the `ipa-client`:
 
 ```shell
@@ -748,7 +752,7 @@ dnf -y module install idm
 ```
 
 Something, that is not part of the original Template. Maybe there is already a bug open for that which describes this issue or there might be a legitimate reason that it
-is done differently - I don't know. I chose to use the way the IdM documentation outlines.
+is done differently - I don't know. I chose to use the way the `IdM` documentation outlines.
 
 #### Snippets: `snt-remote_execution_ssh_keys` and `snt-ansible_ssh_keys`
 
@@ -757,13 +761,13 @@ nothing special :slightly_smiling_face:
 
 #### Snippet: `snt-enable_epel`
 
-This snippet is pretty simple as well. It enabled EPEL again, when it is enabled within the Activation Key.
+This snippet is pretty simple as well. It enabled `EPEL` again, when it is enabled within the Activation Key.
 
 #### Snippet: `snt-luks_encryption`
 
 This Snippet is entirely custom-made and based on the documentation of
 [`clevis luks bind`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#configuring-manual-enrollment-of-volumes-using-clevis_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption).
-This Snippet provides the possibility to use [Network Bound Disk Encryption (NBDE)](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#network-bound-disk-encryption_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption)
+This Snippet provides the possibility to use [Network Bound Disk Encryption (`NBDE`)](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#network-bound-disk-encryption_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption)
 and requires **two** installed and configured [Tang servers](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#deploying-a-tang-server-with-selinux-in-enforcing-mode_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption)
 (to have a backup Tang server should one die).
 
@@ -788,7 +792,7 @@ The `%post` sections are evaluated from top to bottom. Even if one of them exite
 Let's quickly talk about the different `%post` sections.
 
 1. The first `%post` section merely copies `/etc/resolv.conf` to the environment we are going to [`chroot`](https://linux.die.net/man/1/chroot) into
-(`/mnt/sysimage/etc/resolv.conf`) so that we are able to do DNS resolution.
+(`/mnt/sysimage/etc/resolv.conf`) so that we are able to do `DNS` resolution.
 1. We have discussed the second `%post` section thoroughly.
 1. The third `%post` section specifies the option `--nochroot`. This option is necessary, as we need control over `systemd` (which is not possible when being in a `chroot`). In
 this `%post` section we ensure that we don't lose any `journald` logs by making them persistent.
@@ -808,7 +812,7 @@ Lastly, we need to talk about the two `PXELinux` Templates I have in my reposito
 This Template will render the options which are passed to our clients when they boot via `PXE` and the host has a build scheduled (build mode is set to `true` for the Host in Satellite).
 It doesn't look like much, but if you look closely, I include a Snippet: `snt-create_ip_config_string`
 This Snippet is where the heavy lifting is done. It will generate all the networking parameters that are required. It is derived from the `kickstart_kernel_options` Template, but
-again, heavily stripped down on what I need. On top, it fully supports VLANs and bonding. At the time I created my Snippet, that didn't work with the original one. In the
+again, heavily stripped down on what I need. On top, it fully supports `VLANs` and bonding. At the time I created my Snippet, that didn't work with the original one. In the
 meanwhile, the original one also provides this functionality :slightly_smiling_face:
 
 #### Template: `pvt-pxelinux_default_local_boot`
@@ -819,13 +823,19 @@ default 20 seconds. I just got tired of waiting.
 ## Closing thoughts
 
 There is one Template we haven't talked about: `pvt-ipxe`. It is included because some time ago I used it. I no longer do, but I didn't want to throw it away, in case I would
-need it at some point. It was used to build Host/Full Host images and use those images to install my systems. I switched over to `PXE` - it is just much more convenient :slightly_smiling_face:
+need it at some point. It was used to build Host/Full Host images and use those images to install my systems. I switched over to `PXE` - it is just much more convenient
+:slightly_smiling_face:
 
 We have been discussing *my* way of Kickstarting in this blog post. There are virtually unlimited ways of doing the same thing but different to this approach.
 
 Decide on your own, if such a highly customized Kickstart is worth the maintenance .. until next time :sunglasses:
 
 ## Change log
+
+### 2024-03-11
+
+- `markdownlint` fixes
+- Spelling fixes
 
 ### 2024-03-09
 
