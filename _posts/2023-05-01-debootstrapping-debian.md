@@ -20,7 +20,7 @@ The first step is to partition the drives we are going to use using `gdisk` (in 
 We are going to configure three partitions:
 
 1. `BIOS boot partition` (**32 MB**, although 1 MB would be theoretically enough, type `EF02`).
-   This partition is necessary for GPT partitions in order to load the second stage of GRUB.
+   This partition is necessary for `GPT` partitions in order to load the second stage of GRUB.
 1. `/boot partition` (**1024 MB - 4096MB**, type `8300`):
    In this partition the boot files will be stored. In order to be able to boot a machine, this partition needs to be unencrypted.
    If you are not planning on rebooting very frequently (to apply kernel updates), consider using 4096MB for the partition size;
@@ -29,10 +29,10 @@ We are going to configure three partitions:
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary><i>Example output of <b>gdisk</b></i></summary>
+<summary>Example output of <code>gdisk:</code></summary>
 
-```terminal
-root@rescue ~ # gdisk /dev/sda 
+{% highlight terminal %}
+root@rescue ~ # gdisk /dev/sda
 GPT fdisk (gdisk) version 1.0.3
 
 Partition table scan:
@@ -48,27 +48,27 @@ This option deletes all partitions and creates a new protective MBR.
 Proceed? (Y/N): y
 
 Command (? for help): n
-Partition number (1-128, default 1): 
-First sector (34-937406430, default = 2048) or {+-}size{KMGTP}: 
+Partition number (1-128, default 1):
+First sector (34-937406430, default = 2048) or {+-}size{KMGTP}:
 Last sector (2048-937406430, default = 937406430) or {+-}size{KMGTP}: +32M
 Current type is 'Linux filesystem'
 Hex code or GUID (L to show codes, Enter = 8300): ef02
 Changed type of partition to 'BIOS boot partition'
 
 Command (? for help): n
-Partition number (2-128, default 2): 
-First sector (34-937406430, default = 67584) or {+-}size{KMGTP}: 
+Partition number (2-128, default 2):
+First sector (34-937406430, default = 67584) or {+-}size{KMGTP}:
 Last sector (67584-937406430, default = 937406430) or {+-}size{KMGTP}: +4096M
 Current type is 'Linux filesystem'
-Hex code or GUID (L to show codes, Enter = 8300): 
+Hex code or GUID (L to show codes, Enter = 8300):
 Changed type of partition to 'Linux filesystem'
 
 Command (? for help): n
-Partition number (3-128, default 3): 
-First sector (34-937406430, default = 8456192) or {+-}size{KMGTP}: 
-Last sector (8456192-937406430, default = 937406430) or {+-}size{KMGTP}: 
+Partition number (3-128, default 3):
+First sector (34-937406430, default = 8456192) or {+-}size{KMGTP}:
+Last sector (8456192-937406430, default = 937406430) or {+-}size{KMGTP}:
 Current type is 'Linux filesystem'
-Hex code or GUID (L to show codes, Enter = 8300): 
+Hex code or GUID (L to show codes, Enter = 8300):
 Changed type of partition to 'Linux filesystem'
 
 Command (? for help): w
@@ -80,7 +80,7 @@ Do you want to proceed? (Y/N): Y
 OK; writing new GUID partition table (GPT) to /dev/sda.
 The operation has completed successfully.
 root@rescue ~ #
-```
+{% endhighlight %}
 
 </details>
 <br>
@@ -104,9 +104,9 @@ root@rescue ~ #
 In this case we are just going to partition the whole drive `/dev/sdb` as a single partition using `type 8300`.
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary><i>Sample</i> output of <b>gdisk</b></summary>
+<summary>Example output of <code>gdisk</code>:</summary>
 
-```terminal
+{% highlight terminal %}
 root@rescue ~ # gdisk /dev/sdb
 GPT fdisk (gdisk) version 0.8.10
 
@@ -123,11 +123,11 @@ This option deletes all partitions and creates a new protective MBR.
 Proceed? (Y/N): Y
 
 Command (? for help): n
-Partition number (1-128, default 1): 
-First sector (34-11719933918, default = 2048) or {+-}size{KMGTP}: 
-Last sector (2048-11719933918, default = 11719933918) or {+-}size{KMGTP}: 
+Partition number (1-128, default 1):
+First sector (34-11719933918, default = 2048) or {+-}size{KMGTP}:
+Last sector (2048-11719933918, default = 11719933918) or {+-}size{KMGTP}:
 Current type is 'Linux filesystem'
-Hex code or GUID (L to show codes, Enter = 8300): 
+Hex code or GUID (L to show codes, Enter = 8300):
 Changed type of partition to 'Linux filesystem'
 
 Command (? for help): w
@@ -139,7 +139,7 @@ Do you want to proceed? (Y/N): Y
 OK; writing new GUID partition table (GPT) to /dev/sdb.
 The operation has completed successfully.
 Just for the sake of completeness the output of gdisk showing the partitioning of /dev/sdb
-Partitioned disk output  
+Partitioned disk output
 root@rescue ~ # gdisk -l /dev/sdb
 GPT fdisk (gdisk) version 0.8.10
 
@@ -161,16 +161,16 @@ Total free space is 2014 sectors (1007.0 KiB)
 Number  Start (sector)    End (sector)  Size       Code  Name
    1            2048     11719933918   5.5 TiB     8300  Linux filesystem
 root@rescue ~ #
-```
+{% endhighlight %}
 
 </details>
 <!-- markdownlint-enable MD033 -->
 
-## Formatting partitions and setting up the encrypted LVM
+## Formatting partitions and setting up the encrypted `LVM`
 
-The goal of this section is to end up with a partition layout using the [Logical Volume Manager](https://en.wikipedia.org/wiki/Logical_volume_management) (LVM).
-In order to achieve this we are going to create an encrypted [Linux Unified Key Setup](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) (LUKS) partition on which we will
-create our LVM.
+The goal of this section is to end up with a partition layout using the [Logical Volume Manager](https://en.wikipedia.org/wiki/Logical_volume_management) (`LVM`).
+In order to achieve this we are going to create an encrypted [Linux Unified Key Setup](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) (`LUKS`) partition on which we will
+create our `LVM`.
 The partition table should look ideally similar to the one in the table below. As I am currently setting up a server to use with [Proxmox](https://www.proxmox.com) the sizing
 might be different from your choice.
 
@@ -178,27 +178,27 @@ I inserted an additional column where I set an **X** whether the partition is r
 Proxmox.
 
 In my case the disk, where my system is going to get installed on (`/dev/sda`) is roughly 420GB big. So it is easily possible at any time to extend the current partition
-layout or even extend the size of the different point mounts - thanks to LVM!
+layout or even extend the size of the different point mounts - thanks to `LVM`!
 
-| mount point       | filesystem type | size | recommended | volume group |
-| :---------------- | :-------------: | :--: | :---------: | :----------: |
-| /                 | XFS             | 16GB | X           | vg_system    |
-| /home             | XFS             | 4GB  | X           | vg_system    |
-| /tmp              | XFS             | 4GB  | X           | vg_system    |
-| /var              | XFS             | 32GB | X           | vg_system    |
-| /var/tmp          | XFS             | 4GB  | X           | vg_system    |
-| /var/log          | XFS             | 8GB  | X           | vg_system    |
-| /var/log/audit    | XFS             | 2GB  |             | vg_system    |
-| swap              | swap            | 16GB | X           | vg_system    |
-| /var/lib/vz       | XFS             | 5TB  | -           | vg_data      |
+| mount point         | filesystem type   | size  | recommended | volume group |
+| :------------------ | :---------------: | :----:| :---------: | :----------: |
+| `/`                 | `XFS`             | 16 GB | X           | `vg_system`  |
+| `/home`             | `XFS`             | 4 GB  | X           | `vg_system`  |
+| `/tmp`              | `XFS`             | 4 GB  | X           | `vg_system`  |
+| `/var`              | `XFS`             | 32 GB | X           | `vg_system`  |
+| `/var/tmp`          | `XFS`             | 4 GB  | X           | `vg_system`  |
+| `/var/log`          | `XFS`             | 8 GB  | X           | `vg_system`  |
+| `/var/log/audit`    | `XFS`             | 2 GB  | -           | `vg_system`  |
+| `swap`              | `swap`            | 16 GB | X           | `vg_system`  |
+| `/var/lib/vz`       | `XFS`             | 5 TB  | -           | `vg_data`    |
 
-## Formatting /boot
+## Formatting `/boot`
 
 After creating the partitions on the system disk (`/dev/sda`) earlier, we are going to format the second partition (which we will use as `/boot`) using `XFS` as filesystem.
 For that we'll use `mkfs.xfs /dev/sda2`:
 
 ```terminal
-root@rescue ~ # mkfs.xfs /dev/sda2 
+root@rescue ~ # mkfs.xfs /dev/sda2
 meta-data=/dev/sda2              isize=512    agcount=4, agsize=262144 blks
          =                       sectsz=512   attr=2, projid32bit=1
          =                       crc=1        finobt=1, sparse=1, rmapbt=0
@@ -209,16 +209,16 @@ naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
 log      =internal log           bsize=4096   blocks=2560, version=2
          =                       sectsz=512   sunit=0 blks, lazy-count=1
 realtime =none                   extsz=4096   blocks=0, rtextents=0
-root@rescue ~ # 
+root@rescue ~ #
 ```
 
-## Creating a LUKS partition to hold our system partitions
+## Creating a `LUKS` partition to hold our system partitions
 
-Next, we want to have all remaining partitions (e.g. `/`, `/home`, `/tmp`, etc.) within an encrypted LUKS partition. In this current case we have three partitions on the device `/dev/sda`:
+Next, we want to have all remaining partitions (e.g. `/`, `/home`, `/tmp`, etc.) within an encrypted `LUKS` partition. In this current case we have three partitions on the device `/dev/sda`:
 
 - `/dev/sda1`: BIOS boot partition
 - `/dev/sda2`: Unencrypted `/boot` partition (which we formatted in the section earlier)
-- `/dev/sda3`: This is the partition we want to encrypt with LUKS
+- `/dev/sda3`: This is the partition we want to encrypt with `LUKS`
 
 In order to encrypt the partition, following command is executed:
 
@@ -240,55 +240,55 @@ WARNING!
 This will overwrite data on /dev/sda3 irrevocably.
 
 Are you sure? (Type uppercase yes): YES
-Enter passphrase for /dev/sda3: 
-Verify passphrase: 
-root@rescue ~ # 
+Enter passphrase for /dev/sda3:
+Verify passphrase:
+root@rescue ~ #
 ```
 
-Quickly verify, whether the encrypted LUKS partition is setup properly using the following command:
+Quickly verify, whether the encrypted `LUKS` partition is setup properly using the following command:
 
 ```plaintext
 cryptsetup luksOpen /dev/sda3 crypted_system
 ```
 
-The system will ask you for the password to decrypt the LUKS partition. After you entered the correct password, you will be able to see a new device:
+The system will ask you for the password to decrypt the `LUKS` partition. After you entered the correct password, you will be able to see a new device:
 `/dev/mapper/crypted_system`
 
 ```terminal
 root@rescue ~ # cryptsetup luksOpen /dev/sda3 crypted_system
-Enter passphrase for /dev/sda3: 
+Enter passphrase for /dev/sda3:
 root@rescue ~ # ls -la /dev/mapper/
 total 0
 drwxr-xr-x  2 root root      80 Sep  5 19:40 .
 drwxr-xr-x 15 root root    7.5K Sep  5 19:40 ..
 crw-------  1 root root 10, 236 Sep  5 19:40 control
 lrwxrwxrwx  1 root root       7 Sep  5 19:40 crypted_system -> ../dm-0
-root@rescue ~ # 
+root@rescue ~ #
 ```
 
-### Optional: Creating LUKS partition for the data partition
+### Optional: Creating `LUKS` partition for the data partition
 
-Basically, the same steps as we used for the LUKS partition that holds our system partitions have to be applied for the data partition.
+Basically, the same steps as we used for the `LUKS` partition that holds our system partitions have to be applied for the data partition.
 The differences are only a few simple things:
 
 - The device is now `/dev/sdb`
 - We will encrypt the device as a whole and not creating partitions before hand - simply because we don't need to. On the system drive (`/dev/sda`) we needed to create three
   partitions for both the BIOS boot and the unencrypted `/boot` partition. In this case we will put encrypted data on the whole drive.
 - With `cryptsetup luksOpen` we need to specify a different name for the device, which holds the decrypted data: `crypted_data`
-- **Ideally** you want to use a different password as for the system LUKS partition. We will later replace the password with a key file on the encrypted root file system in
+- **Ideally** you want to use a different password as for the system `LUKS` partition. We will later replace the password with a key file on the encrypted root filesystem in
   order to make the unlocking of the system during the boot easier
 
-## Setting up LVM: Creating a physical volume, a volume group and several logical volumes for the encrypted LUKS partition
+## Setting up `LVM`: Creating a physical volume, a volume group and several logical volumes for the encrypted `LUKS` partition
 
-In order to implement and use LVM we need to follow the following approach:
+In order to implement and use `LVM` we need to follow the following approach:
 
-1. Create a [physical volume](https://tldp.org/HOWTO/LVM-HOWTO/pv.html) (PV) using pvcreate on top of the decrypted LUKS partition
-1. Create a [volume group](https://tldp.org/HOWTO/LVM-HOWTO/vg.html) (VG) using vgcreate on top of the physical volume
-1. Create several [logical volumes](https://tldp.org/HOWTO/LVM-HOWTO/lv.html) (LV) using lvcreate on top of the volume group
+1. Create a [physical volume](https://tldp.org/HOWTO/LVM-HOWTO/pv.html) (`PV`) using `pvcreate` on top of the decrypted `LUKS` partition
+1. Create a [volume group](https://tldp.org/HOWTO/LVM-HOWTO/vg.html) (`VG`) using `vgcreate` on top of the physical volume
+1. Create several [logical volumes](https://tldp.org/HOWTO/LVM-HOWTO/lv.html) (`LV`) using `lvcreate` on top of the volume group
 
-## Creating a physical volume on top of the LUKS partition
+## Creating a physical volume on top of the `LUKS` partition
 
-The first step is to create a physical volume on top of the LUKS partition. This is very simple and does not need any further explanation.
+The first step is to create a physical volume on top of the `LUKS` partition. This is very simple and does not need any further explanation.
 
 Following command is used to create the physical volume:
 
@@ -301,7 +301,7 @@ The output will look similar to the following:
 ```terminal
 root@rescue ~ # pvcreate /dev/mapper/crypted_system
   Physical volume "/dev/mapper/crypted_system" successfully created.
-root@rescue ~ # 
+root@rescue ~ #
 ```
 
 ## Creating a volume group on top of the physical volume
@@ -318,7 +318,7 @@ The output will look similar to the following:
 ```terminal
 root@rescue ~ # vgcreate vg_system /dev/mapper/crypted_system
   Volume group "vg_system" successfully created
-root@rescue ~ # 
+root@rescue ~ #
 ```
 
 ## Creating logical volumes on top of the volume group
@@ -337,10 +337,10 @@ lvcreate -L 16G -n root vg_system
 
 In the above example a logical volume with the size of **16 GB** and the name **root** in the volume group **vg_system** is created.
 
-This command can be used to create all logical volumes accordingly. Best practice - regarding the naming - is to use the name of the mount point (e.g. `/` = **root**,
-`/tmp` = **tmp**, etc.).
+This command can be used to create all logical volumes accordingly. Best practice - regarding the naming - is to use the name of the mount point (e.g. `/` = `root`,
+`/tmp` = `tmp`, etc.).
 
-If the mount point contains slashes, replace them via underscore (e.g. `/var/log` = **var_log**, `/var/tmp` = **var_tmp**, `/var/log/audit` = **var_log_audit**, etc.).
+If the mount point contains slashes, replace them via underscore (e.g. `/var/log` = `var_log`, `/var/tmp` = `var_tmp`, `/var/log/audit` = `var_log_audit`, etc.).
 This is the best practice approach, which I have implemented on many servers/infrastructures.
 
 The output will look similar to the following:
@@ -370,14 +370,14 @@ And will leave us with following logical volumes:
 ```terminal
 root@rescue ~ # lvs
   LV            VG        Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-  home          vg_system -wi-a-----  4.00g                                                    
-  root          vg_system -wi-a----- 16.00g                                                    
-  swap          vg_system -wi-a----- 16.00g                                                    
-  tmp           vg_system -wi-a-----  4.00g                                                    
-  var           vg_system -wi-a----- 32.00g                                                    
-  var_log       vg_system -wi-a-----  8.00g                                                    
-  var_log_audit vg_system -wi-a-----  2.00g                                                    
-  var_tmp       vg_system -wi-a-----  4.00g                                                    
+  home          vg_system -wi-a-----  4.00g  
+  root          vg_system -wi-a----- 16.00g  
+  swap          vg_system -wi-a----- 16.00g  
+  tmp           vg_system -wi-a-----  4.00g  
+  var           vg_system -wi-a----- 32.00g  
+  var_log       vg_system -wi-a-----  8.00g  
+  var_log_audit vg_system -wi-a-----  2.00g  
+  var_tmp       vg_system -wi-a-----  4.00g  
 root@rescue ~ #
 ```
 
@@ -385,20 +385,20 @@ root@rescue ~ #
 
 ```terminal
 root@rescue ~ # vgs
-  VG        #PV #LV #SN Attr   VSize    VFree   
+  VG        #PV #LV #SN Attr   VSize    VFree  
   vg_system   1   8   0 wz--n- <442.94g <356.94g
 root@rescue ~ #
 ```
 
-### Optional: Create LVM for the data disk
+### Optional: Create `LVM` for the data disk
 
 As for the system partition, the same approach needs to be done for the data disk. As I briefly explained the exact approach and implementation above, here just the command
 output:
 
 ```terminal
-root@rescue ~ # pvcreate /dev/mapper/crypted_data 
+root@rescue ~ # pvcreate /dev/mapper/crypted_data
   Physical volume "/dev/mapper/crypted_data" successfully created
-root@rescue ~ # vgcreate vg_data /dev/mapper/crypted_data 
+root@rescue ~ # vgcreate vg_data /dev/mapper/crypted_data
   Volume group "vg_data" successfully created
 root@rescue ~ # lvcreate -L 5T -n var_lib_vz vg_data
   Logical volume "var_lib_vz" created
@@ -407,8 +407,8 @@ root@rescue ~ #
 
 ## Create filesystems on logical volumes
 
-In order to use the logical volumes, we need to create file systems on them. To ease this process - and save me some manual work - I wrote a little BASH script.
-The purpose of this script is to create XFS filesystems on all logical volumes on all volume groups specified and create a swap "filesystem" on the logical volume, which is
+In order to use the logical volumes, we need to create filesystems on them. To ease this process - and save me some manual work - I wrote a little BASH script.
+The purpose of this script is to create `XFS` filesystems on all logical volumes on all volume groups specified and create a `swap "filesystem"` on the logical volume, which is
 named `<vg>-swap`. Ff you have multiple swaps or a different naming, you can easily modify this script.
 
 I added a semicolon after each command, so one can simply copy/paste the whole script into the terminal.
@@ -428,15 +428,15 @@ for vg in vg_system vg_data; do
       # create filesystem
       mkfs."${filesystem_type}" -f "${lv}";
     fi;
-  done; 
+  done;
 done
 ```
 
-<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD022 MD023 MD025 MD027 MD033 -->
 <details>
 <summary>Following a sample output:</summary>
 
-```terminal
+{% highlight terminal %}
 root@rescue ~ # for vg in vg_system; do
 >   # iterate over all LVs
 >   for lv in "/dev/mapper/${vg}-"*; do
@@ -447,7 +447,7 @@ root@rescue ~ # for vg in vg_system; do
 >       # create filesystem with volume label
 >       mkfs."${filesystem_type}" -f "${lv}";
 >     fi;
->   done; 
+>   done;
 > done
 meta-data=/dev/mapper/vg_system-home isize=512    agcount=4, agsize=262144 blks
          =                       sectsz=512   attr=2, projid32bit=1
@@ -523,10 +523,10 @@ log      =internal log           bsize=4096   blocks=2560, version=2
          =                       sectsz=512   sunit=0 blks, lazy-count=1
 realtime =none                   extsz=4096   blocks=0, rtextents=0
 root@rescue ~ #
-```
+{% endhighlight %}
 
 </details>
-<!-- markdownlint-enable MD033 -->
+<!-- markdownlint-enable MD022 MD023 MD025 MD027 MD033 -->
 
 Note: If you have volume groups defined in the script, which are non-existent, you will retrieve some error messages, like the following (obviously `vg_data` did not exist):
 
@@ -557,7 +557,7 @@ Usage: mkfs.xfs
 <num> is xxx (bytes), xxxs (sectors), xxxb (fs blocks), xxxk (xxx KiB),
       xxxm (xxx MiB), xxxg (xxx GiB), xxxt (xxx TiB) or xxxp (xxx PiB).
 <value> is xxx (512 byte blocks).
-root@rescue ~ # 
+root@rescue ~ #
 ```
 
 ## Prepare for the installation
@@ -568,7 +568,7 @@ After we created our filesystems, we need to prepare the system for the manual i
 
 In order to install our system within our live system, we need to mount the just created partitions under `/mnt`.
 To easy this process again - and save me some manual work again - I created a script for this purpose.
-To be able to use this script, we need to "close", both the volume group `vg_system` and - if you created - the volume group `vg_data` and afterwards close the LUKS partition.
+To be able to use this script, we need to "close", both the volume group `vg_system` and - if you created - the volume group `vg_data` and afterwards close the `LUKS` partition.
 This can be done using the following commands:
 
 ```plaintext
@@ -576,18 +576,18 @@ This can be done using the following commands:
 lvchange -a n vg_system
 
 # close the LUKS partition
-cryptsetup luksClose /dev/mapper/crypted_system 
+cryptsetup luksClose /dev/mapper/crypted_system
 ```
 
 The output (or well, no output) will look similar to this (depending on - as already mentioned - whether you have chosen to create `vg_data` or not):
 
 ```terminal
 root@rescue ~ # lvchange -a n vg_system
-root@rescue ~ # cryptsetup luksClose /dev/mapper/crypted_system 
+root@rescue ~ # cryptsetup luksClose /dev/mapper/crypted_system
 root@rescue ~ #
 ```
 
-You can verify, whether we “closed” the volume group and the LUKS partition with the following commands:
+You can verify, whether we “closed” the volume group and the `LUKS` partition with the following commands:
 
 ```terminal
 root@rescue ~ # lvs
@@ -601,10 +601,10 @@ root@rescue ~ #
 
 To explain the general approach a bit, this is what the following script is doing:
 
-- Unlock both the system and data LUKS partition (if defined) - will ask for a password obviously :slightly_smiling_face:
-- In order to install a system within a live system, we need to mount the root LV somewhere - in our case it's `/mnt`
-- To be able to mount the LVs we need to create the necessary directories beforehand (e.g. `/mnt/var`, `/mnt/var/log`, `/mnt/home`, etc.)
-- Finally the LVs get mounted to those created directories
+- Unlock both the system and data `LUKS` partition (if defined) - will ask for a password obviously :slightly_smiling_face:
+- In order to install a system within a live system, we need to mount the `root LV` somewhere - in our case it's `/mnt`
+- To be able to mount the `LVs` we need to create the necessary directories beforehand (e.g. `/mnt/var`, `/mnt/var/log`, `/mnt/home`, etc.)
+- Finally the `LVs` get mounted to those created directories
 
 ```bash
 #!/bin/bash
@@ -637,7 +637,7 @@ function mount_chroot () {
     exit 1;
   };
   echo "Successful!"
- 
+
   ( [[ -z "${__DATA_CRYPT_DEVICE}" ]] &&
     [[ -z "${__DATA_CRYPT_NAME}" ]]
   ) || {
@@ -648,7 +648,7 @@ function mount_chroot () {
     };
     echo "Successful!"
   };
- 
+
   # sleep to prevent that the VGs cant be detected yet
   sleep 2
   # detect vgs and switch to them
@@ -656,21 +656,21 @@ function mount_chroot () {
     echo "Searching and activating volume groups failed!";
     exit 1;
   };
- 
+
   # check whether the given root lv exist
   [[ -e "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" ]] || {
     echo "root LV '/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}' does not exist!";
     exit 1;
   };
- 
+
   # mount the root lv and check whether it has been mounted successfully
   mount "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" "${__DESTINATION_PARENT}"
   mountpoint -q "${__DESTINATION_PARENT}" || {
     echo "Destination root '${__DESTINATION_PARENT}' is not mounted!"
     exit 1;
   };
- 
-  ( [[ -e ${__DESTINATION_PARENT}/boot ]] && 
+
+  ( [[ -e ${__DESTINATION_PARENT}/boot ]] &&
     [[ -d ${__DESTINATION_PARENT}/boot ]]
   ) || {
   # create /boot within __DESTINATION_PARENT if it does not exist
@@ -678,7 +678,7 @@ function mount_chroot () {
   };
   # try mounting /boot
   mount "${__BOOT_DEVICE}" "${__DESTINATION_PARENT}/boot"
- 
+
   # go through all system LVs and mount them, unless its the root or swap partition
   for lv in "/dev/mapper/${__VG_SYSTEM}-"*; do
     declare part="$(echo "$(basename "${lv}")" | sed -e 's/vg_.*-//' -e 's/_/\//g')"
@@ -704,7 +704,7 @@ function mount_chroot () {
       ;;
     esac
   done
- 
+
   [[ -z "${__VG_DATA}" ]] || {
     echo "Data partition defined :3"
     # do the same as for the system LVs for the data LVs
@@ -718,12 +718,12 @@ function mount_chroot () {
       mount "${lv}" "${__DESTINATION_PARENT}/${part}"
     done
   };
- 
- 
+
+
   [[ -n "${2}" ]] || {
     exit 0;
   };
- 
+
   echo "Mounting necessary system partitions to chroot"
   mount -o bind /dev "${__DESTINATION_PARENT}/dev"
   mount -o bind /run "${__DESTINATION_PARENT}/run"
@@ -732,7 +732,7 @@ function mount_chroot () {
   mount -t proc proc "${__DESTINATION_PARENT}/proc"
   exit 0;
 } #; function mount_chroot ( )
- 
+
 # function to unmount all partitions defined under __DESTINATION_PARENT
 # and "close" the VGs and finally close the LUKS partitions
 function umount_chroot () {
@@ -749,15 +749,15 @@ function umount_chroot () {
     esac
   done
   lvchange -a n "${__VG_SYSTEM}"
- 
+
   [[ -z "${__VG_DATA}" ]] || {
     lvchange -a n "${__VG_DATA}"
     cryptsetup luksClose "/dev/mapper/${__DATA_CRYPT_NAME}"
   };
- 
+
   cryptsetup luksClose "/dev/mapper/${__SYSTEM_CRYPT_NAME}"
 } #; function umount_chroot ( )
- 
+
 case "${1}" in
   mount)
     echo "Mounting chroot"
@@ -807,7 +807,7 @@ function mount_chroot () {
     exit 1;
   };
   echo "Successful!"
- 
+
   ( [[ -z "${__DATA_CRYPT_DEVICE}" ]] &&
     [[ -z "${__DATA_CRYPT_NAME}" ]]
   ) || {
@@ -818,7 +818,7 @@ function mount_chroot () {
     };
     echo "Successful!"
   };
- 
+
   # sleep to prevent that the VGs cant be detected yet
   sleep 2
   # detect vgs and switch to them
@@ -826,21 +826,21 @@ function mount_chroot () {
     echo "Searching and activating volume groups failed!";
     exit 1;
   };
- 
+
   # check whether the given root lv exist
   [[ -e "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" ]] || {
     echo "root LV '/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}' does not exist!";
     exit 1;
   };
- 
+
   # mount the root lv and check whether it has been mounted successfully
   mount "/dev/mapper/${__VG_SYSTEM}-${__ROOT_LV_NAME}" "${__DESTINATION_PARENT}"
   mountpoint -q "${__DESTINATION_PARENT}" || {
     echo "Destination root '${__DESTINATION_PARENT}' is not mounted!"
     exit 1;
   };
- 
-  ( [[ -e ${__DESTINATION_PARENT}/boot ]] && 
+
+  ( [[ -e ${__DESTINATION_PARENT}/boot ]] &&
     [[ -d ${__DESTINATION_PARENT}/boot ]]
   ) || {
   # create /boot within __DESTINATION_PARENT if it does not exist
@@ -848,7 +848,7 @@ function mount_chroot () {
   };
   # try mounting /boot
   mount "${__BOOT_DEVICE}" "${__DESTINATION_PARENT}/boot"
- 
+
   # go through all system LVs and mount them, unless its the root or swap partition
   for lv in "/dev/mapper/${__VG_SYSTEM}-"*; do
     declare part="$(echo "$(basename "${lv}")" | sed -e 's/vg_.*-//' -e 's/_/\//g')"
@@ -874,7 +874,7 @@ function mount_chroot () {
       ;;
     esac
   done
- 
+
   [[ -z "${__VG_DATA}" ]] || {
     echo "Data partition defined :3"
     # do the same as for the system LVs for the data LVs
@@ -888,12 +888,12 @@ function mount_chroot () {
       mount "${lv}" "${__DESTINATION_PARENT}/${part}"
     done
   };
- 
- 
+
+
   [[ -n "${2}" ]] || {
     exit 0;
   };
- 
+
   echo "Mounting necessary system partitions to chroot"
   mount -o bind /dev "${__DESTINATION_PARENT}/dev"
   mount -o bind /run "${__DESTINATION_PARENT}/run"
@@ -902,7 +902,7 @@ function mount_chroot () {
   mount -t proc proc "${__DESTINATION_PARENT}/proc"
   exit 0;
 } #; function mount_chroot ( )
- 
+
 # function to unmount all partitions defined under __DESTINATION_PARENT
 # and "close" the VGs and finally close the LUKS partitions
 function umount_chroot () {
@@ -919,15 +919,15 @@ function umount_chroot () {
     esac
   done
   lvchange -a n "${__VG_SYSTEM}"
- 
+
   [[ -z "${__VG_DATA}" ]] || {
     lvchange -a n "${__VG_DATA}"
     cryptsetup luksClose "/dev/mapper/${__DATA_CRYPT_NAME}"
   };
- 
+
   cryptsetup luksClose "/dev/mapper/${__SYSTEM_CRYPT_NAME}"
 } #; function umount_chroot ( )
- 
+
 case "${1}" in
   mount)
     echo "Mounting chroot"
@@ -954,7 +954,7 @@ The output will look similar to the following (depending again, whether you have
 root@rescue ~ # bash mount.sh mount
 Mounting chroot
 Trying to decrypt system crypt device '/dev/sda3'
-Enter passphrase for /dev/sda3: 
+Enter passphrase for /dev/sda3:
 Successful!
   8 logical volume(s) in volume group "vg_system" now active
 root@rescue ~ #
@@ -1004,7 +1004,7 @@ tmpfs on /run/user/0 type tmpfs (rw,nosuid,nodev,relatime,size=6565472k,mode=700
 root@rescue ~ #
 ```
 
-As the last step, we need to set the proper permissions on the mounted tmp folder (`/mnt/tmp`):
+As the last step, we need to set the proper permissions on the mounted `tmp` folder (`/mnt/tmp`):
 
 ```terminal
 root@rescue ~ # chmod 1777 /mnt/tmp
@@ -1014,13 +1014,13 @@ root@rescue ~ #
 ### Starting the installation
 
 Finally we can start the installation of Debian Bullseye within our live system.
-For the installation we are going to use a program called [Debootstrap](https://wiki.debian.org/Debootstrap). Debootstrap is basically used to install a Debian system within a
+For the installation we are going to use a program called [`Debootstrap`](https://wiki.debian.org/Debootstrap). `Debootstrap` is basically used to install a Debian system within a
 Debian system (our live environment). The latest version can always be found [package repository of debian.org](http://ftp.debian.org/debian/pool/main/d/debootstrap/) - we
 need the version, which is packaged using `.deb`.
 
-### Downloading Debootstrap and modify it
+### Downloading `Debootstrap` and modify it
 
-First, we need to download the .deb using wget or curl:
+First, we need to download the `.deb` using `wget` or `curl`:
 
 ```terminal
 root@rescue ~ # cd /tmp/
@@ -1032,7 +1032,7 @@ HTTP request sent, awaiting response... 200 OK
 Length: 76416 (75K) [application/x-debian-package]
 Saving to: ‘debootstrap_1.0.124_all.deb’
 
-debootstrap_1.0.124_all.deb                100%[=======================================================================================>]  74.62K  --.-KB/s    in 0.03s   
+debootstrap_1.0.124_all.deb                100%[=======================================================================================>]  74.62K  --.-KB/s    in 0.03s  
 
 2021-08-22 12:42:35 (2.30 MB/s) - ‘debootstrap_1.0.124_all.deb’ saved [76416/76416]
 
@@ -1042,9 +1042,9 @@ root@rescue /tmp #
 After we downloaded it, we need to unpack it:
 
 ```terminal
-root@rescue /tmp # ar x debootstrap_1.0.124_all.deb 
-root@rescue /tmp # tar xfz control.tar.gz 
-root@rescue /tmp # tar xfz data.tar.gz 
+root@rescue /tmp # ar x debootstrap_1.0.124_all.deb
+root@rescue /tmp # tar xfz control.tar.gz
+root@rescue /tmp # tar xfz data.tar.gz
 root@rescue /tmp #
 ```
 
@@ -1087,7 +1087,7 @@ root@rescue /tmp #
 
 ## Installation of the system
 
-Finally we can start the installation using debootstrap with the following command (replace the values you want to change):
+Finally we can start the installation using `debootstrap` with the following command (replace the values you want to change):
 
 ```plaintext
 usr/sbin/debootstrap --arch amd64 bullseye /mnt/ http://ftp2.de.debian.org/debian | tee /mnt/install.log
@@ -1097,13 +1097,13 @@ The installation will take a couple of minutes/seconds (depending on the perform
 
 ```terminal
 root@rescue /tmp # usr/sbin/debootstrap --arch amd64 buster /mnt/ http://ftp2.de.debian.org/debian | tee /mnt/install.log
-I: Retrieving InRelease 
-I: Retrieving Release 
-I: Retrieving Release.gpg 
+I: Retrieving InRelease
+I: Retrieving Release
+I: Retrieving Release.gpg
 I: Checking Release signature
 I: Valid Release signature (key id 067E3C456BAE240ACEE88F6FEF0F382A1A7B6500)
-I: Retrieving Packages 
-I: Validating Packages 
+I: Retrieving Packages
+I: Validating Packages
 I: Resolving dependencies of required packages...
 I: Resolving dependencies of base packages...
 I: Checking component main on http://ftp2.de.debian.org/debian...
@@ -1142,10 +1142,10 @@ I: Configuring ncurses-base...
 [..]
 I: Configuring systemd...
 I: Base system installed successfully.
-root@rescue /tmp # 
+root@rescue /tmp #
 ```
 
-After the installation has been sucessfully finished, we need to mount the necessary system partitions, in order to configure the system, using the following commands:
+After the installation has been successfully finished, we need to mount the necessary system partitions, in order to configure the system, using the following commands:
 
 ```terminal
 root@rescue /tmp # mount -o bind /dev/ /mnt/dev/
@@ -1166,7 +1166,7 @@ Finally we have the system installed and ready to configure - we still have a co
 
 ## Base configuration
 
-First we want to chroot to the environment:
+First we want to `chroot` to the environment:
 
 ```terminal
 root@rescue /tmp # XTERM=xterm-color LANG=C.UTF-8 chroot /mnt /bin/bash
@@ -1185,13 +1185,13 @@ Next, we want to change the root password, as it is currently not set (use a **c
 
 ```terminal
 root@rescue:/# passwd
-Enter new UNIX password: 
-Retype new UNIX password: 
+Enter new UNIX password:
+Retype new UNIX password:
 passwd: password updated successfully
 root@rescue:/#
 ```
 
-Then we want to set both the hostname (`/etc/hostname`) and mailname (`/etc/mailname` - this will come in handy later, when we install `postfix`) and as well add ourselves to
+Then we want to set both the `hostname` (`/etc/hostname`) and `mailname` (`/etc/mailname` - this will come in handy later, when we install `postfix`) and as well add ourselves to
 `/etc/hosts`:
 
 ```terminal
@@ -1225,13 +1225,13 @@ root@rescue:/#
 Please note, I modified the IP addresses and they do not reflect an actual system. Please adjust the file accordingly.
 
 The `pre-up` command `/sbin/ip addr flush dev eth0 || true` has to be used, as we have an IP address already *before* the final system is up and running. This is due to the
-`Dropbear instance` that is running which allows as to unlock the LUKS partition(s) - more on that later.
+`Dropbear` instance that is running which allows as to unlock the `LUKS` partition(s) - more on that later.
 
 Of course we want to set our nameservers correctly - in this case I am using the nameservers from
 [Cloudflare](https://www.cloudflare.com/de-de/learning/dns/what-is-1.1.1.1/) and [Google](https://developers.google.com/speed/public-dns):
 
 ```terminal
-root@rescue:/# cat /etc/resolv.conf 
+root@rescue:/# cat /etc/resolv.conf
 nameserver 1.1.1.1
 nameserver 1.0.0.1
 nameserver 8.8.8.8
@@ -1268,7 +1268,7 @@ Let’s update the cache .. :slightly_smiling_face:
 
 ```terminal
 root@rescue:/# apt-get update
-Fetched 22.9 MB in 3s (8565 kB/s)                              
+Fetched 22.9 MB in 3s (8565 kB/s)  
 [..]
 Reading package lists... Done
 Building dependency tree... Done
@@ -1282,11 +1282,11 @@ Finally we want to install and configure the `locales` (I use `en_US.UTF-8` as t
 apt-get install -y locales && dpkg-reconfigure locales
 ```
 
-<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD033 MD034 -->
 <details>
-<summary>Sample output</summary>
+<summary>Example output:</summary>
 
-```terminal
+{% highlight terminal %}
 root@rescue:/# apt-get install -y locales && dpkg-reconfigure locales
 Reading package lists... Done
 Building dependency tree... Done
@@ -1316,10 +1316,10 @@ Generating locales (this might take a while)...
   en_US.UTF-8... done
 Generation complete.
 root@rescue:/#
-```
+{% endhighlight %}
 
 </details>
-<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD033 MD034 -->
 
 Additionally we need to set a few more locale settings in `/etc/environment`, which are not set by default, but are causing warning messages when not set, while installing
 packages using `aptitude`:
@@ -1334,20 +1334,20 @@ EOF
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary>Sample output:</summary>
+<summary>Example output:</summary>
 
-```terminal
+{% highlight terminal %}
 root@rescue:/# cat > /etc/environment << "EOF"
 > export LANGUAGE=en_US.UTF-8
 > export LC_ALL=en_US.UTF-8
 > export LANG=en_US.UTF-8
 > EOF
-root@rescue:/# cat /etc/environment 
+root@rescue:/# cat /etc/environment
 export LANGUAGE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-root@rescue:/# 
-```
+root@rescue:/#
+{% endhighlight %}
 
 </details>
 <!-- markdownlint-enable MD033 -->
@@ -1360,9 +1360,9 @@ dpkg-reconfigure tzdata
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary>Sample output:</summary>
+<summary>Example output:</summary>
 
-```shell
+{% highlight terminal %}
 root@rescue:/# dpkg-reconfigure tzdata
 
 Current default time zone: 'Europe/Berlin'
@@ -1370,7 +1370,7 @@ Local time is now:      Sat Sep  5 20:52:58 CEST 2020.
 Universal Time is now:  Sat Sep  5 18:52:58 UTC 2020.
 
 root@rescue:/#
-```
+{% endhighlight %}
 
 </details>
 <!-- markdownlint-enable MD033 -->
@@ -1385,11 +1385,11 @@ The following command will be used to install the needed packages:
 apt-get install -y linux-image-amd64 cryptsetup
 ```
 
-<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD033 MD034 -->
 <details>
-<summary>Sample output:</summary>
+<summary>Example output:</summary>
 
-```terminal
+{% highlight terminal %}
 root@rescue:/# apt-get install -y linux-image-amd64 cryptsetup
 Reading package lists... Done
 Building dependency tree
@@ -1629,43 +1629,43 @@ cryptsetup: WARNING: The initramfs image may not contain cryptsetup binaries
     'cryptsetup-initramfs' package in order to disable the cryptsetup initramfs
     integration and avoid this warning.
 root@rescue:/#
-```
+{% endhighlight %}
 
 </details>
-<!-- markdownlint-enable MD033 -->
+<!-- markdownlint-enable MD033 MD034 -->
 
 Don’t get confused by the warnings, we are going to fix that in the couple of next steps :slightly_smiling_face:
 
-## Configuring /etc/crypttab and /etc/fstab
+## Configuring `/etc/crypttab` and `/etc/fstab`
 
-Next up is the configuration of [/etc/crypttab](https://linux.die.net/man/5/crypttab) and [/etc/fstab](https://wiki.debian.org/fstab).
+Next up is the configuration of [`/etc/crypttab`](https://linux.die.net/man/5/crypttab) and [`/etc/fstab`](https://wiki.debian.org/fstab).
 
-First, we'll be starting with `/etc/crypttab` - to do so, we first have to read out the UUID of our system LUKS partition by using (adapt to your crypt device if necessary):
+First, we'll be starting with `/etc/crypttab` - to do so, we first have to read out the `UUID` of our system `LUKS` partition by using (adapt to your crypt device if necessary):
 
 ```plaintext
 cryptsetup luksDump /dev/sda3 | grep UUID
 ```
 
-The given UUID has to be added to the file `/etc/crypttab` in the following format:
+The given `UUID` has to be added to the file `/etc/crypttab` in the following format:
 
 ```plaintext
 <LUKS_device_name> UUID=<UUID> none luks
 ```
 
-Substitute `<LUKS_device_name>` with the name of your LUKS device (e.g. `crypted_system`) and `<UUID>` with the UUID you received by the command before.
+Substitute `<LUKS_device_name>` with the name of your `LUKS` device (e.g. `crypted_system`) and `<UUID>` with the `UUID` you received by the command before.
 
-You can either do it by hand or use the following one liner (you can adjust the name of the luks partition):
+You can either do it by hand or use the following one liner (you can adjust the name of the `LUKS` partition):
 
 ```plaintext
 echo "crypted_system UUID="$(cryptsetup luksDump /dev/sda3 | grep UUID | awk '/UUID/ { print $2 }')" none luks" > /etc/crypttab
 ```
 
 The next step is to configure `/etc/fstab`.
-To do so, we first need to read out the UUID for both the `/boot` partition (which is stored on `/dev/sda2`) and all partitions that LVM is managing for us. Again depending
-whether you have multiple VGs (e.g. another drive holding data) or not. This can be easily achieved using `blkid`:
+To do so, we first need to read out the `UUID` for both the `/boot` partition (which is stored on `/dev/sda2`) and all partitions that `LVM` is managing for us. Again depending
+whether you have multiple `VGs` (e.g. another drive holding data) or not. This can be easily achieved using `blkid`:
 
 ```terminal
-root@rescue:/# blkid /dev/sda2 
+root@rescue:/# blkid /dev/sda2
 /dev/sda2: UUID="67619dac-48fd-4140-9040-d31c1d3bba0f" TYPE="xfs" PARTLABEL="Linux filesystem" PARTUUID="e435544d-b8df-4e6a-bf74-7f094c3007e1"
 root@rescue:/# blkid /dev/mapper/vg_system-*
 /dev/mapper/vg_system-home: UUID="e560e1fc-897e-4738-832c-09c2663048ba" TYPE="xfs"
@@ -1676,15 +1676,15 @@ root@rescue:/# blkid /dev/mapper/vg_system-*
 /dev/mapper/vg_system-var_log: UUID="6f354868-dd1e-48d6-8ef7-c0dac5324ac5" TYPE="xfs"
 /dev/mapper/vg_system-var_log_audit: UUID="3a5bf013-75e0-4981-a2fb-1666e0e3c293" TYPE="xfs"
 /dev/mapper/vg_system-var_tmp: UUID="a2432df7-dd9d-4bc1-9a04-2f118463bf31" TYPE="xfs"
-root@rescue:/# 
+root@rescue:/#
 ```
 
-:information_source: Please note, the UUIDs above have been randomized and thus do not reflect an actual system. Your UUIDs will, of course, vary.
+:information_source: Please note, the `UUIDs` above have been randomized and thus do not reflect an actual system. Your `UUIDs` will, of course, vary.
 
 With the above information we can build our `/etc/fstab` in the following format:
 
 ```plaintext
-<file system UUID> <mount point on the system> <type> <mount options> <dump> <pass>
+<filesystem UUID> <mount point on the system> <type> <mount options> <dump> <pass>
 ```
 
 In the following table I summarized the flags (mount options) for each mount point. These are documented at e.g. [linux.die.net](https://linux.die.net/man/8/mount).
@@ -1706,8 +1706,8 @@ Please note, the hardening mount options are taken from the [CIS Benchmark for D
 The end result will look something like this:
 
 ```terminal
-root@rescue:/# cat /etc/fstab 
-# file system                                   mount point     type    options                 dump    pass
+root@rescue:/# cat /etc/fstab
+# filesystem                                    mount point     type    options                 dump    pass
 UUID=c1934670-c520-4d57-b87c-69a376fa51e4       /               xfs     defaults                0       1
 UUID=67619dac-48fd-4140-9040-d31c1d3bba0f       /boot           xfs     defaults                0       1
 UUID=d9f8f8a5-3a5f-4199-817c-a5c454281aeb       /tmp            xfs     rw,nosuid,nodev         0       2
@@ -1720,7 +1720,7 @@ UUID=a2f49117-66f0-489b-9092-6548c272766d       none            swap    sw      
 root@rescue:/#
 ```
 
-Some applications still depend on the `/etc/mtab` (although deprecated), rather than `/etc/fstab`; So as a precaution we create a symlink from all current mounts (which are
+Some applications still depend on the `/etc/mtab` (although deprecated), rather than `/etc/fstab`; So as a precaution we create a `symlink` from all current mounts (which are
 stored in `/proc/mounts`) to `/etc/mtab`:
 
 ```terminal
@@ -1730,17 +1730,17 @@ root@rescue:/#
 
 ### Optional: Configuring automatical unlock of the data partition
 
-In order to unlock the data LUKS partition after the system LUKS has been unlocked, we can make use of a so-called
-[keyfile](https://wiki.archlinux.org/title/dm-crypt/Device_encryption#Keyfiles).
+In order to unlock the data `LUKS` partition after the system `LUKS` has been unlocked, we can make use of a so-called
+[`keyfile`](https://wiki.archlinux.org/title/dm-crypt/Device_encryption#Keyfiles).
 
 What we can to do is:
 
-- Create a keyfile
-- Restrict the permissions of the keyfile, so only the user root has access to it
-- Add the keyfile to the data LUKS partition
-- Add an additional entry in `/etc/crypttab`, so the data LUKS partition gets automatically unlocked, when the system LUKS partition gets unlocked
+- Create a `keyfile`
+- Restrict the permissions of the `keyfile`, so only the user root has access to it
+- Add the `keyfile` to the data `LUKS` partition
+- Add an additional entry in `/etc/crypttab`, so the data `LUKS` partition gets automatically unlocked, when the system `LUKS` partition gets unlocked
 
-First, we need to create a keyfile:
+First, we need to create a `keyfile`:
 
 ```terminal
 root@rescue:/# dd if=/dev/urandom of=/root/keyfile bs=1024 count=4
@@ -1753,47 +1753,47 @@ root@rescue:/#
 Next, we set the appropriate permissions on this file:
 
 ```terminal
-root@rescue:/# chmod 0400 /root/keyfile 
+root@rescue:/# chmod 0400 /root/keyfile
 root@rescue:/#
 ```
 
-Now, we add the keyfile to the data LUKS partition.
-For this process you need to enter the password, which you used to create the LUKS (data) partition:
+Now, we add the `keyfile` to the data `LUKS` partition.
+For this process you need to enter the password, which you used to create the `LUKS` (data) partition:
 
 ```terminal
-root@rescue:/# cryptsetup luksAddKey /dev/sdb /root/keyfile 
-Enter any existing passphrase: 
+root@rescue:/# cryptsetup luksAddKey /dev/sdb /root/keyfile
+Enter any existing passphrase:
 root@rescue:/#
 ```
 
-We can verify, that adding of the keyfile worked properly using `cryptsetup luksDump` - here we can see, that two key slots are taken:
+We can verify, that adding of the `keyfile` worked properly using `cryptsetup luksDump` - here we can see, that two key slots are taken:
 
 ```terminal
 root@rescue:/# cryptsetup luksDump /dev/sdb
 LUKS header information for /dev/sdb
- 
+
 Version:        1
 Cipher name:    aes
 Cipher mode:    xts-plain64
 Hash spec:      sha1
 Payload offset: 4096
 MK bits:        512
-MK digest:      3d 0b c6 a2 5c d1 37 98 87 70 ee 22 48 48 ff 90 36 2a 5d 46 
-MK salt:        e9 cb 0d bc 5f 1f 1d 77 ff 6b 2f 75 c4 3d 52 4b 
-                85 e2 ec 95 47 5c 20 8c dd ad 97 60 08 5c c4 a3 
+MK digest:      3d 0b c6 a2 5c d1 37 98 87 70 ee 22 48 48 ff 90 36 2a 5d 46
+MK salt:        e9 cb 0d bc 5f 1f 1d 77 ff 6b 2f 75 c4 3d 52 4b
+                85 e2 ec 95 47 5c 20 8c dd ad 97 60 08 5c c4 a3
 MK iterations:  158375
 UUID:           4132d4a6-929e-4ab0-8bdd-ee43065b4b03
- 
+
 Key Slot 0: ENABLED
         Iterations:             633663
-        Salt:                   a1 55 d6 82 9e 9b b1 26 55 48 88 01 83 50 fa 8b 
-                                d2 7d cc 16 bd 25 75 b9 af 5f 70 ef ee a1 fa 4b 
+        Salt:                   a1 55 d6 82 9e 9b b1 26 55 48 88 01 83 50 fa 8b
+                                d2 7d cc 16 bd 25 75 b9 af 5f 70 ef ee a1 fa 4b
         Key material offset:    8
         AF stripes:             4000
 Key Slot 1: ENABLED
         Iterations:             1414363
-        Salt:                   a5 9f f6 6e bc f7 4d 8d 5b 3b a7 03 65 f1 90 34 
-                                59 07 51 31 58 de ee be a8 58 49 1f 4b 6f 51 a2 
+        Salt:                   a5 9f f6 6e bc f7 4d 8d 5b 3b a7 03 65 f1 90 34
+                                59 07 51 31 58 de ee be a8 58 49 1f 4b 6f 51 a2
         Key material offset:    512
         AF stripes:             4000
 Key Slot 2: DISABLED
@@ -1805,14 +1805,14 @@ Key Slot 7: DISABLED
 root@rescue:/#
 ```
 
-Finally we add the device `/dev/sdb` with its UUID (taken from `cryptsetup luksDump`) to `/etc/crypttab` with a reference to the keyfile:
+Finally we add the device `/dev/sdb` with its `UUID` (taken from `cryptsetup luksDump`) to `/etc/crypttab` with a reference to the `keyfile`:
 
 ```terminal
-root@rescue:/# echo 'crypted_data UUID=4132d4a6-929e-4ab0-8bdd-ee43065b4b03 /root/keyfile luks' >> /etc/crypttab 
-root@rescue:/# cat /etc/crypttab 
+root@rescue:/# echo 'crypted_data UUID=4132d4a6-929e-4ab0-8bdd-ee43065b4b03 /root/keyfile luks' >> /etc/crypttab
+root@rescue:/# cat /etc/crypttab
 crypted_system UUID=e6864adb-dd67-42a1-867c-6a241b4119b5 none luks
 crypted_data UUID=4132d4a6-929e-4ab0-8bdd-ee43065b4b03 /root/keyfile luks
-root@rescue:/# 
+root@rescue:/#
 ```
 
 ## Installing additional software
@@ -1871,7 +1871,7 @@ drwxr-xr-x 21 root root 4096 Aug 26 16:59 ..
 -rw-r--r--  1 root root  148 Aug 17  2015 .profile
 -rw-r--r--  1 root root   22 Aug 26 19:08 .vimrc
 -r--------  1 root root 4096 Aug 26 18:30 keyfile
-root@rescue:/# 
+root@rescue:/#
 ```
 
 ## Adding an additional user
@@ -1885,10 +1885,10 @@ Adding new group `steffen' (1000) ...
 Adding new user `steffen' (1000) with group `steffen' ...
 Creating home directory `/home/steffen' ...
 Copying files from `/etc/skel' ...
-root@rescue:/# 
+root@rescue:/#
 ```
 
-Adding the user to sudoers:
+Adding the user to `sudoers`:
 
 ```terminal
 root@rescue:/# usermod -aG sudo steffen
@@ -1907,8 +1907,8 @@ ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA313373bmlzdHA1MjEAAACFBADjklC2kev
 ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAF11m0mRdIjcwwrfz04t4O+YqngFbP0gP313373+vUADyOYkdhiimbJYN9ge1nVy3nMkMGMf5HNzD9AbO1ACjRyFkta0b2pNyu3kdKu6EQlJWgl25PzJQLjxhllinS+xf4rT5lcdOu3aSKDrG6lV5xXh/Cw/i84VR5NWFftHfRA== Key3
 EOF
 root@rescue:/# chown -R steffen:steffen /home/steffen/
-root@rescue:/# chmod 600 /home/steffen/.ssh/authorized_keys 
-root@rescue:/# 
+root@rescue:/# chmod 600 /home/steffen/.ssh/authorized_keys
+root@rescue:/#
 ```
 
 Of course, the SSH keys above have been modified :slightly_smiling_face:
@@ -1932,7 +1932,7 @@ Copying files from `/etc/skel' ...
 root@rescue:/#
 ```
 
-Adding the Ansible user to sudoers:
+Adding the Ansible user to `sudoers`:
 
 ```temrinal
 root@rescue:/# usermod -aG sudo remote-ansible
@@ -1949,11 +1949,11 @@ root@rescue:/# cat >  /home/remote-ansible/.ssh/authorized_keys << "EOF"
 ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj313373/ok5i5CSwUuK8y8Zn2URC/ex1cQBfVBANQlfhAe7P4eFK43IdSsnp3uEigsLOr9Uju9QvuniTNuIudkfonmeL91znWyP0KyCciOxZO2O7Mtf6V9GLaA== root@ansible.servers.local
 EOF
 root@rescue:/# chown -R remote-ansible:remote-ansible /home/remote-ansible/
-root@rescue:/# chmod 600 /home/remote-ansible/.ssh/authorized_keys 
-root@rescue:/# 
+root@rescue:/# chmod 600 /home/remote-ansible/.ssh/authorized_keys
+root@rescue:/#
 ```
 
-In order to allow `sudo` commands without entering a password the suoders file needs to be adjusted - specifically the `%sudo rule` (use `visudo`):
+In order to allow `sudo` commands without entering a password the `sudoers` file needs to be adjusted - specifically the `%sudo rule` (use `visudo`):
 
 ```plaintext
 # Allow members of group sudo to execute any command
@@ -1963,56 +1963,56 @@ In order to allow `sudo` commands without entering a password the suoders file n
 ## "Hardening" the system
 
 The system should be hardened - at least a bit. In the next few lines I'll show you how to do a **minimal** hardening.
-First, we want to harden the SSHd.
+First, we want to harden the `SSHd`.
 My configuration file (`/etc/ssh/sshd.conf`) looks like follows:
 
 ```terminal
-root@rescue:/# cat /etc/ssh/sshd_config 
+root@rescue:/# cat /etc/ssh/sshd_config
 #       $OpenBSD: sshd_config,v 1.100 2016/08/15 12:32:04 naddy Exp $
- 
+
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
- 
+
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
- 
+
 # The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
 # possible, but leave them commented.  Uncommented options override the
 # default value.
- 
+
 Port 1905
 #AddressFamily ipv4
 ListenAddress 176.9.18.15
- 
+
 HostKey /etc/ssh/ssh_host_ecdsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key
- 
+
 # Ciphers and keying
 RekeyLimit 64M
- 
+
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
- 
+
 # Authentication:
- 
+
 LoginGraceTime 1m
 PermitRootLogin no
 StrictModes yes
 MaxAuthTries 3
 MaxSessions 5
- 
+
 PubkeyAuthentication yes
 AuthorizedKeysFile      .ssh/authorized_keys
- 
+
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication no
 PermitEmptyPasswords no
- 
+
 # Change to yes to enable challenge-response passwords (beware issues with
 # some PAM modules and threads)
 ChallengeResponseAuthentication no
- 
+
 # Set this to 'yes' to enable PAM authentication, account processing,
 # and session processing. If this is enabled, PAM authentication will
 # be allowed through the ChallengeResponseAuthentication and
@@ -2023,7 +2023,7 @@ ChallengeResponseAuthentication no
 # PAM authentication, then enable this but set PasswordAuthentication
 # and ChallengeResponseAuthentication to 'no'.
 UsePAM yes
- 
+
 AllowAgentForwarding no
 AllowTcpForwarding no
 GatewayPorts no
@@ -2047,7 +2047,7 @@ PermitTunnel no
 ChrootDirectory none
 VersionAddendum none
 Banner /etc/issue.net
- 
+
 # override default of no subsystems
 Subsystem       sftp    /usr/lib/openssh/sftp-server
 root@rescue:/#
@@ -2058,7 +2058,7 @@ Installing `Fail2Ban` is best-practice with systems facing the internet directly
 ```terminal
 root@rescue:/# apt-get install -y fail2ban
 Reading package lists... Done
-Building dependency tree       
+Building dependency tree  
 Reading state information... Done
 The following additional packages will be installed:
   python3-pyinotify python3-systemd whois
@@ -2102,7 +2102,7 @@ For that simply create the file `/etc/fail2ban/jail.local` with the following co
 ```terminal
 root@rescue:/# cat /etc/fail2ban/jail.local
 [sshd]
- 
+
 port    = 1905
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
@@ -2111,25 +2111,25 @@ root@rescue:/#
 
 Please adjust the `port` directive according to your setup.
 
-## Preparing the remote unlock via SSH of the LUKS partition
+## Preparing the remote unlock via SSH of the `LUKS` partition
 
-In order to unlock the system's LUKS partition(s) via SSH using Dropbear, we need to do a few things. To be able to remotely unlock via SSH, we need to properly configure both
-Dropbear and GRUB for that.
+In order to unlock the system's `LUKS` partition(s) via SSH using `Dropbear`, we need to do a few things. To be able to remotely unlock via SSH, we need to properly configure both
+`Dropbear` and GRUB for that.
 
-### Configure Dropbear
+### Configure `Dropbear`
 
-First, we copy the public SSH key, we just added to the created user, to the `authorized_keys` file for Dropbear.
+First, we copy the public SSH key, we just added to the created user, to the `authorized_keys` file for `Dropbear`.
 
 ```terminal
 root@rescue:/# cp /home/steffen/.ssh/authorized_keys /etc/dropbear-initramfs/
 root@rescue:/#
 ```
 
-Next we configure Dropbear. We will be using the following settings, which can be read about at [linux.die.net](https://linux.die.net/man/8/dropbear):
+Next we configure `Dropbear`. We will be using the following settings, which can be read about at [linux.die.net](https://linux.die.net/man/8/dropbear):
 
 | option     | explanation                                                        |
 | :--------- | : ---------------------------------------------------------------- |
-| -p 605     | Dropbear will listen on port 605                                   |
+| -p 605     | `Dropbear` will listen on port 605                                 |
 | -s         | Disable password logins                                            |
 | -j         | Disable local port forwarding                                      |
 | -k         | Disable remote port forwarding                                     |
@@ -2144,28 +2144,30 @@ sed 's/#DROPBEAR_OPTIONS=/DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"/' -i /etc/dro
 Verify, whether the settings where set correctly:
 
 ```plaintext
-grep DROPBEAR_OPTIONS /etc/dropbear-initramfs/config 
+grep DROPBEAR_OPTIONS /etc/dropbear-initramfs/config
 ```
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary>Sample output:</summary>
-```terminal
+<summary>Example output:</summary>
+
+{% highlight terminal %}
 root@rescue:/# sed 's/#DROPBEAR_OPTIONS=/DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"/' -i /etc/dropbear-initramfs/config
 root@rescue:/# grep DROPBEAR_OPTIONS /etc/dropbear-initramfs/config
 DROPBEAR_OPTIONS="-p 605 -s -j -k -I 60"
 root@rescue:/#
-```
+{% endhighlight %}
+
 </details>
 <!-- markdownlint-enable MD033 -->
 
 ### Configure GRUB
 
-Configuring GRUB for remote unlocking is as easy as configuring Dropbear.
+Configuring GRUB for remote unlocking is as easy as configuring `Dropbear`.
 
 However, we need to use the "old style-naming" of the ethernet devices (e.g. `eth0`), so we have to use both `net.ifnames=0` and `biosdevname=0` in the
 `GRUB_CMDLINE_LINUX_DEFAULT`, which can be found in `/etc/default/grub`.
-Additionally we need to enter the IP address, the gateway, the netmask and the ethernet device to use for the remote connection.
+Additionally we need to enter the IP address, the gateway, the `netmask` and the ethernet device to use for the remote connection.
 
 Following is the format of the IP parameter (a detailed explanation can be looked up at [kernel.org](https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt)):
 
@@ -2181,14 +2183,14 @@ Following an example configuration:
 GRUB_CMDLINE_LINUX_DEFAULT="net.ifnames=0 biosdevname=0 ip=159.69.68.69::159.69.68.65:255.255.255.192::eth0:none"
 ```
 
-### Adding drivers to initramfs
+### Adding drivers to `initramfs`
 
-To be able to unlock the system LUKS partition via SSH, an IP address on any ethernet device (in our case `eth0`) is required, obviously. For that reason, it is necessary to
+To be able to unlock the system `LUKS` partition via SSH, an IP address on any ethernet device (in our case `eth0`) is required, obviously. For that reason, it is necessary to
 provide the correct drivers to the `initramfs image`.
 You can find out which driver your ethernet device uses with the following command:
 
 ```terminal
-root@rescue:/# grep DRIVER /sys/class/net/eth0/device/uevent 
+root@rescue:/# grep DRIVER /sys/class/net/eth0/device/uevent
 DRIVER=e1000e
 root@rescue:/#
 ```
@@ -2197,7 +2199,7 @@ Now we need to tell `initramfs-tools` to include the above driver in our `initra
 
 ```terminal
 root@rescue:/# echo "e1000e" >> /etc/initramfs-tools/modules
-root@rescue:/# cat /etc/initramfs-tools/modules 
+root@rescue:/# cat /etc/initramfs-tools/modules
 # List of modules that you want to include in your initramfs.
 # They will be loaded at boot time in the order below.
 #
@@ -2210,12 +2212,12 @@ root@rescue:/# cat /etc/initramfs-tools/modules
 # raid1
 # sd_mod
 e1000e
-root@rescue:/# 
+root@rescue:/#
 ```
 
-### Generating new initramfs and updating GRUB
+### Generating new `initramfs` and updating GRUB
 
-Finally we are able to generate a new initramfs and update GRUB. Updating both initramfs and GRUB is necessary as we changed the configuration and/or added new drivers to
+Finally we are able to generate a new `initramfs` and update GRUB. Updating both `initramfs` and GRUB is necessary as we changed the configuration and/or added new drivers to
 the `initramfs image`:
 
 ```terminal
@@ -2229,11 +2231,11 @@ done
 root@rescue:/boot#
 ```
 
-Now simply logout of the chroot and reboot the system.
-You should be able to reach the system on the port you have configured in the Dropbear section, via SSH. Since Dropbear is not aware of any other users than root, you need to
+Now simply logout of the `chroot` and reboot the system.
+You should be able to reach the system on the port you have configured in the `Dropbear` section, via SSH. Since `Dropbear` is not aware of any other users than root, you need to
 use the user `root` to login.
 
-If you followed my configuration, it's port 605 via SSH. There you'll have to run `cryptroot-unlock` and enter the password for the system LUKS partition.
+If you followed my configuration, it's port 605 via SSH. There you'll have to run `cryptroot-unlock` and enter the password for the system `LUKS` partition.
 
 Congratulations, you managed to manually install a Debian Bullseye :sunglasses:
 
@@ -2245,13 +2247,13 @@ Hetzner rescue system).
 First login to the live system as root.
 In order to re-mount the system as done during the installation, you can use the script from the section [Mounting the partitions](#Mounting the partitions) or do it manually.
 In this case I will do it manually, just to show the general approach behind this procedure.
-First, we need to unlock the system's LUKS partition and - if you have it - the data LUKS partition:
+First, we need to unlock the system's `LUKS` partition and - if you have it - the data `LUKS` partition:
 
 ```terminal
 root@rescue ~ # cryptsetup luksOpen /dev/sda3 crypted_system
-Enter passphrase for /dev/sda3: 
+Enter passphrase for /dev/sda3:
 root@rescue ~ # cryptsetup luksOpen /dev/sdb crypted_data
-Enter passphrase for /dev/sdb: 
+Enter passphrase for /dev/sdb:
 root@rescue ~ # ls -la /dev/mapper/
 total 0
 drwxr-xr-x  2 root root     100 Aug 27 16:29 .
@@ -2329,7 +2331,7 @@ fusectl on /sys/fs/fuse/connections type fusectl (rw,relatime)
 root@rescue ~ #
 ```
 
-Before we can chroot into the environment, we need to mount the necessary system partitions:
+Before we can `chroot` into the environment, we need to mount the necessary system partitions:
 
 ```terminal
 root@rescue ~ # mount -o bind /dev/ /mnt/dev/
@@ -2342,7 +2344,7 @@ root@rescue:/# pwd
 root@rescue:/#
 ```
 
-Now you can change, whatever you need to, unmount everything and reboot the system.
+Now you can change, whatever you need to, `umount` everything and reboot the system.
 
 Don't forget to close everything properly:
 
@@ -2351,5 +2353,13 @@ root@rescue ~ # lvchange -a n vg_system
 root@rescue ~ # lvchange -a n vg_data
 root@rescue ~ # cryptsetup luksClose crypted_system
 root@rescue ~ # cryptsetup luksClose crypted_data
-root@rescue ~ # 
+root@rescue ~ #
 ```
+
+## Change log
+
+### 2024-03-11
+
+- Adding change log
+- `markdownlint` fixes
+- correcting spelling errors
