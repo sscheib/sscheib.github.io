@@ -24,7 +24,7 @@ repos:
       - id: 'pyspelling'
         name: 'pyspelling'
         language: 'python'
-        entry: 'pyspelling --name markdown --source'
+        entry: 'pyspelling -v --name markdown --source'
         files: '.+\.md$'
         pass_filenames: true
         verbose: true
