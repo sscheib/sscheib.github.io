@@ -1,10 +1,18 @@
 ---
 default: true
 
+# MD004/Unordered list style
+MD004:
+  style: 'dash'
+
 # MD013/line-length - Line length
 MD013:
   line_length: 180
   code_blocks: false
+
+# MD029/Ordered list item prefix
+MD029:
+  style: 'one'
 
 # MD046/code-block-style - Code block style
 # This will ensure that code block format is consistent across all markdown files

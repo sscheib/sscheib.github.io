@@ -24,8 +24,8 @@ So I decided to write this small blog post to provide a little bit of guidance. 
 What you'll need to follow along is the following:
 
 1. A GitHub account. With the GitHub account you'll be able to login to Ansible Galaxy. To my knowledge there is no other way (anymore) to register or log into Ansible Galaxy
-2. A role you'd like to publish. The role needs to be stored in a git repository that is publicly accessible on GitHub. Anything other than GitHub does not work (to my knowledge)
-3. An Ansible Galaxy API token. You'll find it by visiting [Ansible Galaxy](https://galaxy.ansible.com/), then login via GitHub, click on `Collections` on the left hand side,
+1. A role you'd like to publish. The role needs to be stored in a git repository that is publicly accessible on GitHub. Anything other than GitHub does not work (to my knowledge)
+1. An Ansible Galaxy API token. You'll find it by visiting [Ansible Galaxy](https://galaxy.ansible.com/), then login via GitHub, click on `Collections` on the left hand side,
    followed by `API token`. Finally, click on `Load token`
 
    :warning: Be aware that loading a new token, invalidates your old token (if you had a token previously)
@@ -359,6 +359,10 @@ Until next time,
 Steffen :sunglasses:
 
 ## Change log
+
+### 2024-03-10
+
+- `markdownlint` fixes
 
 ### 2024-02-02
 

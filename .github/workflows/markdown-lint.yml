@@ -1,19 +1,20 @@
 ---
 name: 'markdownlint'
-on:
+on:  # yamllint disable-line rule:truthy
   pull_request:
     branches: ['main']
   workflow_dispatch: {}
 
 jobs:
   build:
-    name: 'markdownlint-cli'
+    name: 'markdownlint'
     runs-on: 'ubuntu-latest'
     steps:
-      - name: 'markdownlint-cli'
+      - uses: 'actions/checkout@master'
+      - name: 'markdownlint'
         uses: 'nosborn/github-action-markdown-cli@v3.3.0'
         with:
-          files: './_posts/'
+          files: '_posts/*.md'
           config_file: '.markdownlint.yml'
           dot: false
 ...

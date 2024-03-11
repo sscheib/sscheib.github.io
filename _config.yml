@@ -1,10 +1,11 @@
+---
 title: "Steffen's random thoughts"
 description: >-
   This my personal blog, where I post about things that I do and find interesting.
   All posts and thoughts on this blog are solely my opinion and are not related to my employer.
 github_username:  'sscheib'
 github: [
-  metadata
+  'metadata'
 ]
 repository: 'sscheib/sscheib.github.io'
 
@@ -19,7 +20,7 @@ plugins:
   - 'premonition'
 
 last-modified-at:
-    date-format: '%b %-d, %Y'
+  date-format: '%b %-d, %Y'
 
 header_pages:
   - 'index.md'
@@ -28,20 +29,14 @@ header_pages:
 minima:
   skin: 'dark'
   social_links:
-    - {
-        platform: 'github',
-        user_url: 'https://github.com/sscheib'
-      }
+    - { platform: 'github', user_url: 'https://github.com/sscheib' }
 
-    - {
-        linkedin: 'linkedin',
-        user_url: 'https://linkedin.com/in/sscheib'
-      }
+    - { linkedin: 'linkedin', user_url: 'https://linkedin.com/in/sscheib' }
 
 author: 'Steffen Scheib'
-
 jekyll-spaceship:
   mermaid-processor:
     mode: 'pre-fetch'
     config:
       theme: 'base'
+...

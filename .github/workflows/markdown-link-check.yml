@@ -1,6 +1,6 @@
 ---
 name: 'markdown link check'
-on:
+on:  # yamllint disable-line rule:truthy
   pull_request:
     branches: ['main']
   workflow_dispatch: {}
@@ -14,4 +14,5 @@ jobs:
       - uses: 'gaurav-nelson/github-action-markdown-link-check@v1'
         with:
           folder-path: '_posts/'
+          config-file: '.markdown-link-check.json'
 ...
