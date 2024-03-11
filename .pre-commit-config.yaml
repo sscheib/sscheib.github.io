@@ -24,7 +24,7 @@ repos:
       - id: 'pyspelling'
         name: 'pyspelling'
         language: 'python'
-        entry: 'pyspelling -c .github/spellcheck/spellcheck.yml -v --source'
+        entry: 'pyspelling --name markdown --source'
         files: '.+\.md$'
         pass_filenames: true
         verbose: true
