@@ -48,19 +48,19 @@ object, that depends or includes one or more other objects to serve a specific n
 
 Let's start with an easy example:
 
-We all know RPM repositories; These are what allows us to install software on RPM based distributions. We take it as granted that we can install anything from a Red Hat
+We all know `RPM` repositories; These are what allows us to install software on `RPM` based distributions. We take it as granted that we can install anything from a Red Hat
 repository once we installed a RHEL system. While we install any software from a Red Hat repository it is verified whether the package we are about to install is exactly, what
 Red Hat provided in its repository and has not been altered on the way to our systems.
 
-This is done with GPG verification. Every package in a Red Hat repository is signed with a GPG key that ensures the integrity of the package. To be able to verify the integrity
-of the package, we need to have access to the GPG public key, to verify that a package was signed with the matching GPG private key. Red Hat installs these keys by default
-into our systems.
+This is done with `GPG` verification. Every package in a Red Hat repository is signed with a `GPG` key that ensures the integrity of the package. To be able to verify the
+integrity of the package, we need to have access to the `GPG` public key, to verify that a package was signed with the matching `GPG` private key. Red Hat installs these keys
+by default into our systems.
 
-But what if you want to provide a non-Red Hat repository, such as for instance [Zabbix](https://www.zabbix.com)? You could either go with not providing any GPG key
-(**don't do that!**) or provide the GPG key along side the repository.
+But what if you want to provide a non-Red Hat repository, such as for instance [Zabbix](https://www.zabbix.com)? You could either go with not providing any `GPG` key
+(**don't do that!**) or provide the `GPG` key along side the repository.
 
-Sometimes, GPG keys are reused by software vendors to sign not only one specific repository, but multiple repositories. For instance a different software version might be
-distributed in a different repository, but would still be signed with the same GPG key.
+Sometimes, `GPG` keys are reused by software vendors to sign not only one specific repository, but multiple repositories. For instance a different software version might be
+distributed in a different repository, but would still be signed with the same `GPG` key.
 
 To solve the above example, Satellite provides us with three objects:
 
@@ -69,7 +69,7 @@ To solve the above example, Satellite provides us with three objects:
 - Content Credential
 
 A Product contains one or more Repositories. Content Credentials can be assigned either to a Product (so all Repositories in that Product will utilize that Content Credential)
-or to a specific Repository. A Content Credential itself can be a GPG key (which this example is about) or a SSL certificate. Products can be assigned to a Sync Plan.
+or to a specific Repository. A Content Credential itself can be a `GPG` key (which this example is about) or a SSL certificate. Products can be assigned to a Sync Plan.
 Repositories are used in Activation Keys and can be configured using Content Overrides.
 
 I hope you see where I am going here: It quickly became **complex** with this simple example. The important lesson to learn is: **Satellite objects contain other objects,
@@ -115,22 +115,22 @@ To give you a **rough** idea which questions need to be asked, consider the foll
   which should use Standard subscriptions?
 - Do you want to impose any limitations on how many systems an internal customer can deploy? How are subscriptions payed for (does the Linux team buy all subscriptions and
   distribute all costs to the internal customer or has the internal customer to buy the subscriptions themselves)?
-- Do we need to support bare metal deployments? If so, is the hardware standardized? Bonding? VLANs?
+- Do we need to support bare metal deployments? If so, is the hardware standardized? `Bonding`? `VLANs`?
 - What is the preferred deployment type? Bare metal, virtual machine?
-- Any special hardware that needs special drivers (bare metal), such as Infiniband or even more specialized hardware?
-- What about DNS: Has every system to be registered to an existing LDAP server (such as Microsoft Active Directory) or can a cross-forest-trust with an existing LDAP
+- Any special hardware that needs special drivers (bare metal), such as `Infiniband` or even more specialized hardware?
+- What about `DNS`: Has every system to be registered to an existing `LDAP` server (such as Microsoft Active Directory) or can a cross-forest-trust with an existing `LDAP`
   deployment using for instance Red Hat Identity Management be considered?
-- Are there separate sub nets for Linux systems? (important for reverse DNS when creating cross-forest-trusts with IdMs)
+- Are there separate sub nets for Linux systems? (important for reverse `DNS` when creating cross-forest-trusts with `IdMs`)
 - Do we need to be compliant to regulations? Which ones?
-- Which hardening is applicable? DISA STIG? CIS? NIST? Something different?
+- Which hardening is applicable? `DISA STIG`? `CIS`? `NIST`? Something different?
 - How many Lifecycle Environments/stages should we offer? (such as, e.g. `dev`, `qa`, `prod`)
-- How do we install servers? PXE, Discovery, Gold Image, etc.?
-- Should cloud instances be registered to the Satellite? (Such as instances on Amazon Web Services (AWS), Microsoft Azure, Google Cloud Platform (GCP), etc.).
+- How do we install servers? `PXE`, Discovery, Gold Image, etc.?
+- Should cloud instances be registered to the Satellite? (Such as instances on Amazon Web Services (AWS), Microsoft Azure, Google Cloud Platform (`GCP`), etc.).
 - Do we want to install highly customized systems or deploy a default and configure it after the installation?
 - What tool do we use to configure the systems? Satellite? Ansible Automation Platform? Puppet? Salt? Chef?
 - Do we need to enforce configuration every X minutes/hours/days/weeks?
 - What is our patch cycle? Every 2/4/6/* weeks?
-- Do we need to do emergency patching? (**quick** patching in case a new critical CVE gets discovered)
+- Do we need to do emergency patching? (**quick** patching in case a new critical `CVE` gets discovered)
 - ...
 
 This list can go on and on and on. It is a **very complex discussion** that will take many, many hours and is ***very important*** to get the basics right when starting of
@@ -139,28 +139,28 @@ path forward should be well defined.
 
 I have the following requirements for my SOE:
 
-- No bare metal, only VMs
+- No bare metal, only virtual machines
 - My hypervisor will be [Proxmox](https://www.proxmox.com)
 - Provide the current supported operating systems by Red Hat. At the time of writing these are (without ELS): RHEL 7, RHEL 8 and RHEL 9
 - Have the possibility to selectively provide EUS or ELS versions
-- Install systems using PXE and Kickstart (no golden image)
+- Install systems using `PXE` and Kickstart (no golden image)
 - Configure the systems after the initial installation
-- Utilize an external DHCP server
-- Utilize an external DNS server
-- Provide two stages: dev and prod
+- Utilize an external `DHCP` server
+- Utilize an external `DNS` server
+- Provide two stages: `dev` and `prod`
 - Automate the system configuration after the initial deployment using Ansible Automation Platform
 - Patch every 4 weeks and have the possibility to roll back two patch cycles
 - Be able to do emergency patching
-- Be able to deploy [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) compliant systems
-- Ensure compliance with OpenSCAP with the benchmarks of [DISA STIG](https://public.cyber.mil/stigs) and [CIS](https://www.cisecurity.org/cis-benchmarks)
+- Be able to deploy [`FIPS`](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) compliant systems
+- Ensure compliance with OpenSCAP with the benchmarks of [`DISA STIG`](https://public.cyber.mil/stigs) and [`CIS`](https://www.cisecurity.org/cis-benchmarks)
 - Be able to selectively update repositories, but keep others untouched while publishing new content to Linux clients
 
 Long term goals will be:
 
-- Leverage Red Hat Identity Management (IdM) to allow LDAP users to connect. That is in addition to local users
-- Provide the ability to selectively encrypt file systems with [LUKS](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) utilizing
-  [Network Bound Disk Encryption (NBDE)](https://access.redhat.com/articles/6987053) based on a [Tang](https://github.com/latchset/tang) server with
-  [LUKS Clevis Bind](https://www.mankier.com/1/clevis-luks-bind)
+- Leverage Red Hat Identity Management (`IdM`) to allow `LDAP` users to connect. That is in addition to local users
+- Provide the ability to selectively encrypt file systems with [`LUKS`](https://en.wikipedia.org/wiki/Linux_Unified_Key_Setup) utilizing
+  [`Network Bound Disk Encryption (NBDE)`](https://access.redhat.com/articles/6987053) based on a [`Tang`](https://github.com/latchset/tang) server with
+  [`LUKS Clevis Bind`](https://www.mankier.com/1/clevis-luks-bind)
 
 ## Defining a flexible SOE in Satellite
 
@@ -173,7 +173,7 @@ Let's start off with a naming concept.
 
 Having a concept how objects in Satellite are named not only helps to quickly identify the objects, but also keeps everything maintainable in the long run. Imagine a repository
 called `my_content_v23`. While this repository makes sense to you in that very moment you define it, nobody else will be able to tell what exactly the repository contains,
-for which operating system it is suitable and whether it contains custom built RPMs or RPMs from a software vendor; Or if it is a repository in the first place.
+for which operating system it is suitable and whether it contains custom built `RPMs` or `RPMs` from a software vendor; Or if it is a repository in the first place.
 
 A good repository name might look something like this: `repo-zabbix-zabbix-rhel-8`
 
@@ -205,7 +205,7 @@ One last note: You'll see me use the term *service* throughout the table. I'll e
 | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
 | Activation Key                      | `ak-<service_name>-<operating_system_name>-<operating_system_version>-<lifecycle_environment_abbreviation>-<subscription_type>`        |
 | Bookmark                            | `bm-<descriptive_name>`                                                                                                                |
-| Content Credential (GPG)            | `cc-gpg-<vendor>-<product_or_repository_name>-<operating_system_name>-<operating_system_version>`                                      |
+| Content Credential (`GPG`)          | `cc-gpg-<vendor>-<product_or_repository_name>-<operating_system_name>-<operating_system_version>`                                      |
 | Content Credential (SSL Certificate)| `cc-ssl-<vendor>-<product_or_repository_name>`                                                                                         |
 | Content View                        | `cv-<vendor_or_source>-<operating_system_name>-<operating_system_version>`                                                             |
 | Composite Content View              | `ccv-<service_name>-<operating_system_name>-<operating_system_version>`                                                                |
@@ -226,7 +226,7 @@ One last note: You'll see me use the term *service* throughout the table. I'll e
 | Product                             | `prd-<vendor>-<product>[-<operating_system_name>-<operating_system_version]`                                                           |
 | Provisioning Template               | `pvt-<provisioning_template_type>[-descriptive_name]`                                                                                  |
 | Realm                               | `<ZONE_NAME>.<STAGE>`                                                                                                                  |
-| Repository (RPM)                    | `repo-<vendor_or_source>-<package_versions_or_latest>-<operating_system_name>-<operating_system_version>-<architecture>`               |
+| Repository (`RPM`)                  | `repo-<vendor_or_source>-<package_versions_or_latest>-<operating_system_name>-<operating_system_version>-<architecture>`               |
 | Snippet                             | `snt-<descriptive_name>`                                                                                                               |
 | Subnet                              | `sn-<stage>-<zone>-<network_address>[-<network_usage_type>]`                                                                           |
 | Sync Plan                           | `sync-<internal_name>[-<descriptive_name]`                                                                                             |
@@ -259,7 +259,7 @@ Examples, exceptions, and additional notes to the naming concept of the objects:
 | ^^              | ^^                                                      | ^^ - They are definitively not required, but are quite handy at times for repetitive tasks      |
 | Content         | - `gpg-fedora-epel-el-8`                                | - None                                                                                          |
 | ^^ Credential   | ^^ - `gpg-zabbix-zabbix-rhel-8`                         | ^^                                                                                              |
-| ^^ (GPG)        | ^^ - `gpg-some_company-yet_another_product-rhel-7_eus`  | ^^                                                                                              |
+| ^^ (`GPG`)      | ^^ - `gpg-some_company-yet_another_product-rhel-7_eus`  | ^^                                                                                              |
 | Content View    | - `cv-zabbix-zabbix-rhel-8`                             | - `RHCDN` stands for Red Hat Content Delivery Network                                           |
 | ^^              | ^^ - `cv-rhcdn-base-rhel-8`                             | ^^ - All repositories by Red Hat have `rhcdn` as `vendor`                                       |
 | ^^              | ^^ - `cv-rhcdn-base-rhel-8_6`                           | ^^ - All base operating content views are named `base`                                          |
@@ -320,8 +320,8 @@ Examples, exceptions, and additional notes to the naming concept of the objects:
 | ^^              | ^^ - `snt-luks_encryption`                              | ^^                                                                                              |
 | ^^              | ^^ - `snt-configure_time_synchronization`               | ^^                                                                                              |
 | Subnet          | - `sn-dev-default-172_31_12_0`                          | - In my use case there are only `/24` (`255.255.255.0`) subnets                                 |
-| ^^              | ^^ - `sn-dev-default-172_31_12_0-satellite`             | ^^ - For use cases where different network sizes are used, it makes sense to add the netmask    |
-| ^^              | ^^ - `sn-dev-secure-172_31_100_0-frontend`              | ^^ (`255.255.255.0`) or the network suffix (e.g. `24`) into the name                            |
+| ^^              | ^^ - `sn-dev-default-172_31_12_0-satellite`             | ^^ - For use cases where different network sizes are used, it makes sense to add the network    |
+| ^^              | ^^ - `sn-dev-secure-172_31_100_0-frontend`              | ^^ mask (`255.255.255.0`) or the network suffix (e.g. `24`) into the name                       |
 | ^^              | ^^ - `sn-prod-secure-172_31_200_0-custom_name`          | ^^ - The optional `[network_usage_type]` at the end (e.g. `satellite` or `frontend` is useful   |
 | ^^              | ^^                                                      | ^^ in certain circumstances                                                                     |
 | ^^              | ^^                                                      | ^^ - If you have a Capsule that speaks directly to the Satellite, it will be located in a       |
@@ -364,24 +364,24 @@ this:
 Okay, so what about domains for our Linux servers? Well, there are three (actually two) options:
 
 1. Keep using Microsoft AD and join the hosts to the AD using `adcli`
-1. Introduce a new component to your infrastructure: [Red Hat Identity Management (IdM)](https://access.redhat.com/products/identity-management/)
+1. Introduce a new component to your infrastructure: [Red Hat Identity Management (`IdM`)](https://access.redhat.com/products/identity-management/)
    and implement a [cross-forest trust](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/planning_identity_management/planning-a-cross-forest-trust-between-idm-and-ad_planning-identity-management)
-   between AD and IdM
+   between `AD` and `IdM`
 1. This is not really an option in my opinion, but, of course, you could make use of local users. In a very small environment this might be feasible, but for every environment
    that has a few more than 10 or so users, it just gets unmanageable
 
-There is no right or wrong in choosing either or the other (other than as already mentioned possibly option 3). For the sake of this example, I'd like to use IdM because it
-integrates nicely with Satellite. I know, that this is not possible everywhere, but since this is an imaginary scenario, let's assume it would be possible to introduce IdM.
+There is no right or wrong in choosing either or the other (other than as already mentioned possibly option 3). For the sake of this example, I'd like to use `IdM` because it
+integrates nicely with Satellite. I know, that this is not possible everywhere, but since this is an imaginary scenario, let's assume it would be possible to introduce `IdM`.
 
 Just a quick note on integrating Linux hosts directly into AD: Integrating the hosts into AD would in almost all cases make most sense to do during Kickstart provisioning
 using `adcli`.
 
-Back to IdM; With a cross-forest trust we should think about creating additional sub nets and subdomains specifically for Linux host. At first glance, this might sound like
-an overkill, but if you think about it: If we have two different DNS servers (AD + IdM), who is responsible for which domains and subnets? Right, you really *don't* want to
-split subnets in a way that half of a subnet is managed by AD and the other one by IdM. If we think further, reverse DNS entries will be a real challenge if we don't have
-dedicated subnets and domains for Linux.
+Back to `IdM`; With a cross-forest trust we should think about creating additional sub nets and subdomains specifically for Linux host. At first glance, this might sound like
+an overkill, but if you think about it: If we have two different `DNS` servers (`AD` + `IdM`), who is responsible for which domains and subnets? Right, you really *don't*
+want to split subnets in a way that half of a subnet is managed by AD and the other one by `IdM`. If we think further, `reverse DNS entries` will be a real challenge if we
+don't have dedicated subnets and domains for Linux.
 
-Say, we would create additional domains, that would be managed by IdM. That could look for instance like this:
+Say, we would create additional domains, that would be managed by `IdM`. That could look for instance like this:
 
 | Stage  | Domain                   |
 | :----- | :----------------------- |
@@ -389,7 +389,7 @@ Say, we would create additional domains, that would be managed by IdM. That coul
 | `test` | `lnx.qa.example.com`     |
 | `prod` | `lnx.prod.example.com`   |
 
-An IdM can only - to my knowledge - provide *one* realm. Exactly one, not more. This would mean that we would need three IdMs for the three domains we have:
+An `IdM` can only - to my knowledge - provide *one* realm. Exactly one, not more. This would mean that we would need three `IdMs` for the three domains we have:
 
 | Domain                   | Realm                    |
 | :----------------------- | :----------------------- |
@@ -397,14 +397,14 @@ An IdM can only - to my knowledge - provide *one* realm. Exactly one, not more. 
 | `lnx.qa.example.com`     | `LNX.QA.EXAMPLE.COM`     |
 | `lnx.prod.example.com`   | `LNX.PROD.EXAMPLE.COM`   |
 
-Each of these IdMs would form a cross-forest trust with its counterpart AD.
+Each of these `IdMs` would form a cross-forest trust with its counterpart AD.
 
-:warning: There is a drawback to using IdMs and integrating them with Satellite.
+:warning: There is a drawback to using `IdMs` and integrating them with Satellite.
 
-Satellite Capsules and IdMs have a 1 to 1 relationship. You can only integrate a single Capsule with a single IdM (or really the realm). Since an IdM can only provide *one*
-realm, and a Capsule can only be configured to use *one* realm, the relationship is 1 IdM to 1 Capsule.
+Satellite Capsules and `IdMs` have a 1 to 1 relationship. You can only integrate a single Capsule with a single `IdM` (or really the realm). Since an `IdM` can only
+provide *one* realm, and a Capsule can only be configured to use *one* realm, the relationship is 1 `IdM` to 1 Capsule.
 
-The Satellite internal Capsule could for instance be integrated with one realm; That is useful for a setup where you really only have one IdM. In this example, our best
+The Satellite internal Capsule could for instance be integrated with one realm; That is useful for a setup where you really only have one `IdM`. In this example, our best
 bet would be to make use of Capsules. Each per stage and zone. Yes, that sounds like much, but it will, again, provide a high degree of flexibility.
 
 Next, we need to talk about locations. In this example, we can create at least three locations:
@@ -427,7 +427,7 @@ multiple zones. These could be represented for instance like so:
 | `prod`                   | `trusted`                | `loc-prod\loc-prod-trusted`  |
 | `prod`                   | `dmz`                    | `loc-prod\loc-prod-dmz`      |
 
-Of course, you can nest or, rather separate, similarly the Subnets, Domains and as well the IdMs. This, of course, depends very much on your specific needs.
+Of course, you can nest or, rather separate, similarly the Subnets, Domains and as well the `IdMs`. This, of course, depends very much on your specific needs.
 
 Lastly, we need to talk about Subnets. These, again, highly depend on your very specific use case. In my environment, this is obviously pretty easy. I don't have any zones
 inside a stage, they are all the same. Let's continue using the example.
@@ -446,9 +446,9 @@ in this fictional scenario all networks would be `/24` networks. This makes the 
 
 Do you recall the naming concept of the Subnets? It is `sn-<stage>-<zone>-<network_address>[-<network_usage_type>]`.
 
-So what's actually up with the `[-network_usage_type]` at the end? Well, sometimes, there are networks that fulfill a special function. Such as admin networks, frontend
-networks and backend networks. To denote these Subnets as well, you could define and add abbreviations of those functions to each Subnet with a special function. For
-instance `sn-dev-dmz-172_31_2_0` might be a frontend network, so it would become `sn-dev-dmz-172_31_2_0-fe` (`fe` = FrontEnd).
+So what's actually up with the `[-network_usage_type]` at the end? Well, sometimes, there are networks that fulfill a special function. Such as admin networks, `frontend`
+networks and `backend` networks. To denote these Subnets as well, you could define and add abbreviations of those functions to each Subnet with a special function. For
+instance `sn-dev-dmz-172_31_2_0` might be a `frontend` network, so it would become `sn-dev-dmz-172_31_2_0-fe` (`fe` = `FrontEnd`).
 
 There is also a special 'type' of Subnets (in terms of configuration), which I call *Satellite Subnets*. These *Satellite Subnets* denote Subnets especially for Capsules, and
 Capsules only. The reason behind this is, that Subnets have certain attributes you can set, such as:
@@ -483,15 +483,15 @@ Easy, right? :blush:
 
 Well, if we think about it, couldn't it be that there are in fact services in `dev` and `qa` which are actually `prod`? :thinking:
 
-What about, for instance, the IdM servers? If you think about it, they *are* actually productive systems; If the `dev` and `qa` IdMs go down, nobody can log into a server in
+What about, for instance, the `IdM` servers? If you think about it, they *are* actually productive systems; If the `dev` and `qa` `IdMs` go down, nobody can log into a server in
 neither `dev` nor `qa`. There are certain ways how this could be tackled.
 
-You can create a different Lifecycle Environment Path for only those IdMs (and other production services that are not actually in `prod`) and treat all of the Lifecycle
+You can create a different Lifecycle Environment Path for only those `IdMs` (and other production services that are not actually in `prod`) and treat all of the Lifecycle
 Environments in that path as **production**.
 
 So, it might look something like this: `lce-essential_services-dev` -> `lce-essential_services-qa` -> `lce-essential_services-prod`
 
-But now, we miss the Lifecycle Environments where the updates of the IdMs or changes of the application can be tested. We could introduce two more Lifecycle Environments
+But now, we miss the Lifecycle Environments where the updates of the `IdMs` or changes of the application can be tested. We could introduce two more Lifecycle Environments
 to the mix:
 
 `lce-essential_services-lab` -> `lce_essetial_services-preprod` -> `lce-essential_services-dev` -> `lce-essential_services-qa` -> `lce-essential_services-prod`
@@ -505,7 +505,7 @@ and go and suddenly the list or documentation that was made with good intention,
 
 The third way I can think of, would be to place those systems actually in `prod` - where they should belong. That's certainly the easiest way of doing things, but there is a
 catch. If you have physically separated your stages, this certainly won't be taken well by your security department, as you would punch a lot of holes into the firewalls to
-ensure all servers can reach the IdM that is responsible for `dev` that is actually located in `prod`.
+ensure all servers can reach the `IdM` that is responsible for `dev` that is actually located in `prod`.
 
 Further, you lose the staging capabilities the Lifecycle Environments provide, as all servers would have the very same Lifecycle Environment: `prod`.
 
@@ -525,32 +525,32 @@ Let me try to brake it down into a few sentences with an example.
 A typical use case of an internal customers of yours might be:
 
 "*Hey, we are team [insert_name] and we want to deploy and operate [insert_application]. For this task we need to have [insert_number_of_hosts] with
-[insert_operating_system_and_version]. Additionally, we need the RPM repositories of the software vendor to be available for installation on these servers.*"
+[insert_operating_system_and_version]. Additionally, we need the `RPM` repositories of the software vendor to be available for installation on these servers.*"
 
 The above example would be what I refer to as a *service*.
 
 All of the servers this customer wants to be installed refer to the very same 'function profile'. While, technically, these servers can differ, they all belong to the same
 group of people and serve the same purpose: provide a specific *service*.
 
-You could, of course, argue that this service contains a database server and three webservers as well as a loadbalancer and thus, they don't have the same 'function profile'.
+You could, of course, argue that this service contains a database server and three web servers as well as a load-balancer and thus, they don't have the same 'function profile'.
 Yes, that is true, but that differentiation will be done by the customer, not by the operator of the Satellite. For the operator it is the very same function profile, since
 all these servers serve the same shared purpose: provide a specific *service*.
 
 Allow me to explain the reasoning behind this:
 
-While a logical grouping of all webservers and a logical grouping of all database servers seems like a good idea in theory, in practice it isn't. That is of course, unless
+While a logical grouping of all web servers and a logical grouping of all database servers seems like a good idea in theory, in practice it isn't. That is of course, unless
 they all belong to the same service.
 
-Let's assume for a minute you have two customers that request the same set of servers (let's assume they would be webservers). If you group them together, they will all
-receive the same content (RPM-wise), right? But what if one web application is unable to run a certain version of nginx and thus need to stay a version below the current
-latest? Sure, you could argue that the customer should just pin the nginx version. Okay, problem solved.
+Let's assume for a minute you have two customers that request the same set of servers (let's assume they would be web servers). If you group them together, they will all
+receive the same content (`RPM`-wise), right? But what if one web application is unable to run a certain version of `nginx` and thus need to stay a version below the current
+latest? Sure, you could argue that the customer should just pin the `nginx` version. Okay, problem solved.
 
 But what if the other customer comes back and tells you that while he is on RHEL 8 now, he'd like to go to RHEL 9 next week, as the life cycle of his web application requires
-him to do so. Now you have a conflict of interest. Your other customer has to stay on a version below latest on nginx and the other one wants to go to RHEL 9 next week.
+him to do so. Now you have a conflict of interest. Your other customer has to stay on a version below latest on `nginx` and the other one wants to go to RHEL 9 next week.
 
 So what's the solution? Right. Different services. This way you ensure that every customer gets **exactly** what he needs. Not more, not less. The function profile might
-change over time. A customer might ask you to additionally provide a special RPM repository for a special database he needs. With split services, no issue at all. With
-combining all webservers together: you have an issue.
+change over time. A customer might ask you to additionally provide a special `RPM` repository for a special database he needs. With split services, no issue at all. With
+combining all web servers together: you have an issue.
 
 The definition of - what I call - a service is designed in such a way, that it should accommodate almost all use cases.
 
@@ -600,10 +600,10 @@ Those base CVs would contain only the bare minimum that is required in terms of 
 #### RHEL9
 
 - **Latest**
-  - Red Hat Enterprise Linux 9 for x86_64 - BaseOS RPMs 9.x
-  - Red Hat Enterprise Linux 9 for x86_64 - AppStream RPMs 9.x
-  - Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.x
-  - Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.x
+  - `Red Hat Enterprise Linux 9 for x86_64 - BaseOS RPMs 9.x`
+  - `Red Hat Enterprise Linux 9 for x86_64 - AppStream RPMs 9.x`
+  - `Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.x`
+  - `Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.x`
 
 - **Extended Update Support (EUS)**
 
@@ -662,9 +662,9 @@ They could be added to following additional CVs:
 - `cv-rhcdn-base_optional-rhel-7`
 - `cv-rhcdn-base_supplementary-rhel-7`
 
-The very same can be done for debug and source RPMs, if you are in need to provide these to your customers. Let's take RHEL 8 as example:
+The very same can be done for debug and source `RPMs`, if you are in need to provide these to your customers. Let's take RHEL 8 as example:
 
-#### Source RPMs
+#### Source `RPMs`
 
 - `Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Source RPMs)`
 - `Red Hat Enterprise Linux 8 for x86_64 - AppStream (Source RPMs)`
@@ -673,7 +673,7 @@ The above repositories could be turned into the following additional CV:
 
 - `cv-rhcdn-base_source_rpms-rhel-8`
 
-#### Debug RPMs
+#### Debug `RPMs`
 
 - `Red Hat Enterprise Linux 8 for x86_64 - BaseOS (Debug RPMs)`
 - `Red Hat Enterprise Linux 8 for x86_64 - AppStream (Debug RPMs)`
@@ -701,7 +701,7 @@ This carried the burden to update the Satellite Tools repository - and *only* th
 you simply wouldn't publish a new version of the Satellite Tools CV - this made things manageable.
 
 In the very first moment this sounds like a big overkill, but in contrast, at one of my customers back then, we faced regular issues with leaking memory
-(the out-of-memory (`OOM`) killer would kill running processes) and ultimately, it turned out to be an issue that the Katello Agent had been updated to a newer version than
+(the out-of-memory (`OOM`) killer would kill running processes) and ultimately, it turned out to be an issue that the `Katello Agent` had been updated to a newer version than
 Satellite supported (within the same major and minor version, only the Z-version was different), which turned into this weird memory leaking behavior.
 
 Yes, that might have been a one-off issue, which won't repeat itself. Until it repeats itself. :innocent:
@@ -713,8 +713,8 @@ Lastly, pretty much every customer I talked to during my time as consultant had 
 - Logging agents
 - etc.
 
-Depending on whether you build and GPG-sign these RPMs on your own or whether you receive certain software from a RPM repository of the vendor, you can either chose to use a
-accumulated repository, such as `repo-<my_company_name>-base-<os_name>-<os_version>` (self-built and self-signed) or use the naming concept from above; For example
+Depending on whether you build and `GPG-sign` these `RPMs` on your own or whether you receive certain software from a `RPM` repository of the vendor, you can either chose to
+use a accumulated repository, such as `repo-<my_company_name>-base-<os_name>-<os_version>` (self-built and self-signed) or use the naming concept from above; For example
 `repo-zabbix-zabbix-rhel-8`. Of course, you can use both in conjunction based on your needs.
 
 Once all of the CVs are created and you want to build your first CCV for your first customer, it might look something like:
@@ -725,7 +725,7 @@ Once all of the CVs are created and you want to build your first CCV for your fi
   - `cv-my_cool_company-base-rhel-8`
 
 This will put you in a very comfortable position, as you can exchange parts of the service's content (the CVs) based on your needs. Have you updated the Satellite and need to
-provide only the updated Satellite Client 6 RPMs needed for all clients, you can simply publish a new version of `cv-rhcdn-satellite_client_6-rhel-8` and leave the remaining
+provide only the updated Satellite Client 6 `RPMs` needed for all clients, you can simply publish a new version of `cv-rhcdn-satellite_client_6-rhel-8` and leave the remaining
 CVs untouched.
 
 Great isn't it? :grin:
@@ -778,7 +778,7 @@ Given the service `ccv-cool_service_name-rhel-8` we used throughout the last few
 | `Red Hat Enterprise Linux 8 for x86_64 - AppStream (Kickstart)` | `Disabled`             |
 
 We do *not* need to enable the Kickstart repositories, as they are going to be used during the installation by *default*. After a successful Kickstart deployment, there is
-really no reason to have them enabled, as you are going to use the default AppStream and BaseOS repositories for that.
+really no reason to have them enabled, as you are going to use the default `AppStream` and `BaseOS` repositories for that.
 
 :information_source: A quick side note: When the value of a Repository Set includes `(overridden)` then the value was *manually* overridden by a user (either through API or
 WebUI).
@@ -930,7 +930,7 @@ graph TB;
     A --> D(hg-my_cool_service-rhel-8-prod)
 ```
 
-The above example assumes that we have a Capsule *per Stage/Lifecycle Environment*. Of course, if you'd go with a separate Capsule *per Stage/Lifecylce Environment* you'd end
+The above example assumes that we have a Capsule *per Stage/Lifecycle Environment*. Of course, if you'd go with a separate Capsule *per Stage/Lifecycle Environment* you'd end
 up with more than three Host Groups per service. Taking again the example of above with having two zones per Stage (`trusted` and `dmz`) we would end up with twice the amount
 of Host Groups and bringing the amount of Capsules to six: two per stage - one for the `dev` zone and one for the `trusted` zone.
 
@@ -1175,7 +1175,7 @@ graph TB;
 There are a few things we haven't covered in this post. I didn't want to make it any longer than it already is and split the following topics to a separate blog post (or multiple):
 
 - OpenSCAP
-- PXE Provisioning
+- `PXE` Provisioning
 - Highly customized Kickstarts
 - Template Synchronization
 
@@ -1194,6 +1194,11 @@ The reason for me writing this blog post is that I wanted to showcase **one** po
 I hope you find it helpful.
 
 ## Change log
+
+### 2024-03-11
+
+- `markdownlint` fixes
+- Spelling fixes
 
 ### 2024-03-09
 
