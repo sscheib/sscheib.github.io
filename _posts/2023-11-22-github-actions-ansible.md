@@ -25,7 +25,7 @@ If you've ever looked into testing an Ansible playbook, you've surely come acros
 playbook for syntactical errors. Nothing more. This command is especially helpful when you first get started learning Ansible, as it provides an easy and quick way of
 identifying whether you have made any syntactical errors in your playbook.
 
-Let's look at an easy example. A common mistake is the indentation of YAML. At times you just have a space too much or too less and Ansible will not run your playbook.
+Let's look at an easy example. A common mistake is the indentation of `YAML`. At times you just have a space too much or too less and Ansible will not run your playbook.
 
 ```yaml
 ---
@@ -47,7 +47,7 @@ Can you spot the error already? Right, I have indented the first task by one spa
 to say about the playbook:
 
 ```shell
-$ ansible-playbook --syntax-check playbook.yml 
+$ ansible-playbook --syntax-check playbook.yml
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 ERROR! We were unable to read either as JSON nor YAML, these are the errors we got from each:
 JSON: Expecting value: line 1 column 1 (char 0)
@@ -71,7 +71,7 @@ Great, it caught the error, perfect.
 Let's fix the code and re-run that check:
 
 ```shell
-$ ansible-playbook --syntax-check playbook.yml 
+$ ansible-playbook --syntax-check playbook.yml
 
 playbook: playbook.yml
 ```
@@ -97,7 +97,7 @@ is `my_tasks.yml`, which looks like this:
 Let's validate the syntax:
 
 ```shell
-$ ansible-playbook --syntax-check my_tasks.yml 
+$ ansible-playbook --syntax-check my_tasks.yml
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 ERROR! 'ansible.builtin.debug' is not a valid attribute for a Play
 
@@ -115,7 +115,7 @@ It does not work. At least not like that. The reason is simple: `ansible-playboo
 use `ansible.builtin.include_tasks` to include the tasks in `my_tasks.yml` and re-run the syntax check:
 
 ```shell
-$ ansible-playbook --syntax-check playbook.yml 
+$ ansible-playbook --syntax-check playbook.yml
 
 playbook: playbook.yml
 ```
@@ -134,7 +134,7 @@ Great, that looks promising! But to be sure, let's introduce an intentional issu
 Let's re-run that check:
 
 ```shell
-$ ansible-playbook --syntax-check playbook.yml 
+$ ansible-playbook --syntax-check playbook.yml
 
 playbook: playbook.yml
 ```
@@ -148,7 +148,7 @@ adding the tasks that we are including in place of the `import_tasks` statement.
 When we re-run the syntax check one last time, you'll see, it'll fail when using `import_tasks`:
 
 ```shell
-$ ansible-playbook --syntax-check playbook.yml 
+$ ansible-playbook --syntax-check playbook.yml
 ERROR! We were unable to read either as JSON nor YAML, these are the errors we got from each:
 JSON: Expecting value: line 1 column 1 (char 0)
 
@@ -181,7 +181,7 @@ But what, if I'd like to test my roles?! Keep on reading, we'll talk about it in
 [Ansible Lint](https://ansible.readthedocs.io/projects/lint/) is a tool that was introduced to aid Ansible playbook, role and collections developers in writing
 consistent good Ansible code. It basically starts where `ansible-playbook --syntax-check` ends. Ansible Lint is *much* more sophisticated than the syntax check of
 the `ansible-playbook` command. Ansible Lint does not only syntactically check playbooks, roles and collections, but also ensures common practices are followed.
-Ansible Lint further ensures common practices are followed for YAML by using `yamllint`.
+Ansible Lint further ensures common practices are followed for `YAML` by using `yamllint`.
 
 In case you wondered whether you need to use Ansible Lint alongside `ansible-playbook --syntax-check` to have a better test coverage, then I have good news for you:
 Ansible Lint calls the previously discussed `ansible-playbook --syntax check` [^ansible_lint_playbook_syntax] by default. :sunglasses:
@@ -282,9 +282,9 @@ There are many more options that can be configured in Ansible Lint, which I pers
 ### yamllint
 
 So, I have spoken of two configuration files. The other one is `.yamllint` - yes, Ansible Lint invokes [`yamllint`](https://github.com/adrienverge/yamllint) as well :blush:.
-`yamllint` does one thing: Validate YAML files kind of the same way as Ansible Lint does: with rules. These rules can, the same as for Ansible Lint, be configured with the
-configuration file located at `.yamllint`. In other words, `yamllint` makes sure the YAML code itself is valid. It doesn't care about the Ansible portion at all, as you can
-verify any YAML file with it. Conveniently, Ansible Lint includes `yamllint` :sunglasses:.
+`yamllint` does one thing: Validate `YAML` files kind of the same way as Ansible Lint does: with rules. These rules can, the same as for Ansible Lint, be configured with the
+configuration file located at `.yamllint`. In other words, `yamllint` makes sure the `YAML` code itself is valid. It doesn't care about the Ansible portion at all, as you can
+verify any `YAML` file with it. Conveniently, Ansible Lint includes `yamllint` :sunglasses:.
 
 My configuration file looks like follows:
 
@@ -537,6 +537,11 @@ I hope this post is helpful to dive into the world of linting Ansible code - wit
 [^ansible_lint_playbook_syntax]: [Ansible Lint syntax-check](https://ansible.readthedocs.io/projects/lint/rules/syntax-check/#correct-code)
 
 ## Change log
+
+### 2024-03-11
+
+- `markdownlint` fixes
+- Spelling fixes
 
 ### 2024-02-02
 
