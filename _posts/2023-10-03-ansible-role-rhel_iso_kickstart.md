@@ -18,25 +18,26 @@ I regularly deploy new [Red Hat Satellite](https://www.redhat.com/de/technologie
 instances (again) while playing around a bit *too much*. Or when I (once again) move to a new server or basically revamp my complete infrastructure. So you see, I have quite a
 need for that :grin:.
 
-I also noticed that a few of my colleagues had the same need, as well as some of our customers. I couldn't find an existing *automated way* of downloading a given RHEL ISO and
-implanting a Kickstart into it, while also allowing to customize certain things, such as enabling [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards).
+I also noticed that a few of my colleagues had the same need, as well as some of our customers. I couldn't find an existing *automated way* of downloading a given RHEL
+`ISO image` and implanting a Kickstart into it, while also allowing to customize certain things, such as enabling
+[`FIPS`](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards).
 
 So I decided, I'll just write an Ansible role for everybody to use to ease this regular task.
 
 ## Prerequisite: Obtaining an API token to authenticate to the Red Hat Customer Portal
 
-First off, to download an ISO from the [Red Hat Customer Portal](https://access.redhat.com) you need to be a Red Hat subscriber. If you don't own any subscriptions, you can
-make use of [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
+First off, to download an `ISO image` from the [Red Hat Customer Portal](https://access.redhat.com) you need to be a Red Hat subscriber. If you don't own any subscriptions,
+you can make use of [Red Hat's Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux) which is provided at no cost by Red Hat.
 
 Once you created your account and are able to download from the Red Hat Customer Portal, you need to create an API Token, which we'll use to authenticate to the Red Hat
 Customer Portal. For that, simply login to Red Hat's Customer Portal and create an [API Token](https://access.redhat.com/management/api).
 
 Note down that token, as we are going to need it for the role to function.
 
-## Prerequisite: Obtaining the checksum of an ISO to download
+## Prerequisite: Obtaining the checksum of an `ISO image` to download
 
-The Red Hat Customer Portal API enables downloading of ISO images only **by checksum**. To download an ISO, you first need to identify the checksum to pass to the role. This
-checksum can be retrieved for any ISO on the Red Hat Customer Portal and can be found on the respective download page of the ISO itself.
+The Red Hat Customer Portal API enables downloading of `ISO images` only **by checksum**. To download an `ISO image`, you first need to identify the checksum to pass to the
+role. This checksum can be retrieved for any `ISO image` on the Red Hat Customer Portal and can be found on the respective download page of the `ISO image` itself.
 
 For RHEL you can visit [https://access.redhat.com/downloads/content/rhel](https://access.redhat.com/downloads/content/rhel) and simply click on **Show details**.
 As an example, the **Red Hat Enterprise Linux 8.8 Binary DVD** will show the following additional details:
@@ -44,11 +45,11 @@ As an example, the **Red Hat Enterprise Linux 8.8 Binary DVD** will show the fol
 ```shell
 File name: rhel-8.8-x86_64-dvd.iso
 File Size: 11.7 GB
-SHA-256 Checksum: 517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09 
+SHA-256 Checksum: 517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09
 Last Updated: 2023-04-26
 ```
 
-We are going to need the **SHA-256 Checksum** :slightly_smiling_face:.
+We are going to need the `SHA-256 Checksum` :slightly_smiling_face:.
 
 ## Installation
 
@@ -78,44 +79,45 @@ So what actually does this role?
 
 The role does the following:
 
-1. Download a RHEL ISO to your local filesystem - that can be your local machine or a server in a data center
-1. Optional: Unpack the ISO
-1. Optional: Add a custom Kickstart or the Kickstart shipped with the role to the unpacked ISO
+1. Download a RHEL `ISO image` to your local filesystem - that can be your local machine or a server in a data center
+1. Optional: Unpack the `ISO image`
+1. Optional: Add a custom Kickstart or the Kickstart shipped with the role to the unpacked `ISO image`
 1. Optional: Adjust the Kickstart to set a root password, create users and add custom `%post` sections
 1. Optional: Validate the Kickstart using `ksvalidator`
 1. Optional: Adjust the kernel parameters to load the Kickstart automatically
-1. Optional: Enable FIPS in the kernel parameters
+1. Optional: Enable `FIPS` in the kernel parameters
 1. Optional: Adjust the timeout of GRUB, so you don't have to wait 60 seconds for the installation to start
-1. Optional: Adjust the GRUB menu entry to use; Either validate the ISO before installing or directly install it
-1. Optional: Create the actual ISO
-1. Optional: Make the ISO bootable on BIOS and UEFI systems
+1. Optional: Adjust the GRUB menu entry to use; Either validate the `ISO image` before installing or directly install it
+1. Optional: Create the actual `ISO image`
+1. Optional: Make the `ISO image` bootable on `BIOS` and `UEFI` systems
 1. Optional: Implant an MD5 sum so it can be checked during booting
 
 TL;DR: Quite a lot.
 
-Chances are that you do not need or want to use certain features of the role, such as enabling FIPS. Then I have good news for you: All steps but the very first are optional and
-can be configured through variables. :sunglasses:
+Chances are that you do not need or want to use certain features of the role, such as enabling `FIPS`. Then I have good news for you: All steps but the very first are optional
+and can be configured through variables. :sunglasses:
 
 ## Use cases
 
 I have identified three major use cases for the role:
 
-1. Only download an ISO, don't touch it
-1. Download the ISO and enable FIPS, so you don't have to do it manually every time before the ISO boots, but do not perform any other changes to the ISO
-1. Embed a customized Kickstart into the ISO to use it for unattended installing
+1. Only download an `ISO image`, don't touch it
+1. Download the `ISO image` and enable `FIPS`, so you don't have to do it manually every time before th `ISO image` boots, but do not perform any other changes to
+   the `ISO image`
+1. Embed a customized Kickstart into the `ISO image` to use it for unattended installing
 
 I am sure, there plenty of other use cases I haven't thought of yet. If you happen to have a different use case, consider contributing with a feature request or
 simply comment on this blog post :slightly_smiling_face:
 
 Now, let's take look at the above use cases and how to configure the role to achieve each of them.
 
-### Downloading an ISO
+### Downloading an `ISO image`
 
-Downloading the ISO is the easiest of the three use cases. You'll only need to configure:
+Downloading the `ISO image` is the easiest of the three use cases. You'll only need to configure:
 
-- Which ISO to download
+- Which `ISO image` to download
 - Where to download it to
-- The permissions of both the download directory and the ISO
+- The permissions of both the download directory and the `ISO image`
 - Provide the API token to authenticate against the Red Hat Customer Portal
 
 An example of a playbook could look something like this:
@@ -141,20 +143,20 @@ An example of a playbook could look something like this:
           [..]
 ```
 
-### Downloading an ISO and enabling FIPS for the ISO
+### Downloading an `ISO image` and enabling `FIPS` for the `ISO image`
 
-Enabling FIPS on top of downloading the image is not much more complicated. You need to configure the following:
+Enabling `FIPS` on top of downloading the image is not much more complicated. You need to configure the following:
 
-- Which ISO to download
+- Which `ISO image` to download
 - Where to download it to
-- The permissions of both the download directory and the ISO
+- The permissions of both the download directory and the `ISO image`
 - Provide the API token to authenticate against the Red Hat Customer Portal
 - Disable Kickstart validation
 - Specify a temporary work directory and the permissions to it
-- Specify a temporary mount path to mount the original downloaded ISO (to extract it's content)
-- Destination path to the custom ISO along with the permissions of it
-- Enabling the option to enable FIPS
-- Enabling the option to recreate the custom ISO every time
+- Specify a temporary mount path to mount the original downloaded `ISO image` (to extract it's content)
+- Destination path to the custom `ISO image` along with the permissions of it
+- Enabling the option to enable `FIPS`
+- Enabling the option to recreate the custom `ISO image` every time
 - Enabling the option to implanting an MD5 checksum which can be checked during booting
 
 An example playbook could look something like this:
@@ -195,17 +197,17 @@ An example playbook could look something like this:
           $ANSIBLE_VAULT;1.1;AES256
 ```
 
-### Download a RHEL ISO, implant a Kickstart, create users, add custom `%post` sections, implant an MD5 checksum and enable FIPS
+### Download a RHEL `ISO image`, implant a Kickstart, create users, add custom `%post` sections, implant an `MD5` checksum and enable `FIPS`
 
 This use case leverages basically all the functionality the role offers. It will:
 
-- Download a RHEL ISO
-- Implant a Kickstart into the ISO
+- Download a RHEL `ISO image`
+- Implant a Kickstart into the `ISO image`
 - Add create user statements to the Kickstart
 - Implant custom `%post` sections, but adding to the default ones
 - Configure SSH keys for the users that are created
 - Implant a MD5 checksum
-- Enable FIPS
+- Enable `FIPS`
 
 A thorough example of the possible usage can be found down below. Some of the variables are redundant, as they merely reflect the defaults already set, but I wanted to show
 *what* can be changed.
@@ -308,3 +310,11 @@ Example playbook:
 ## Conclusion
 
 I hope this role spares you a little time in your day to day work. That's already it for the time being - I hope you enjoyed it :sunglasses:
+
+## Change log
+
+### 2024-03-11
+
+- Adding change log
+- `markdownlint` fixes
+- Spelling fixes
