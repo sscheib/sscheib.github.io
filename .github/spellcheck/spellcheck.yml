@@ -21,28 +21,78 @@ matrix:
       ignore-case: true
 
     pipeline:
-      - pyspelling.filters.markdown:
-          markdown_extensions:
-            - pymdownx.superfences: {}
-            - pymdownx.highlight: {}
-
-      - pyspelling.filters.html:
-          comments: false
-          ignores:
-            - ':matches(code, pre, details)'
-
-      - pyspelling.filters.url: {}
       - pyspelling.filters.context:
           context_visible_first: true
           escapes: '\\[\\`~]'
           delimiters:
-            # ignore liquid code blocks
-            - open: '{% highlight [A-Za-z]+ %}'
-              close: '{% endhighlight %}'
-            # ignore gists
-            - open: '{% gist (?:[0-9a-f]){32}'
-              close: '%}'
+
+            # ignore liquid nospell blocks
+            #
+            # example:
+            #
+            # {% comment %} begin nospell {% endcomment %}
+            # [..]
+            # {% comment %} end nospell {% endcomment %}
+            #
+            - open: '(?m)(\s{0,}?){%(\s+)?comment\2?%}\2?begin\2?nospell\2?{%\2?endcomment\2?%}'
+              content: '[\S\s]+'
+              close: '\1{%\2?comment\2?%}\2?end\2?nospell\2?{%\2?endcomment\2?%}'
+
+            # ignore liquid highlight blocks
+            #
+            # example:
+            #
+            # {% highlight yaml %}
+            # [..]
+            # {% endhighlight %}
+            #
+            - open: '(?m)^(\s{0,}?){%(\s+)?highlight\2[A-z0-9]+\2?%}'
+              content: '[\S\s]+'
+              close: '\1{%\2?endhighlight\2?%}$'
+
+            # ignore any liquid tags
+            #
+            # examples:
+            #
+            # - {% raw %}
+            # - {% endhighlight %}
+            # - {% gist somerandomeid %}
+            #
+            - open: '(?s)^\s{0,}?{%\s+[A-Za-z0-9]+\s+'
+              close: '%}$'
+
+            # ignore title and author in the header
+            #
+            # example:
+            #
+            # ---
+            # title: My blog post title
+            # author: John and Jane Doe
+            # ---
+            #
+            - open: '(?s)^(?:title|author):'
+              content: '[^\n]+'
+              close: '$'
+
+      - pyspelling.filters.markdown:
+          markdown_extensions:
+            - pymdownx.superfences: {}
+
+      - pyspelling.filters.html:
+          comments: false
+          attributes:
+            - 'title'
+            - 'alt'
+          ignores:
+            - ':matches(code, pre)'
+
+      - pyspelling.filters.context:
+          context_visible_first: true
+          escapes: '\\[\\`~]'
+          delimiters:
             # ignore text between inline back ticks
             - open: '(?P<open>`+)'
               close: '(?P=open)'
+
+      - pyspelling.filters.url: {}
 ...
