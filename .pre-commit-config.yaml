@@ -16,6 +16,8 @@ repos:
         args:
           - '--fix=no'
       - id: 'trailing-whitespace'
+        args:
+          - '--markdown-linebreak-ext=md'
 
   - repo: 'local'
     hooks:
