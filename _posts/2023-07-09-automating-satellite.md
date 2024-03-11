@@ -1,7 +1,6 @@
 ---
 title: Automating Red Hat Satellite 6 - End to End
 author: Steffen Scheib
-last_modified: 
 ---
 <!-- markdownlint-disable MD033 -->
 {% raw %}
@@ -34,9 +33,9 @@ Please note, only a fraction of the available variables are used for each role. 
 complete list of available variables. Further, relevant documentation is also linked in each section that complements the respective steps that are done in Ansible if
 you'd like to know more about the general (manual) procedure.
 
-In below sections I make heavy use of [GitHub gists](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists#about-gists)
+In below sections I make heavy use of [GitHub `gists`](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists#about-gists)
 to show **my personal configuration** of the respective roles. You **need to modify every gist so that it works for your environment**. For this purpose, I
-documented (almost) every variable in the gists to ensure the usage is clear. Should something be not clear, please refer to the role documentation (that is linked in every
+documented (almost) every variable in the `gists` to ensure the usage is clear. Should something be not clear, please refer to the role documentation (that is linked in every
 section), which provides additional context as well as possibly other variables to use that make sense to use in your environment.
 
 I tested all of this with Satellite 6.12, 6.13 and 6.14. It *should* work the same for other Satellite versions, but I cannot guarantee it.
@@ -51,8 +50,8 @@ post won't cover the procedure of how to do that, however.
 :information_source: You need to be a Red Hat subscriber to follow this blog post. If you are not, you can use a
 [no-cost Red Hat Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux), which includes the Ansible Automation Platform
 subscription (required for the certified collections) and the Satellite Infrastructure subscription. Of course, you could also use the upstream projects
-(e.g. Foreman/Katello) and upstream collections (e.g. `theforeman.foreman`) to follow along, but for that you need to adjust *every* playbook
-(and not 'just' the GitHub gists) and it might not work at all, as I haven't tested it.
+(e.g. `Foreman`/`Katello`) and upstream collections (e.g. `theforeman.foreman`) to follow along, but for that you need to adjust *every* playbook
+(and not 'just' the GitHub `gists`) and it might not work at all, as I haven't tested it.
 
 ## Prerequisites
 
@@ -91,12 +90,12 @@ Place your Ansible configuration file either in the directory you checked out (`
     ```ini
     [galaxy]
     server_list = automation-hub,galaxy
-    
+
     [galaxy_server.automation-hub]
     url=https://console.redhat.com/api/automation-hub/content/REDACTED-synclist/
     auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
     token=REPLACE_WITH_YOUR_TOKEN
-     
+
     [galaxy_server.galaxy]
     url=https://galaxy.ansible.com
     ```
@@ -167,7 +166,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
     (as I want to have the ISO downloaded and built on my machine), so the `host_vars` have to be placed in the directory `host_vars/localhost/`. I have chosen to place
     them in the file `00_kickstart.yml` inside that directory.
 
-    :information_source: Make sure to read the [README.md of my role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) to fully understand
+    :information_source: Make sure to read the [`README.md` of my role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart) to fully understand
     all variables.
 1. Run the playbook that will download the specified RHEL ISO and build a custom RHEL ISO containing the specified Kickstart file:
     <!-- markdownlint-disable MD014 -->
@@ -175,11 +174,11 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
     $ ansible-playbook 00_create_kickstart.yml --vault-pass-file .vault.pass
     ```
     <!-- markdownlint-disable MD024 -->
-1. Copy the resulting ISO file to your hypervisor and mount it to your VM that should become the Satellite.
-1. Start the VM and wait for the installation to finish.
-1. Once the installation finished, shutdown the VM and unmount the ISO.
+1. Copy the resulting ISO file to your hypervisor and mount it to your virtual machine that should become the Satellite.
+1. Start the virtual machine and wait for the installation to finish.
+1. Once the installation finished, shutdown the virtual machine and unmount the ISO.
 
-    :information_source: If you used the provided Kickstart, the VM will shut down after the Kickstart finished.
+    :information_source: If you used the provided Kickstart, the virtual machine will shut down after the Kickstart finished.
 
 ## Prepare Satellite for Ansible access
 
@@ -189,7 +188,7 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 ### Procedure
 <!-- markdownlint-enable MD024 -->
 
-1. Login via SSH to the new VM using `root` as username and the root password you defined in `00_kickstart.yml`
+1. Login via SSH to the new virtual machine using `root` as username and the root password you defined in `00_kickstart.yml`
 
     :information_source: This step assumes that you have not already created a local user (other than `root`, of course) on the Satellite server. If you already created a
     local user as part of the Kickstart (or other means), please ensure that the user has privileged access; You can skip step **2** and **3**.
@@ -197,14 +196,14 @@ Now that we have successfully installed our RHEL 8 system, we need to ensure tha
 1. Create a new user for Ansible, e.g. `ansible-provisioning`.
 1. Either set a password for `ansible-provisioning` or deploy your SSH key to the created user.
 1. Ensure you add the user to the group `%wheel` so that you can elevate the privileges of the user.
-1. Add the VM host to the inventory file. Below you'll find an example:
+1. Add the virtual machine host to the inventory file. Below you'll find an example:
 
     ```shell
-    $ cat inventory 
+    $ cat inventory
     satellite.office.int.scheib.me ansible_user=ansible-provisioning ansible_port=22
     ```
 
-1. Ensure that your access to the VM is working properly:
+1. Ensure that your access to the virtual machine is working properly:
 
     ```shell
     $ ansible --become -m ping -i inventory all
@@ -273,8 +272,8 @@ added to the table above as it would need to be included in all further tables.
 
     :information_source: If you want to install a different Satellite version than 6.12, you need to adjust the variable `rhc_repositories` to enable the proper
     repositories for the desired Satellite version.
-  
-1. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (RHCDN):
+
+1. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (`RHCDN`):
     <!-- markdownlint-disable MD014 -->
     ```shell
     $ ansible-playbook -i inventory 01_register_satellite.yml --vault-pass-file .vault.pass
@@ -291,7 +290,8 @@ added to the table above as it would need to be included in all further tables.
     1. `host_vars/<hostname>/01b_satellite_firewall_rules.yml`: Contains the ports to open on the Satellite
         {% gist 0b029863ee4e9953ab88978608bae777 %}
 
-        :warning: Above firewall rules are specific to *my* use case. You need to adapt these based on the Satellite documentation and your used features (such as TFTP, DHCP, DNS, etc.).
+        :warning: Above firewall rules are specific to *my* use case. You need to adapt these based on the Satellite documentation and your used features (such as `TFTP`,
+        `DHCP`, `DNS`, etc.).
     1. `host_vars/<hostname>/01c_satellite_installer_configuration.yml`: Contains all other variables for the role `redhat.satellite_operations.installer`
         {% gist c99c3008a954a4ddb81451bad99b599f %}
 
@@ -308,7 +308,7 @@ added to the table above as it would need to be included in all further tables.
     ```
     <!-- markdownlint-enable MD014 -->
 1. Verify that you can login to your Satellite instance once the playbook finished
-1. Shutdown the VM and take a snapshot so you can roll back to this point when you encounter any issues later on
+1. Shutdown the virtual machine and take a snapshot so you can roll back to this point when you encounter any issues later on
 
 ## Define general variables
 
@@ -396,7 +396,7 @@ from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
 ## Importing a Manifest
 
 Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer
-Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct Manifest UUID in `satellite_manifest_uuid`, as well as the
+Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct `Manifest UUID` in `satellite_manifest_uuid`, as well as the
 `satellite_rhsm_username` and `satellite_rhsm_password`. (as described in
 [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
 
@@ -431,7 +431,7 @@ Portal and then upload it to my Satellite. If you are doing the same Please ensu
 1. Run the playbook to download the manifest and import it to your Satellite:
     <!-- markdownlint-disable MD014 -->
     ```shell
-    $ ansible-playbook -i inventory 04_satellite_manifest.yml --vault-pass-file .vault.pass 
+    $ ansible-playbook -i inventory 04_satellite_manifest.yml --vault-pass-file .vault.pass
     ```
     <!-- markdownlint-enable MD014 -->
 
@@ -534,7 +534,7 @@ If you know another way, kindly let me know in the comments below.
     The Repository and Product names can be found out via the following procedure:
     1. `Satellite WebUI` -> `Content` -> `Red Hat Repositories`
     1. Click on `Filter by Product` and select a Product, e.g. `Red Hat Enterprise Linux for x86_64` (this is the **Product Name** to use)
-    1. Select the appropriate "Type" (right hand side to the `Filter by Product` drop-down), e.g. `RPM` for RPM repositories, `Kickstart` for Kickstart repositories
+    1. Select the appropriate "Type" (right hand side to the `Filter by Product` drop-down), e.g. `RPM` for `RPM` repositories, `Kickstart` for Kickstart repositories
     1. Either scroll through the `Available Repositories` or narrow the list further down using the search bar at the top
     1. The search lists contains the **Repository Name** to use
     1. Each Repository has a arrow an the left hand side. When clicking on it, it reveals two things:
@@ -546,7 +546,7 @@ If you know another way, kindly let me know in the comments below.
     :warning: The Kickstart Repositories are set to the `download_policy` `immediate` as having them set to `on_demand` is known to cause issues during provisioning.
 
     :warning: I recommend setting the `download_policy` to `immediate` on custom upstream repositories, as usually the upstream repositories do **not** keep **all
-    versions** of an RPM, which will cause issues if a client tries to install an older version. Red Hat keeps all RPMs in their respective repositories, that's why it is
+    versions** of an `RPM`, which will cause issues if a client tries to install an older version. Red Hat keeps all `RPMs` in their respective repositories, that's why it is
     not required to set them on `immediate`.
 
 1. Define the custom Products and their containing Repositories in `host_vars/<hostname>/06b_custom_products.yml`
@@ -807,7 +807,7 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 1. Run the playbook to publish and promote the (Composite) Content Views
     <!-- markdownlint-disable MD014 -->
     ```shell
-    $ ansible-playbook -i inventory 13_satellite_content_view_publish.yml --vault-pass-file .vault.pass 
+    $ ansible-playbook -i inventory 13_satellite_content_view_publish.yml --vault-pass-file .vault.pass
     ```
     <!-- markdownlint-enable MD014 -->
 
@@ -816,9 +816,10 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 We need to apply some settings in Satellite, as the Operating System definitions depend on Provision Templates that have to be imported prior to defining the Operating Systems.
 The Host Groups and the Activation Keys (which we still need to create) rely on the definitions of the Operating System, thus we need to start with importing the Templates.
 
-I make use of [Satellite's TemplateSync Plug-in](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
-which allows us to import Templates from a Source Code Management (SCM) tool (such as GitHub or Git Lab). TemplateSync will also assign the Templates to the correct Operating
-System, Organization and Location, if the [required metadata](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
+I make use of [Satellite's `TemplateSync` Plug-in](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+which allows us to import Templates from a Source Code Management (`SCM`) tool (such as GitHub or Git Lab). `TemplateSync` will also assign the Templates to the correct Operating
+System, Organization and Location, if the
+[required metadata](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
 is present in the Template's header.
 
 Again, I have split my variables into several files to not have one very large confusing file. I named the files like the tabs in the
@@ -1125,7 +1126,7 @@ Once again, I split up my variables into separate files to not have a big clunky
 ## *Optional:* Enable and import OpenSCAP content
 
 If you are looking to ensure compliance on your hosts using [OpenSCAP](https://www.open-scap.org/), this chapter will be for you. Here is the thing:
-Satellite comes already pre-loaded with some OpenSCAP content. I have written a playbook that will accommodate the two scenarios. Whether you are looking to
+Satellite comes already preloaded with some OpenSCAP content. I have written a playbook that will accommodate the two scenarios. Whether you are looking to
 only enable the default OpenSCAP content or if you want to import custom OpenSCAP content, you can use this playbook.
 
 Why writing a custom playbook and not make use of the module
@@ -1198,6 +1199,11 @@ I hope this blog post was helpful to some of you :sunglasses:
 Steffen
 
 ## Change log
+
+### 2024-03-11
+
+- `markdownlint` fixes
+- Spelling fixes
 
 ### 2024-03-09
 
