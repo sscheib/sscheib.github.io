@@ -5,12 +5,13 @@ author: Steffen Scheib
 ## Preface
 
 The other day I wanted to automate some of my newly acquired MikroTik switches using Ansible and the excellent Ansible collection
-[community.general.routeros](https://docs.ansible.com/ansible/latest/collections/community/routeros/index.html).
+[`community.general.routeros`](https://docs.ansible.com/ansible/latest/collections/community/routeros/index.html).
 
 With the aforementioned collection you get all sorts of modules and plugins. One of those modules is
-[community.routeros.api_find_and_modify](https://docs.ansible.com/ansible/latest/collections/community/routeros/api_find_and_modify_module.html#ansible-collections-community-routeros-api-find-and-modify-module)
-which is - as the name suggests - a module that will find a specific path on any [RouterOS (ROS)](https://help.mikrotik.com/docs/display/ROS/RouterOS) capable device and modify
-the value, if required. The modules depends on the Python library [librouteros](https://librouteros.readthedocs.io/en/3.2.1/), which talks to the REST API of any ROS device.
+[`community.routeros.api_find_and_modify`](https://docs.ansible.com/ansible/latest/collections/community/routeros/api_find_and_modify_module.html#ansible-collections-community-routeros-api-find-and-modify-module)
+which is - as the name suggests - a module that will find a specific path on any [`RouterOS (ROS)`](https://help.mikrotik.com/docs/display/ROS/RouterOS) capable device and
+modify the value, if required. The modules depends on the Python library [`librouteros`](https://librouteros.readthedocs.io/en/3.2.1/), which talks to the `REST` API of any
+`ROS` device.
 
 <!-- markdownlint-disable MD026 -->
 ## Is it idempotent?!
@@ -26,21 +27,21 @@ will **only perform a change if the desired state is not already present**.
 
 Okay, for Ansible newcomers this might not mean a lot, so here is a quick example.
 
-Imagine you want to disallow root logins via SSH. Naturally, you'd go to `/etc/ssh/sshd_config` adjust the option `PermitRootLogin` and restart or reload SSHd to pick up the
+Imagine you want to disallow root logins via `SSH`. Naturally, you'd go to `/etc/ssh/sshd_config` adjust the option `PermitRootLogin` and restart or reload `SSHd` to pick up the
 change.
 
 The next day, you forgot whether you actually changed the value of `PermitRootLogin` and you want to ensure that you really changed it. Obviously, there a few ways to check
-that, but for this example, let's assume, you'd just login via SSH and open up `/etc/ssh/sshd_config` and verify whether the desired value for `PermitRootLogin` is already
+that, but for this example, let's assume, you'd just login via `SSH` and open up `/etc/ssh/sshd_config` and verify whether the desired value for `PermitRootLogin` is already
 present.
 
-There could be two possible outcomes for you when you open up the SSHd configuration file:
+There could be two possible outcomes for you when you open up the `SSHd` configuration file:
 
 1. `PermitRootLogin` has the appropriate value set
 1. `PermitRootLogin` has not set the appropriate value
 
-With option number 2, you'd obviously change the value of `PermitRootLogin` and restart or reload the SSHd.
+With option number 2, you'd obviously change the value of `PermitRootLogin` and restart or reload the `SSHd`.
 
-.. but what about option 1? Would you really change the file **again** and restart or reload the SSHd **again**, although you verified that the appropriate value for
+.. but what about option 1? Would you really change the file **again** and restart or reload the `SSHd` **again**, although you verified that the appropriate value for
 `PermitRootLogin` has been set? Of course not.
 
 This is precisely what idempotency with regards to Ansible is. Ansible compares a desired state to an existing state for each task in the play and acts accordingly. If there is
@@ -58,8 +59,8 @@ Apparently, it is. [A small sentence](https://docs.ansible.com/ansible/devel/col
 it:
 > [..] The latter case is needed for idempotency of the task: once the values have been changed, there should be no further match.
 
-With that cleared up, I wanted to ensure that my SSHd port on my switches listens to a different port (default is 22). First, I logged into my switch via SSH and came up with
-the following command to change it:
+With that cleared up, I wanted to ensure that my `SSHd` port on my switches listens to a different port (default is 22). First, I logged into my switch via `SSH` and came up
+with the following command to change it:
 
 ```plaintext
 /ip/service/set ssh port=2222
@@ -147,7 +148,7 @@ mk_services:
 
   - name: 'www-ssl'
     disabled: false
-    port: 443 
+    port: 443
     certificate: 'mikrotik-crs326.example.com.cert.pem'
     tls-version: 'only-1.2'
 
@@ -301,17 +302,17 @@ All of the tests clearly indicated that {% raw %}`{{ __t_service.port }}`{% endr
 ## Meet `jinja2_native`
 
 While I almost lost any hope and was *that* close to either open an issue in the
-[community.routeros' Github](https://github.com/ansible-collections/community.routeros/issues) (which I hesitated because I didn't want to look like an idiot) or simply live
+[`community.routeros`' Github](https://github.com/ansible-collections/community.routeros/issues) (which I hesitated because I didn't want to look like an idiot) or simply live
 with the non-idempotency, I decided to give it a last try after I left that topic alone for a few days.
 
 After a **ton** of looking around the internet, I found a [pull request](https://github.com/ansible/ansible/pull/68560) for Ansible that
-[fixed](https://github.com/ansible/ansible/issues/46169) the conversion of a JSON string to a dict, where the conversion would corrupt that dict. After looking at the
+[fixed](https://github.com/ansible/ansible/issues/46169) the conversion of a `JSON` string to a `dict`, where the conversion would corrupt that `dict`. After looking at the
 [change log](https://docs.ansible.com/ansible/latest/porting_guides/porting_guide_core_2.11.html#playbook), I realized my issue:
 > The `jinja2_native` setting now does not affect the template module which **implicitly returns strings**. For the template lookup there is a new argument `jinja2_native`
-> (off by default) to control that functionality. The rest of the Jinja2 expressions still operate based on the `jinja2_native` setting.
+> (off by default) to control that functionality. The rest of the `Jinja2` expressions still operate based on the `jinja2_native` setting.
 
-I looked through the closed PRs to find the one which introduced `jinja2_native`, and there it was:
-[Allow config to enable native jinja types](https://github.com/ansible/ansible/pull/32738). The
+I looked through the closed pull requests to find the one which introduced `jinja2_native`, and there it was:
+[Allow config to enable native `jinja` types](https://github.com/ansible/ansible/pull/32738). The
 [documentation](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#default-jinja2-native) describes `jinja2_native` as follows:
 > This option preserves variable types during template operations.
 
@@ -325,6 +326,11 @@ lot less painful if it was turned on by default ..
 .. oh well, the next challenge surely won't wait for long. :smile:
 
 ## Change log
+
+### 2024-03-11
+
+- `markdownlint` fixes
+- correcting spelling errors
 
 ### 2024-03-10
 
