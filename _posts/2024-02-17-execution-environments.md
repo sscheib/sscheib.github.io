@@ -2792,6 +2792,10 @@ Steffen
 
 ## Change log
 
+### 2024-03-12
+
+- Fixing the initial change log date
+
 ### 2024-03-11
 
 - `markdownlint` fixes
@@ -2801,7 +2805,7 @@ Steffen
 
 - `markdownlint` fixes
 
-### 2024-02-02
+### 2024-03-02
 
 - Adding Section about custom `base` images
 - Adding `SHA` digest image "pinning" -
