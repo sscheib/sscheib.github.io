@@ -47,7 +47,7 @@ prefixed with `sat_` are custom variables (which usually get merged into a `sate
 also make use of `ansible-navigator` with an Execution Environment that contains the collections and roles which are defined in `collections/requirements.yml`. This blog
 post won't cover the procedure of how to do that, however.
 
-:information_source: You need to be a Red Hat subscriber to follow this blog post. If you are not, you can use a
+:information_source: You need to be a Red Hat subscriber in order to follow this blog post. If you are not, you can use a
 [no-cost Red Hat Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux), which includes the Ansible Automation Platform
 subscription (required for the certified collections) and the Satellite Infrastructure subscription. Of course, you could also use the upstream projects
 (e.g. `Foreman`/`Katello`) and upstream collections (e.g. `theforeman.foreman`) to follow along, but for that you need to adjust *every* playbook
@@ -63,6 +63,7 @@ subscription (required for the certified collections) and the Satellite Infrastr
       - RHEL 8.8 and Ansible Core 2.15.4
       - RHEL 8.9 and Ansible Core 2.15.4
       - RHEL 9.2 and Ansible Core 2.14.2
+      - RHEL 9.3 and Ansible Core 2.14.2
 
     :warning: RHEL 7 is not going to work for this purpose, as only Ansible Engine 2.9 can (officially) be installed on it (which is too old for most - if not all -
     collections we are going to use).
@@ -116,8 +117,8 @@ Place your Ansible configuration file either in the directory you checked out (`
 
 1. Create a Manifest for Satellite - we are going to import it at a [later point](#importing-a-manifest). If you don't know how to do it, please
    follow [Red Hat's blog](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest) that explains very well how to create a Manifest.
-1. Put the `Manifest UUID` in `host_vars/<hostname>/00a_secrets.yml`. As said, we are going to need it [later](#importing-a-manifest).
-1. Optional (but **highly encouraged!**): You can create a [Vault password file](https://docs.ansible.com/ansible/2.8/user_guide/vault.html#providing-vault-passwords) file to
+1. Put the `Manifest UUID` in `host_vars/<hostname>/00a_secrets.yml`. As mentioned before, we are going to need it at a [later point](#importing-a-manifest).
+1. Optional (but **highly encouraged!**): You can create a [Vault password file](https://docs.ansible.com/ansible/latest/user_guide/vault.html#providing-vault-passwords) file to
    pass it to `ansible-playbook` via `--vault-pass-file`. I named mine `.vault.pass` and added it to my [`.gitignore` file](https://git-scm.com/docs/gitignore) to ensure it
    is not accidentally pushed to the repository. As you are going to need the Vault for *every* playbook of my repository, it is handy to have a Vault password file - unless
    you chose to not encrypt your secrets (**highly discouraged!**).
