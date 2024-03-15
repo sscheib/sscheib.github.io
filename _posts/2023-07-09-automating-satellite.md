@@ -233,6 +233,10 @@ as, otherwise, the Red Hat Satellite repositories cannot be found.
 - [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
 =======
 - [Red Hat Satellite 6.14 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 70b7d99 (Replaced mention from 6.12 to 6.14 in 'Registering the system to the Red Hat Customer Portal,...' section)
 >>>>>>> 74810e2 (Replaced mention from 6.12 to 6.14 of info text in 'Registering the system to the Red Hat Customer Portal,...' section)
 
 <!-- markdownlint-disable MD024 -->
