@@ -297,7 +297,7 @@ added to the table above as it would need to be included in all further tables.
         {% gist c99c3008a954a4ddb81451bad99b599f %}
 
         :warning: If you are not planning to use certificates, please remove the certificate installer options from above example (`--certs-server-cert`,
-        `--certs-server-key`, `--certs-server-ca-cert`). Don't worry, the Satellite installer will create self-signed certificates. The certificate options are
+        `--certs-server-key`, `--certs-server-ca-cert`). Don't worry, the Satellite installer will create self-signed certificates. The certificate options
         are meant for implementing custom SSL certificates that have been signed by your internal certificate authority.
 
 1. Run the playbook to upgrade your system to the latest version (required) and install Satellite:
