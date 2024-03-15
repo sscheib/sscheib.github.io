@@ -228,8 +228,8 @@ as, otherwise, the Red Hat Satellite repositories cannot be found.
 
 - [Role `redhat.rhel_system_roles.rhc`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/rhel_system_roles/docs/README_rhc/)
 - [Role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/)
-- [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
-- [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite#doc-wrapper)
+- [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
+- [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -267,7 +267,7 @@ added to the table above as it would need to be included in all further tables.
 
     {% gist 4fbc66d25da509522e16791e497a27a2 %}
 
-1. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles),
+1. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles),
    please find below an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
     {% gist 14d99b2931ce8e1bed1f6e9ac717326e %}
 
