@@ -580,8 +580,8 @@ To ensure our content is kept up to date, we are going to create Sync Plans in t
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.sync_plans`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/sync_plans/)
-- [Creating a Sync Plan](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Creating_a_Sync_Plan_content-management)
-- [Assigning a Sync Plan to a Product](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Assigning_a_Sync_Plan_to_a_Product_content-management)
+- [Creating a Sync Plan](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Creating_a_Sync_Plan_content-management)
+- [Assigning a Sync Plan to a Product](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Assigning_a_Sync_Plan_to_a_Product_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
