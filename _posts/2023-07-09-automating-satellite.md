@@ -136,7 +136,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
 <!-- markdownlint-enable MD024 -->
 
 - [Role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart)
-- [Kickstart commands and options reference for RHEL 8](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-commands-and-options-reference_system-design-guide)
+- [Kickstart commands and options reference for RHEL 8](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-commands-and-options-reference_system-design-guide)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
