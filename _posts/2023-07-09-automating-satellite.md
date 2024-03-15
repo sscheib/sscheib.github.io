@@ -498,8 +498,8 @@ If you know another way, kindly let me know in the comments below.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.repositories`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/repositories/)
-- [Introduction to Content Management](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Introduction_to_Content_Management_content-management)
-- [Download Policies Overview](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Download_Policies_Overview_content-management)
+- [Introduction to Content Management](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/introduction_to_content_management_content-management)
+- [Download Policies Overview](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Download_Policies_Overview_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
