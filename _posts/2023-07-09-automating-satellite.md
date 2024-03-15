@@ -627,7 +627,7 @@ the example below should get you up to speed quickly.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.lifecycle_environments`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/lifecycle_environments/)
-- [Managing Application Life Cycles](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/creating_an_application_life_cycle_content-management)
+- [Managing Application Life Cycles](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_application_lifecycles_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
