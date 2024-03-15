@@ -1022,7 +1022,7 @@ multiple files.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.hostgroups`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/hostgroups/)
-- [Creating a Host Group](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/administering_hosts_managing-hosts#Creating_a_Host_Group_managing-hosts)
+- [Creating a Host Group](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/administering_hosts_managing-hosts#Creating_a_Host_Group_managing-hosts)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
