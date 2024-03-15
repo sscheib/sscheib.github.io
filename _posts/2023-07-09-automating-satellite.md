@@ -356,7 +356,7 @@ added to the table above as it would need to be included in all further tables.
 
 :information_source: This step is entirely optional, as it merely configures Satellite's Cloud Connector.
 
-:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Red Hat Insights to **run remediation on you Satellite**
+:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Red Hat Insights to **run remediation on your Satellite**
 from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
 
 <!-- markdownlint-disable MD024 -->
