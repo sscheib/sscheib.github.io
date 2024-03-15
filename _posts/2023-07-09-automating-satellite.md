@@ -229,7 +229,11 @@ as, otherwise, the Red Hat Satellite repositories cannot be found.
 - [Role `redhat.rhel_system_roles.rhc`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/rhel_system_roles/docs/README_rhc/)
 - [Role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/)
 - [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
+<<<<<<< HEAD
 - [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
+=======
+- [Red Hat Satellite 6.14 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
+>>>>>>> 74810e2 (Replaced mention from 6.12 to 6.14 of info text in 'Registering the system to the Red Hat Customer Portal,...' section)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -271,7 +275,7 @@ added to the table above as it would need to be included in all further tables.
    please find below an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
     {% gist 14d99b2931ce8e1bed1f6e9ac717326e %}
 
-    :information_source: If you want to install a different Satellite version than 6.12, you need to adjust the variable `rhc_repositories` to enable the proper
+    :information_source: If you want to install a different Satellite version than 6.14, you need to adjust the variable `rhc_repositories` to enable the proper
     repositories for the desired Satellite version.
 
 1. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (`RHCDN`):
