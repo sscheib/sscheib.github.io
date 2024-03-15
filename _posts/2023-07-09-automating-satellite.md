@@ -764,7 +764,7 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.content_views`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_views/)
-- [Managing Content Views](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_content_views_content-management)
+- [Managing Content Views](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_content_views_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
