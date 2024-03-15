@@ -817,10 +817,10 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 We need to apply some settings in Satellite, as the Operating System definitions depend on Provision Templates that have to be imported prior to defining the Operating Systems.
 The Host Groups and the Activation Keys (which we still need to create) rely on the definitions of the Operating System, thus we need to start with importing the Templates.
 
-I make use of [Satellite's `TemplateSync` Plug-in](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+I make use of [Satellite's `TemplateSync` Plug-in](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts)
 which allows us to import Templates from a Source Code Management (`SCM`) tool (such as GitHub or Git Lab). `TemplateSync` will also assign the Templates to the correct Operating
 System, Organization and Location, if the
-[required metadata](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
+[required metadata](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
 is present in the Template's header.
 
 Again, I have split my variables into several files to not have one very large confusing file. I named the files like the tabs in the
@@ -830,7 +830,7 @@ This chapter essentially covers two steps:
 
 1. Set specific settings in the Satellite, especially the Template Sync settings. But since we are on it, I'll define *all* settings right away to spare me some time.
 1. Run the Template Sync to import the Templates of my [Kickstart Repository on GitHub](https://github.com/sscheib/satellite_templates). The playbook will
-perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Synchronizing_Templates_Using_the_API_managing-hosts)
+perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Enabling_the_TemplateSync_plugin_managing-hosts)
 from git. Please review them prior to running the playbook (`15_satellite_template_sync.yml`).
 
     :warning: You obviously *have* to either fork [my Satellite template repository](https://github.com/sscheib/satellite_templates) or create your own GitHub repository
@@ -844,7 +844,7 @@ from git. Please review them prior to running the playbook (`15_satellite_templa
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.settings`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/settings/)
-- [Synchronizing Template Repositories](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+- [Synchronizing Template Repositories](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts)
 - [GitHub: Managing your personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens)
 - [Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6](https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html)
 
