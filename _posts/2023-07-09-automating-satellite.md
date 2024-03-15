@@ -447,7 +447,7 @@ Red Hat repositories are validated by default.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/)
-- [Importing Custom SSL Certificates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Importing_Custom_SSL_Certificates_content-management)
+- [Importing Custom SSL Certificates](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Importing_Custom_SSL_Certificates_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
