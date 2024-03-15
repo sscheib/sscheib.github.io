@@ -407,7 +407,7 @@ Portal and then upload it to my Satellite. If you are doing the same, please ens
 
 - [Role `redhat.satellite.manifest`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/manifest/)
 - [How to create and use a Red Hat Satellite manifest](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest)
-- [Importing a Red Hat Subscription Manifest into Satellite Server](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_red_hat_subscriptions_content-management#Importing_a_Red_Hat_Subscription_Manifest_into_Server_content-management)
+- [Importing a Red Hat Subscription Manifest into Satellite Server](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_red_hat_subscriptions_content-management#Importing_a_Red_Hat_Subscription_Manifest_into_Server_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
