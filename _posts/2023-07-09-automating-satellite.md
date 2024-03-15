@@ -934,7 +934,7 @@ Since the Templates are now imported, we can start creating the Operating System
 <!-- markdownlint-disable MD024 -->
 
 - [Role `redhat.satellite.operatingsystems`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/operatingsystems/)
-- [Creating Operating Systems](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/provisioning_hosts/index#creating-operating-systems_provisioning)
+- [Creating Operating Systems](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/provisioning_hosts/configuring_provisioning_resources_provisioning#creating-operating-systems_provisioning)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
