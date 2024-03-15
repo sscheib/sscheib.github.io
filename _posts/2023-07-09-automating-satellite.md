@@ -397,7 +397,7 @@ from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
 ## Importing a Manifest
 
 Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer
-Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct `Manifest UUID` in `satellite_manifest_uuid`, as well as the
+Portal and then upload it to my Satellite. If you are doing the same, please ensure that you set the correct `Manifest UUID` in `satellite_manifest_uuid`, as well as the
 `satellite_rhsm_username` and `satellite_rhsm_password`. (as described in
 [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
 
