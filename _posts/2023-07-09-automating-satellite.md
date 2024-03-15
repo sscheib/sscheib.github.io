@@ -976,7 +976,7 @@ Creating Activation Keys is now possible, as we can refer to the Operating Syste
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.activation_keys`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/activation_keys/)
-- [Managing Activation Keys](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_activation_keys_content-management)
+- [Managing Activation Keys](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_activation_keys_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
