@@ -36,6 +36,7 @@ repos:
         files: '.+\.md$'
         pass_filenames: true
         verbose: true
+        exclude: '^(datenschutzerklaerung.md)$'
 
   - repo: 'local'
     hooks:
