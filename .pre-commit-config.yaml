@@ -60,6 +60,16 @@ repos:
         files: '.+\.md$'
         verbose: true
 
+  - repo: 'local'
+    hooks:
+      - id: 'jsonlint'
+        name: 'jsonlint'
+        language: 'node'
+        entry: 'jsonlint --config .jsonlintrc.json'
+        pass_filenames: true
+        files: '.+\.json$'
+        verbose: true
+
   - repo: 'https://github.com/igorshubovych/markdownlint-cli'
     rev: 'v0.39.0'
     hooks:
