@@ -1201,6 +1201,11 @@ Steffen
 
 ## Change log
 
+### 2024-03-17
+
+- Spelling fixes (thanks [@ls7ls7](https://github.com/ls7ls7)!)
+- Updating documentation to point to the latest available (thanks [@ls7ls7](https://github.com/ls7ls7)!)
+
 ### 2024-03-11
 
 - `markdownlint` fixes
