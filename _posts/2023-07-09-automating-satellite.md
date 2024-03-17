@@ -47,7 +47,7 @@ prefixed with `sat_` are custom variables (which usually get merged into a `sate
 also make use of `ansible-navigator` with an Execution Environment that contains the collections and roles which are defined in `collections/requirements.yml`. This blog
 post won't cover the procedure of how to do that, however.
 
-:information_source: You need to be a Red Hat subscriber to follow this blog post. If you are not, you can use a
+:information_source: You need to be a Red Hat subscriber in order to follow this blog post. If you are not, you can use a
 [no-cost Red Hat Developer Subscription](https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux), which includes the Ansible Automation Platform
 subscription (required for the certified collections) and the Satellite Infrastructure subscription. Of course, you could also use the upstream projects
 (e.g. `Foreman`/`Katello`) and upstream collections (e.g. `theforeman.foreman`) to follow along, but for that you need to adjust *every* playbook
@@ -63,6 +63,7 @@ subscription (required for the certified collections) and the Satellite Infrastr
       - RHEL 8.8 and Ansible Core 2.15.4
       - RHEL 8.9 and Ansible Core 2.15.4
       - RHEL 9.2 and Ansible Core 2.14.2
+      - RHEL 9.3 and Ansible Core 2.14.2
 
     :warning: RHEL 7 is not going to work for this purpose, as only Ansible Engine 2.9 can (officially) be installed on it (which is too old for most - if not all -
     collections we are going to use).
@@ -116,8 +117,8 @@ Place your Ansible configuration file either in the directory you checked out (`
 
 1. Create a Manifest for Satellite - we are going to import it at a [later point](#importing-a-manifest). If you don't know how to do it, please
    follow [Red Hat's blog](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest) that explains very well how to create a Manifest.
-1. Put the `Manifest UUID` in `host_vars/<hostname>/00a_secrets.yml`. As said, we are going to need it [later](#importing-a-manifest).
-1. Optional (but **highly encouraged!**): You can create a [Vault password file](https://docs.ansible.com/ansible/2.8/user_guide/vault.html#providing-vault-passwords) file to
+1. Put the `Manifest UUID` in `host_vars/<hostname>/00a_secrets.yml`. As mentioned before, we are going to need it at a [later point](#importing-a-manifest).
+1. Optional (but **highly encouraged!**): You can create a [Vault password file](https://docs.ansible.com/ansible/latest/user_guide/vault.html#providing-vault-passwords) file to
    pass it to `ansible-playbook` via `--vault-pass-file`. I named mine `.vault.pass` and added it to my [`.gitignore` file](https://git-scm.com/docs/gitignore) to ensure it
    is not accidentally pushed to the repository. As you are going to need the Vault for *every* playbook of my repository, it is handy to have a Vault password file - unless
    you chose to not encrypt your secrets (**highly discouraged!**).
@@ -135,7 +136,7 @@ The very first step is to install the RHEL 8 host that will be our Satellite eve
 <!-- markdownlint-enable MD024 -->
 
 - [Role `rhel_iso_kickstart`](https://github.com/sscheib/ansible-role-rhel_iso_kickstart)
-- [Kickstart commands and options reference for RHEL 8](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-commands-and-options-reference_system-design-guide)
+- [Kickstart commands and options reference for RHEL 8](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-commands-and-options-reference_system-design-guide)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -227,8 +228,8 @@ as, otherwise, the Red Hat Satellite repositories cannot be found.
 
 - [Role `redhat.rhel_system_roles.rhc`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/rhel_system_roles/docs/README_rhc/)
 - [Role `redhat.satellite_operations.installer`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite_operations/content/role/installer/)
-- [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
-- [Red Hat Satellite 6.12 Installation documentation](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite#doc-wrapper)
+- [Registering a RHEL 8 system and managing subscriptions](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_basic_system_settings/assembly_registering-the-system-and-managing-subscriptions_configuring-basic-system-settings)
+- [Red Hat Satellite 6.14 Installation documentation](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/installing_satellite_server_in_a_connected_network_environment/installing_server_connected_satellite)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -266,11 +267,11 @@ added to the table above as it would need to be included in all further tables.
 
     {% gist 4fbc66d25da509522e16791e497a27a2 %}
 
-1. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles),
+1. Define the variables for the [RHEL system role `redhat.rhel_system_roles.rhc`](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/automating_system_administration_by_using_rhel_system_roles/using-the-rhc-system-role-to-register-the-system_automating-system-administration-by-using-rhel-system-roles),
    please find below an example of my variables file (`host_vars/<hostname>/00b_register_satellite.yml`):
     {% gist 14d99b2931ce8e1bed1f6e9ac717326e %}
 
-    :information_source: If you want to install a different Satellite version than 6.12, you need to adjust the variable `rhc_repositories` to enable the proper
+    :information_source: If you want to install a different Satellite version than 6.14, you need to adjust the variable `rhc_repositories` to enable the proper
     repositories for the desired Satellite version.
 
 1. Run the playbook that registers your Satellite system to the Red Hat Content Delivery Network (`RHCDN`):
@@ -296,7 +297,7 @@ added to the table above as it would need to be included in all further tables.
         {% gist c99c3008a954a4ddb81451bad99b599f %}
 
         :warning: If you are not planning to use certificates, please remove the certificate installer options from above example (`--certs-server-cert`,
-        `--certs-server-key`, `--certs-server-ca-cert`). Don't worry, the Satellite installer will create self-signed certificates. The certificate options are
+        `--certs-server-key`, `--certs-server-ca-cert`). Don't worry, the Satellite installer will create self-signed certificates. The certificate options
         are meant for implementing custom SSL certificates that have been signed by your internal certificate authority.
 
 1. Run the playbook to upgrade your system to the latest version (required) and install Satellite:
@@ -355,7 +356,7 @@ added to the table above as it would need to be included in all further tables.
 
 :information_source: This step is entirely optional, as it merely configures Satellite's Cloud Connector.
 
-:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Red Hat Insights to **run remediation on you Satellite**
+:warning: Please make sure that you really **want** to have the Cloud Connector enabled. The Cloud Connector allows Red Hat Insights to **run remediation on your Satellite**
 from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
 
 <!-- markdownlint-disable MD024 -->
@@ -396,7 +397,7 @@ from the [Red Hat Hybrid Cloud Console](https://console.redhat.com).
 ## Importing a Manifest
 
 Next up, we are going to import a Manifest into our Satellite. I have configured the role `redhat.satellite.manifest` to first download a Manifest from the Red Hat Customer
-Portal and then upload it to my Satellite. If you are doing the same Please ensure you set the correct `Manifest UUID` in `satellite_manifest_uuid`, as well as the
+Portal and then upload it to my Satellite. If you are doing the same, please ensure that you set the correct `Manifest UUID` in `satellite_manifest_uuid`, as well as the
 `satellite_rhsm_username` and `satellite_rhsm_password`. (as described in
 [Registering the system to the Red Hat Customer Portal and installing Red Hat Satellite](#registering-the-system-to-the-red-hat-customer-portal-and-installing-red-hat-satellite)).
 
@@ -406,7 +407,7 @@ Portal and then upload it to my Satellite. If you are doing the same Please ensu
 
 - [Role `redhat.satellite.manifest`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/manifest/)
 - [How to create and use a Red Hat Satellite manifest](https://www.redhat.com/en/blog/how-create-and-use-red-hat-satellite-manifest)
-- [Importing a Red Hat Subscription Manifest into Satellite Server](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_red_hat_subscriptions_content-management#Importing_a_Red_Hat_Subscription_Manifest_into_Server_content-management)
+- [Importing a Red Hat Subscription Manifest into Satellite Server](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_red_hat_subscriptions_content-management#Importing_a_Red_Hat_Subscription_Manifest_into_Server_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -446,7 +447,7 @@ Red Hat repositories are validated by default.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.content_credentials`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_credentials/)
-- [Importing Custom SSL Certificates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Importing_Custom_SSL_Certificates_content-management)
+- [Importing Custom SSL Certificates](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Importing_Custom_SSL_Certificates_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -497,8 +498,8 @@ If you know another way, kindly let me know in the comments below.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.repositories`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/repositories/)
-- [Introduction to Content Management](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Introduction_to_Content_Management_content-management)
-- [Download Policies Overview](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Download_Policies_Overview_content-management)
+- [Introduction to Content Management](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/introduction_to_content_management_content-management)
+- [Download Policies Overview](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Download_Policies_Overview_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -579,8 +580,8 @@ To ensure our content is kept up to date, we are going to create Sync Plans in t
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.sync_plans`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/sync_plans/)
-- [Creating a Sync Plan](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Creating_a_Sync_Plan_content-management)
-- [Assigning a Sync Plan to a Product](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/managing_content/index#Assigning_a_Sync_Plan_to_a_Product_content-management)
+- [Creating a Sync Plan](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Creating_a_Sync_Plan_content-management)
+- [Assigning a Sync Plan to a Product](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/importing_content_content-management#Assigning_a_Sync_Plan_to_a_Product_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -626,7 +627,7 @@ the example below should get you up to speed quickly.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.lifecycle_environments`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/lifecycle_environments/)
-- [Managing Application Life Cycles](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/creating_an_application_life_cycle_content-management)
+- [Managing Application Life Cycles](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_application_lifecycles_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -763,7 +764,7 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.content_views`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/content_views/)
-- [Managing Content Views](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_content_views_content-management)
+- [Managing Content Views](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_content_views_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -816,10 +817,10 @@ As the order matters, I am splitting again the Content Views in the `host_vars` 
 We need to apply some settings in Satellite, as the Operating System definitions depend on Provision Templates that have to be imported prior to defining the Operating Systems.
 The Host Groups and the Activation Keys (which we still need to create) rely on the definitions of the Operating System, thus we need to start with importing the Templates.
 
-I make use of [Satellite's `TemplateSync` Plug-in](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+I make use of [Satellite's `TemplateSync` Plug-in](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts)
 which allows us to import Templates from a Source Code Management (`SCM`) tool (such as GitHub or Git Lab). `TemplateSync` will also assign the Templates to the correct Operating
 System, Organization and Location, if the
-[required metadata](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
+[required metadata](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Importing_Templates_managing-hosts)
 is present in the Template's header.
 
 Again, I have split my variables into several files to not have one very large confusing file. I named the files like the tabs in the
@@ -829,7 +830,7 @@ This chapter essentially covers two steps:
 
 1. Set specific settings in the Satellite, especially the Template Sync settings. But since we are on it, I'll define *all* settings right away to spare me some time.
 1. Run the Template Sync to import the Templates of my [Kickstart Repository on GitHub](https://github.com/sscheib/satellite_templates). The playbook will
-perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Synchronizing_Templates_Using_the_API_managing-hosts)
+perform [the steps that are required to synchronize Templates](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#Enabling_the_TemplateSync_plugin_managing-hosts)
 from git. Please review them prior to running the playbook (`15_satellite_template_sync.yml`).
 
     :warning: You obviously *have* to either fork [my Satellite template repository](https://github.com/sscheib/satellite_templates) or create your own GitHub repository
@@ -843,7 +844,7 @@ from git. Please review them prior to running the playbook (`15_satellite_templa
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.settings`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/settings/)
-- [Synchronizing Template Repositories](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts#doc-wrapper)
+- [Synchronizing Template Repositories](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/synchronizing_templates_repositories_managing-hosts)
 - [GitHub: Managing your personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#fine-grained-personal-access-tokens)
 - [Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6](https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html)
 
@@ -933,7 +934,7 @@ Since the Templates are now imported, we can start creating the Operating System
 <!-- markdownlint-disable MD024 -->
 
 - [Role `redhat.satellite.operatingsystems`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/operatingsystems/)
-- [Creating Operating Systems](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html-single/provisioning_hosts/index#creating-operating-systems_provisioning)
+- [Creating Operating Systems](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/provisioning_hosts/configuring_provisioning_resources_provisioning#creating-operating-systems_provisioning)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -975,7 +976,7 @@ Creating Activation Keys is now possible, as we can refer to the Operating Syste
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.activation_keys`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/activation_keys/)
-- [Managing Activation Keys](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_content/managing_activation_keys_content-management)
+- [Managing Activation Keys](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_content/managing_activation_keys_content-management)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
@@ -1021,7 +1022,7 @@ multiple files.
 <!-- markdownlint-enable MD024 -->
 
 - [Role `redhat.satellite.hostgroups`](https://console.redhat.com/ansible/automation-hub/repo/published/redhat/satellite/content/role/hostgroups/)
-- [Creating a Host Group](https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/administering_hosts_managing-hosts#Creating_a_Host_Group_managing-hosts)
+- [Creating a Host Group](https://access.redhat.com/documentation/en-us/red_hat_satellite/6.14/html/managing_hosts/administering_hosts_managing-hosts#Creating_a_Host_Group_managing-hosts)
 
 <!-- markdownlint-disable MD024 -->
 ### Roles, variables files and playbooks
