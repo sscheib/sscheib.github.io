@@ -1,6 +1,10 @@
 ---
 default: true
 
+# MD003/heading-style
+MD003:
+  style: 'atx'
+
 # MD004/Unordered list style
 MD004:
   style: 'dash'
