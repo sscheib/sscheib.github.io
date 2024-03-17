@@ -1,4 +1,12 @@
 ---
+ci:
+  autofix_prs: false
+  skip:
+    - 'pyspelling'
+    - 'yamllint'
+    - 'markdown-link-check'
+    - 'markdownlint'
+
 repos:
   - repo: 'https://github.com/pre-commit/pre-commit-hooks'
     rev: 'v4.5.0'
