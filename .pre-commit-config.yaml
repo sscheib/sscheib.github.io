@@ -20,6 +20,11 @@ repos:
       - id: 'debug-statements'
       - id: 'destroyed-symlinks'
       - id: 'detect-private-key'
+      - id: 'check-json'
+      - id: 'pretty-format-json'
+        args:
+          - '--no-sort-keys'
+          - '--indent 2'
       - id: 'mixed-line-ending'
         args:
           - '--fix=no'
@@ -58,16 +63,6 @@ repos:
         entry: 'markdown-link-check -vp -c .markdown-link-check.json'
         pass_filenames: true
         files: '.+\.md$'
-        verbose: true
-
-  - repo: 'local'
-    hooks:
-      - id: 'jsonlint'
-        name: 'jsonlint'
-        language: 'node'
-        entry: 'jsonlint --config .jsonlintrc.json'
-        pass_filenames: true
-        files: '.+\.json$'
         verbose: true
 
   - repo: 'https://github.com/igorshubovych/markdownlint-cli'
