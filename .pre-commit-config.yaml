@@ -24,7 +24,7 @@ repos:
       - id: 'pretty-format-json'
         args:
           - '--no-sort-keys'
-          - '--indent 2'
+          - '--indent=2'
       - id: 'mixed-line-ending'
         args:
           - '--fix=no'
