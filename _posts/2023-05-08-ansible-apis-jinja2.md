@@ -241,6 +241,7 @@ I started debugging with the `ansible.builtin.debug` module:
 <!-- markdownlint-disable MD032 -->
 {% highlight yaml %}
 {% raw %}
+
 - ansible.builtin.debug:
     var: __t_service.port
 
@@ -248,7 +249,7 @@ I started debugging with the `ansible.builtin.debug` module:
     msg: '{{ __t_service.port | type_debug }}'
 
 - ansible.builtin.debug:
-    var: __t_service.port | int
+    msg: '{{ __t_service.port | int }}'
 
 - ansible.builtin.assert:
     that:
@@ -326,6 +327,10 @@ lot less painful if it was turned on by default ..
 .. oh well, the next challenge surely won't wait for long. :smile:
 
 ## Change log
+
+### 2024-03-17
+
+- Fixing incorrectly rendered codeblock
 
 ### 2024-03-11
 
