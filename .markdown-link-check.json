@@ -11,6 +11,10 @@
     {
       "___comment___": "ignoring SSHd ciphers",
       "pattern": "^mailto:.+@(openssh.com|libssh.org)$"
+    },
+    {
+      "___comment___": "ignore same page references",
+      "pattern": "^#.+?$"
     }
   ],
   "timeout": "20s",

@@ -34,37 +34,26 @@ repos:
         args:
           - '--markdown-linebreak-ext=md'
 
-  - repo: 'local'
-    hooks:
-      - id: 'pyspelling'
-        name: 'pyspelling'
-        language: 'python'
-        entry: 'pyspelling -v --name markdown --source'
-        files: '.+\.md$'
-        pass_filenames: true
-        verbose: true
-        exclude: '^(datenschutzerklaerung.md)$'
-
-  - repo: 'local'
+  - repo: 'https://github.com/adrienverge/yamllint.git'
+    rev: 'v1.35.1'
     hooks:
       - id: 'yamllint'
-        name: 'yamllint'
-        language: 'python'
-        entry: 'yamllint'
         pass_filenames: true
         verbose: true
-        types:
-          - 'file'
-          - 'yaml'
 
-  - repo: 'local'
+#  - repo: 'https://github.com/facelessuser/pyspelling.git'
+#    # once a release with the pre-commit hook definition is released, this should be replaced (current release: 2.10)
+#    rev: '63e4654f0be643ca0f1676227db24bb7f88dee29'
+#    hooks:
+#      - id: 'pyspelling'
+#        pass_filenames: false
+#        verbose: true
+
+  - repo: 'https://github.com/tcort/markdown-link-check.git'
+    rev: 'v3.12.1'
     hooks:
       - id: 'markdown-link-check'
-        name: 'markdown-link-check'
-        language: 'node'
-        entry: 'markdown-link-check -vp -c .markdown-link-check.json'
         pass_filenames: true
-        files: '.+\.md$'
         verbose: true
 
   - repo: 'https://github.com/igorshubovych/markdownlint-cli'
