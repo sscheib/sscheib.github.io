@@ -35,7 +35,7 @@ matrix:
             # {% comment %} end nospell {% endcomment %}
             #
             - open: '(?m)(\s{0,}?){%(\s+)?comment\2?%}\2?begin\2?nospell\2?{%\2?endcomment\2?%}'
-              content: '[\S\s]+'
+              content: '[\S\s]+?'
               close: '\1{%\2?comment\2?%}\2?end\2?nospell\2?{%\2?endcomment\2?%}'
 
             # ignore liquid highlight blocks
@@ -45,10 +45,40 @@ matrix:
             # {% highlight yaml %}
             # [..]
             # {% endhighlight %}
-            #
             - open: '(?m)^(\s{0,}?){%(\s+)?highlight\2[A-z0-9]+\2?%}'
-              content: '[\S\s]+'
+              content: '[\S\s]+?'
               close: '\1{%\2?endhighlight\2?%}$'
+
+            # ignore single line highlight blocks
+            #
+            # example:
+            #
+            # {% highlight yaml %}{% raw %}${{ secrets.galaxy_api_key }}{% endraw %}{% endhighlight %}
+            - open: '(?s){%(\s+)?highlight\1[A-z0-9]+\1?%}'
+              content: '.+?'
+              close: '{%\1?endhighlight\1?%}'
+
+            #
+            # ignore raw blocks
+            #
+            # example:
+            #
+            # {% raw %}
+            # [..]
+            # {% endraw %}
+            #
+            - open: '(?m)^(\s{0,}?){%(\s+)?raw\2?%}'
+              content: '[\S\s]+?'
+              close: '\1{%\2?endraw\2?%}$'
+
+            # ignore single line raw blocks
+            #
+            # example:
+            #
+            # {% raw %}`{{ __t_service.port }}`{% endraw %}
+            - open: '(?s){%(\s+)?raw\1?%}'
+              content: '.+?'
+              close: '{%\1?endraw\1?%}'
 
             # ignore any liquid tags
             #
@@ -80,9 +110,6 @@ matrix:
 
       - pyspelling.filters.html:
           comments: false
-          attributes:
-            - 'title'
-            - 'alt'
           ignores:
             - ':matches(code, pre)'
 

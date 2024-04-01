@@ -1187,7 +1187,7 @@ sshd:
 <!-- markdownlint-enable MD003 MD022 -->
 
 :information_source: As a side note: Yes, the configuration above is
-[Federal Information Processing Standards (FIPS)](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) compliant :rofl:.
+[Federal Information Processing Standards (`FIPS`)](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) compliant :rofl:.
 
 Finally, there are also `host_vars` for my role `file_deployment`. As an example you'll find below the configuration for one of the hosts:
 
@@ -1704,7 +1704,7 @@ specific format. `Containerfile` and `Dockerfile` definitions are *largely* inte
 interchangeable.
 
 `ansible-builder create` essentially translate an [EE definition](https://ansible.readthedocs.io/projects/builder/en/stable/definition/) into container build steps. That is
-useful if you ever need to modify the Containerfile to your *very*, *very* specific needs before building the container image. *Usually*, `ansible-builder` with the new
+useful if you ever need to modify the `Containerfile` to your *very*, *very* specific needs before building the container image. *Usually*, `ansible-builder` with the new
 Version 3 of the EE definition is enough for the majority of use cases.
 
 Please bear with me a minute, I'll explain shortly what an EE definition looks like.
@@ -1842,7 +1842,7 @@ to use `ansible-navigator collections --execution-environment-image localhost/ee
 instructs `ansible-navigator` to not *pull* the EE, which would otherwise fail. This is *only* for EEs that you've built locally or pulled already from a container registry
 and don't want to update it every time you run `ansible-navigator`. This helps also speed up the ramp-up time of `ansible-navigator` :sunglasses:.
 
-:information_source: `--execution-environment-image` can be shortened with `--eei`. This will give you back plenty of time if you are such a bad typer as I am and type
+:information_source: `--execution-environment-image` can be shortened with `--eei`. This will give you back plenty of time if you are such a bad typist as I am and type
 `--execution-environment-image` wrong at least twice every time I try to use it:rofl:.
 
 Okay great, we have the `ansible-core` version as well as the Ansible collections `redhat.satellite` and `redhat.satellite_operations`.
@@ -1944,7 +1944,7 @@ So, the `context` directory contains the `_build` directory and a `Containerfile
 
 1. `Containerfile`
 
-    This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are pre-defined, but you'll find it contains the
+    This file is essentially the "translation" of the EE definition to "container build language". Of course, certain things are predefined, but you'll find it contains the
     options we specified.
 
     Let's have a look:
@@ -2492,7 +2492,7 @@ additional_build_steps:
 
 #### The complete complex execution environment: Making use of advanced `YAML` syntax
 
-If we combine all the previously discussed customizations into one EE definition, we'll end up with something like this:
+If we combine all the previously discussed modifications into one EE definition, we'll end up with something like this:
 
 ```yaml
 ---
@@ -2778,6 +2778,461 @@ Easy, wasn't it? :sunglasses:
 **A word of caution**: Since we now effectively decoupled pulling Red Hat's certified EE of our "real" EE, you **need** to update your custom `base` EE
 **regularly** as well. Otherwise you don't receive updates of the certified EEs.
 
+### Enabling non-Red Hat repositories
+
+There might be a need for you to enable custom `RPM` repositories, which are not distributed by Red Hat.
+
+`microdnf` is, unfortunately, not up for that task - at least I couldn't find a way to make this work with `microdnf`.
+
+The difference of official Red Hat repositories and custom repositories with regards to `GPG` key signing, is the fact that `UBI` knows about the `GPG` keys Red Hat signs
+the `RPM` packages with. The `GPG` key of Red Hat is certainly different to a custom repository, where you - or a different vendor - signs the packages with a different
+`GPG` key.
+
+In 'usual' operating system usage (on RHEL), there is not much magic to importing a custom `GPG` key for a custom `RPM` repository. It starts to get complicated with `microdnf`
+in `UBI`.
+
+#### The issue
+
+When trying to enable a custom `RPM` repository (in my case `org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8-8-x86_64`) which is provided by my Red Hat Satellite to
+the system which is building the EE, I always receive the following error:
+
+```plaintext
+error: failed to parse public key for /var/cache/yum/metadata/org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8-8-x86_64/gpg_key_content
+```
+
+I started digging around in my EE by spinning up a container using the image `registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16` with `podman`:
+
+```plaintext
+podman run --rm -it registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16 /bin/bash
+```
+
+When inspecting `/etc/yum.repos.d/redhat.repo`, which is the repository configuration file for all repositories provided by a Red Hat Satellite (to which the system needs
+to be subscribed to), we can see the following:
+
+```plaintext
+[satellite-client-6-for-rhel-8-x86_64-rpms]
+name=Red Hat Satellite Client 6 for RHEL 8 x86_64 (RPMs)
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/content/dist/layered/rhel8/x86_64/sat-client/6/os
+enabled=false
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8]
+name=repo-zabbix-zabbix-6_0-rhel-8
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/custom/prd-zabbix-zabbix/repo-zabbix-zabbix-6_0-rhel-8
+enabled=false
+gpgkey=https://satellite.example.com/katello/api/v2/repositories/14/gpg_key_content
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[org-core_prd-elastic-elastic_repo-elastic-elastic-8-el-8]
+name=repo-elastic-elastic-8-el-8
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/custom/prd-elastic-elastic/repo-elastic-elastic-8-el-8
+enabled=false
+gpgkey=https://satellite.example.com/katello/api/v2/repositories/13/gpg_key_content
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[rhel-8-for-x86_64-appstream-rpms]
+name=Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/content/dist/rhel8/$releasever/x86_64/appstream/os
+enabled=true
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[rhel-8-for-x86_64-baseos-rpms]
+name=Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/content/dist/rhel8/$releasever/x86_64/baseos/os
+enabled=true
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+```
+
+According to the above repository configuration file, I should be able to retrieve the `GPG` key for the repository `org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8`
+via the URL `https://satellite.example.com/katello/api/v2/repositories/14/gpg_key_content`.
+
+Let's download it, and parse it with `gpg` to check if it actually is a valid `GPG` public key:
+
+```terminal
+bash-4.4# curl -k https://satellite.example.com/katello/api/v2/repositories/14/gpg_key_content -o /tmp/zabbix-gpg
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2938  100  2938    0     0   1438      0  0:00:02  0:00:02 --:--:--  1438
+bash-4.4# gpg --show-keys --with-fingerprint /tmp/zabbix-gpg  
+pub   dsa1024 2012-10-28 [SC]
+      FBAB D5FB 2025 5ECA B22E  E194 D13D 58E4 79EA 5ED4
+uid                      Zabbix SIA <packager@zabbix.com>
+sub   elg1024 2012-10-28 [E]
+
+pub   rsa2048 2016-07-15 [SC]
+      A184 8F53 52D0 22B9 471D  83D0 082A B56B A14F E591
+uid                      Zabbix LLC <packager@zabbix.com>
+sub   rsa2048 2016-07-15 [E]
+```
+
+:information_source: The `-k` option of `curl` allows for insecure connections to my Satellite. The reason being, that the EE does not trust the certificate authority I have
+signed the Satellite's certificate with. This can, of course, be circumvented by adding the appropriate certificate authority certificates to `/etc/pki/ca-trust/source/anchors`
+and update the certificate authority database using `update-ca-trust`.
+
+That looks good, let's try to import the downloaded `GPG` key with the `rpm` command:
+
+```terminal
+bash-4.4# rpm --import /etc/pki/rpm-gpg/zabbix-gpg
+bash-4.4# echo $?
+0
+bash-4.4# rpm -q --queryformat "%{SUMMARY}\n" $(rpm -q gpg-pubkey)
+gpg(Red Hat, Inc. (release key 2) <security@redhat.com>)
+gpg(Red Hat, Inc. (auxiliary key) <security@redhat.com>)
+gpg(Zabbix SIA <packager@zabbix.com>)
+gpg(Zabbix LLC <packager@zabbix.com>)
+```
+
+Okay, great, let's try to install a package from that repository: `zabbix-sender`
+
+```terminal
+bash-4.4# microdnf install --enablerepo=*zabbix* zabbix-sender
+Downloading metadata...
+Downloading metadata...
+Downloading metadata...
+Package                                                                                                                         Repository                                Size
+Installing:
+ zabbix-sender-6.0.27-release1.el8.x86_64                                                                                       org-core_prd-zabbix-zabbix_repo-zabb     457.5 kB
+Transaction Summary:
+ Installing:        1 packages
+ Reinstalling:      0 packages
+ Upgrading:         0 packages
+ Obsoleting:        0 packages
+ Removing:          0 packages
+ Downgrading:       0 packages
+Downloading packages...
+error: failed to parse public key for /var/cache/yum/metadata/org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8-8-x86_64/gpg_key_content
+```
+
+Even when downloading the `GPG` key and specifying it as file in `/etc/yum.repos.d/redhat.repo`, the same error would persist:
+
+```terminal
+bash-4.4# cat /etc/yum.repos.d/redhat.repo
+[..]
+
+[org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8]
+name=repo-zabbix-zabbix-6_0-rhel-8
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/custom/prd-zabbix-zabbix/repo-zabbix-zabbix-6_0-rhel-8
+enabled=false
+gpgkey=file:///tmp/zabbix-gpg
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[..]
+bash-4.4# microdnf clean all
+Complete.
+bash-4.4# microdnf install --enablerepo=*zabbix* zabbix-sender
+Downloading metadata...
+Downloading metadata...
+Downloading metadata...
+Package                                                                                                                         Repository                                Size
+Installing:
+ zabbix-sender-6.0.27-release1.el8.x86_64                                                                                       org-core_prd-zabbix-zabbix_repo-zabb     457.5 kB
+Transaction Summary:
+ Installing:        1 packages
+ Reinstalling:      0 packages
+ Upgrading:         0 packages
+ Obsoleting:        0 packages
+ Removing:          0 packages
+ Downgrading:       0 packages
+Downloading packages...
+error: failed to parse public key for /var/cache/yum/metadata/org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8-8-x86_64/gpg_key_content
+```
+
+I **think** that is because `microdnf` updates the contents of `/etc/yum.repos.d/*` *every time* `microdnf` is invoked. Let's see if we can spot the update while watching
+the file `/etc/yum.repos.d/redhat.repo` in a `tmux` session.
+
+First, we need to install `tmux` and `procps-ng` - the latter provides the `watch` command:
+
+```plaintext
+microdnf install tmux procps-ng
+```
+
+Then create a new `tmux` session by running `tmux` followed by creating a horizontal split of the current `tmux` window using `CTRL` + `b` `"`.
+
+In either of the so-called `panes`, first, we'll update `/etc/yum.repos.d/redhat.repo` to specify the `GPG` key as local file:
+
+```plaintext
+[..]
+
+[org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8]
+name=repo-zabbix-zabbix-6_0-rhel-8
+baseurl=https://satellite.example.com/pulp/content//org-core/lce-default-prod/ccv-default-rhel-8/custom/prd-zabbix-zabbix/repo-zabbix-zabbix-6_0-rhel-8
+enabled=false
+gpgkey=file:///tmp/zabbix-gpg
+gpgcheck=true
+metadata_expire=1
+sslclientcert=/etc/pki/entitlement-host/3057439186715165628.pem
+sslclientkey=/etc/pki/entitlement-host/3057439186715165628-key.pem
+sslcacert=/etc/rhsm-host/ca/katello-server-ca.pem
+sslverify=true
+
+[..]
+```
+
+Next, we'll create a copy of the file to `/tmp/redhat.repo`. We'll use that together with `diff` to find any possible differences:
+
+```terminal
+[root@612c8f7fbb1e runner]# cp /etc/yum.repos.d/redhat.repo /tmp/redhat.repo
+[root@612c8f7fbb1e runner]# diff /etc/yum.repos.d/redhat.repo /tmp/redhat.repo
+[root@612c8f7fbb1e runner]#
+```
+
+The files are, of course, equal at this point.
+
+Let's run `watch` and switch to our other `pane` to run `microdnf`:
+
+```terminal
+watch -n1 diff /etc/yum.repos.d/redhat.repo /tmp/redhat.repo
+```
+
+Next, switch the `pane` by using `CTRL` + `b` `o` and try installing the `zabbix-sender` package again:
+
+```terminal
+[root@612c8f7fbb1e runner]#  microdnf install --enablerepo=*zabbix* zabbix-sender
+
+[..]
+
+error: failed to parse public key for /var/cache/yum/metadata/org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8-8-x86_64/gpg_key_content
+```
+
+The outcome is the same - as expected. But now, look at what the other command captured:
+
+```terminal
+Every 1.0s: diff /etc/yum.repos.d/redhat.repo /tmp/redhat.repo
+
+17c17
+< gpgkey=https://satellite.example.com/katello/api/v2/repositories/14/gpg_key_content
+---
+> gpgkey=file:///tmp/zabbix-gpg
+```
+
+Immediately at the start of `microdnf`, the file content changed and was reverted to the original `gpgkey` line.
+
+As I said, I couldn't figure out a way to make this work with `microdnf`. :pensive:
+
+#### Solutions to the problem
+
+So what's the solution to the problem then, I hear you ask. Well, there are two ways we can make this work:
+
+1. Disable `GPG` key checking for that specific repository
+1. Think a little outside the box
+
+I dislike the first option, as disabling `GPG` key checking is *never* a good idea - plus I like the idea of the second option (bear with me, we'll get to it in a minute)
+:sunglasses:.
+
+Let's briefly look into disabling `GPG` key checking for a specific repository. We'll utilize the `--setopt` parameter of `microdnf` to set the option `gpgcheck` to `0` for
+the specific repository that fails `GPG` validation: `org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8`.
+
+This will look something like this:
+
+```terminal
+[root@612c8f7fbb1e runner]# microdnf install zabbix-sender --enablerepo=*zabbix* --setopt org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8.gpgcheck=0
+Downloading metadata...
+Downloading metadata...
+Downloading metadata...
+Package                                                                                                                         Repository                            Size
+Installing:
+ zabbix-sender-6.0.27-release1.el8.x86_64                                                                                       org-core_prd-zabbix-zabbix_repo-zabb  457.5 kB
+Transaction Summary:
+ Installing:        1 packages
+ Reinstalling:      0 packages
+ Upgrading:         0 packages
+ Obsoleting:        0 packages
+ Removing:          0 packages
+ Downgrading:       0 packages
+Running transaction test...
+Installing: zabbix-sender;6.0.27-release1.el8;x86_64;org-core_prd-zabbix-zabbix_repo-zabbix-zabbix-6_0-rhel-8
+Complete.
+```
+
+Perfect, `zabbix-sender` is installed.
+
+This can be set during EE build with the environment variable `PKGMGR_OPTS`. It's exactly the same as described in the
+[Enabling and disabling repositories](#enabling-and-disabling-repositories) section.
+
+Again, I dislike the option of disabling `GPG` validation for security reasons.
+
+So, what's the other option then?
+
+While playing around in the EE, I thought: What about I try installing the package with `dnf` instead of `microdnf`?!
+
+As it turns out: This seems to work perfectly fine. No disabling of `GPG` validation or anything fancy required - just a `microdnf install -y dnf` followed by
+`dnf install -y zabbix-sender`.
+
+Let's see if we can implement that into an EE definition.
+
+We *need* to change two things:
+
+1. Adjust the option `package_manager_path` to use `dnf` instead of `microdnf` - or leave it in fact on it's default value, which will use `dnf`
+1. Prepend a step to each build step that utilizes `dnf`, to install `dnf`. That is to ensure `dnf` is available
+1. Optionally, append a step after each build step that utilizes `dnf` to remove `dnf` again, as we do not need it anymore. This saves a little space :slightly_smiling_face:
+
+Based on the above [EE definition](#the-complete-complex-execution-environment-making-use-of-advanced-yaml-syntax), and adding additionally the installation of `zabbix-sender`
+from a custom 3rd-party repository, as well as incorporating the above steps, an example EE definition can look something like this:
+
+:warning: Please read the notes after the EE definition example. Removing `dnf` is not as straight forward as one would imagine and is certainly not without risk. I am just
+showcasing that it *can* be done - but it is certainly nothing I'd recommend doing.
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16'
+
+dependencies:
+  galaxy: 'requirements.yml'
+  python: 'requirements.txt'
+  system: 'bindep.txt'
+
+options:
+  package_manager_path: '/usr/bin/dnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+    - src: 'ca.cert.pem'
+      dest: 'certs/'
+
+    - src: 'intermediate.cert.pem'
+      dest: 'certs/'
+
+additional_build_steps:
+  prepend_base:
+    - &copy-certs |-
+        COPY _build/certs/* /etc/pki/ca-trust/source/anchors/
+        RUN update-ca-trust
+
+    - &system-proxy |-
+        ENV https_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128
+        ENV http_proxy=http://lab-development-rhel8.core.rh.scheib.me:3128
+    - &pip |-
+        RUN pip3 config --user set global.index-url http://lab-development-rhel8.core.rh.scheib.me/simple
+        RUN pip3 config --user set global.trusted-host lab-development-rhel8.core.rh.scheib.me
+        RUN pip3 config --user set global.proxy http://lab-development-rhel8.core.rh.scheib.me:3128
+
+  prepend_galaxy:
+    - *copy-certs
+    - *system-proxy
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+
+  prepend_builder:
+    - *copy-certs
+    - *system-proxy
+    - *pip
+    - &enable-ubi |-
+       ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-*"
+
+    - &install-dnf |-
+        RUN rpm -qa | sort > /tmp/before
+        RUN microdnf install -y dnf
+        RUN rpm -qa | sort > /tmp/after
+
+    - &manage-repos >-
+       ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --disablerepo=* --enablerepo=ubi-8-* --enablerepo=*zabbix*"
+
+  append_builder:
+    - &remove-dnf |-
+        RUN dnf clean all
+        RUN dnf --setopt=protected_packages="" --setopt=protect_running_kernel=false \
+            remove -y $(comm -13 /tmp/before /tmp/after)
+
+    - &clean-dnf |-
+        RUN rm -rf /tmp/before /tmp/after
+        RUN rm -rf /var/cache/dnf /var/cache/yum
+        RUN rm -rf /var/lib/dnf/history.sqlite /var/lib/dnf/history.sqlite-shm /var/lib/dnf/history.sqlite-wal
+        RUN rm -rf /var/log/dnf.librepo.log /var/log/dnf.log /var/log/dnf.rpm.log /var/log/hawkey.log
+
+  prepend_final:
+    - *copy-certs
+    - *system-proxy
+    - *pip
+    - *enable-ubi
+    - *install-dnf
+    - *manage-repos
+
+  append_final:
+    - *remove-dnf
+    - *clean-dnf
+...
+```
+
+:information_source: The file `bindep.txt` merely contains `zabbix-sender` as package.
+
+You might notice that in the above EE definition we do some 'fancy' things. Let me break them down one by one:
+
+1. Removing `dnf` again after we are done using it
+
+    Unfortunately, `microdnf` [does not support](https://github.com/rpm-software-management/microdnf/issues/45) something like the `dnf` option `autoremove`.
+    For that reason we need to save the installed packages *before* we install `dnf` and *after* we installed `dnf`. This allows us to compare what was installed
+    as dependencies with `dnf`, so that we are able to remove those dependencies later again.
+
+    By default, both `dnf` and `microdnf` will prevent us from removing `dnf`, as it is considered a
+    [`protected` package](https://rpm-software-management.github.io/dnf-plugins-core/protected_packages.html) - and rightfully so. According to the
+    [documentation](https://rpm-software-management.github.io/dnf-plugins-core/protected_packages.html) of the `protected_packages` `dnf` plugin, disabling the plugin *should*
+    work by providing `--disableplugin=protected_packages` to `dnf`, but I couldn't make it work.
+
+    Instead, we set the `protected_packages` to an empty list. Further, the other required option is `protect_running_kernel=false`, otherwise we would not be able
+    to remove `dnf`.
+
+    Finally, we pass the the differences of `/tmp/before` and `/tmp/after` using [`comm`](https://www.gnu.org/software/coreutils/manual/html_node/comm-invocation.html) to the
+    `dnf` remove command to remove the leftover dependencies.
+
+    :warning: Removing `dnf` is **dangerous**. We risk breaking other packages' dependencies when forcefully removing the dependencies of `dnf`. I recommend to leaving `dnf` and
+    its dependencies installed, although this results in a *slightly* larger image.
+
+1. Removing left over log files
+
+     Additionally to removing `dnf`, we should clean up all log files of `dnf` and `microdnf`. This is usually done by default, but since we are appending something to the end of
+     a build stage and are invoking `microdnf` again, we should once more ensure that unnecessary log files are removed.
+
+     Finally, we remove the two temporary files we needed to compare the before and after `RPMs`.
+
+:warning: **Another word of caution**: Removing protected packages is something I **cannot** recommend to do, as it might have unexpected consequences. I don't know of any at
+the moment, but I imagine there is a risk of breaking *something*. After all, the size difference before and after installing `dnf` was roughly 80 megabytes. Given that the
+image is already roughly ~900+ megabytes big, the additional 80 will not make a big difference, in my opinion.
+
+Of course, you can build your very own [base image](#using-custom-base-images) and incorporate the installation of `dnf` in the base image. This would remove the need of
+installing and removing `dnf` at every build stage where packages are installed.
+
+You could add the installation to your base image and the removal as the very last step in your actual EE. That way you'd still save some space.
+
+But again: **I strongly recommend not removing `dnf` again, as it can possibly break *something*.**
+
 ## Conclusion
 
 I *think* I am done. Honestly, I kind of lost the overview with all the topics - it turned out to be longer than I anticipated :rofl:.
@@ -2791,6 +3246,11 @@ If you have any questions, just leave a comment and I might be able to incorpora
 Steffen
 
 ## Change log
+
+### 2024-04-01
+
+- Adding a section about [enabling custom repositories](#enabling-non-red-hat-repositories)
+- Spelling fixes
 
 ### 2024-03-12
 
