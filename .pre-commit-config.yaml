@@ -40,6 +40,7 @@ repos:
       - id: 'yamllint'
         pass_filenames: true
         verbose: true
+        strict: true
 
 #  - repo: 'https://github.com/facelessuser/pyspelling.git'
 #    # once a release with the pre-commit hook definition is released, this should be replaced (current release: 2.10)
@@ -53,6 +54,9 @@ repos:
     rev: 'v3.12.1'
     hooks:
       - id: 'markdown-link-check'
+        args:
+          - '-c'
+          - '.markdown-link-check.json'
         pass_filenames: true
         verbose: true
 
