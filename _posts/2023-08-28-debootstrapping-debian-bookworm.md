@@ -1,5 +1,5 @@
 ---
-title: Manually installing Debian 12 (Bookworm) with fully encrypted `LUKS` (besides /boot) using debootstrap
+title: Manually installing Debian 12 (Bookworm) with fully encrypted LUKS (besides /boot) using debootstrap
 author: Steffen Scheib
 ---
 ## Introduction
@@ -383,9 +383,12 @@ The differences are only a few simple things:
 
 In order to implement and use `LVM` we need to follow the following approach:
 
-1. Create a [physical volume](https://tldp.org/HOWTO/LVM-HOWTO/pv.html) (`PV`) using `pvcreate` on top of the decrypted `LUKS` partition
-1. Create a [volume group](https://tldp.org/HOWTO/LVM-HOWTO/vg.html) (`VG`) using `vgcreate` on top of the physical volume
-1. Create several [logical volumes](https://tldp.org/HOWTO/LVM-HOWTO/lv.html) (`LV`) using `lvcreate` on top of the volume group
+1. Create a [physical volume](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-physical-volumes_configuring-and-managing-logical-volumes#doc-wrapper)
+   (`PV`) using `pvcreate` on top of the decrypted `LUKS` partition
+1. Create a [volume group](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-volume-groups_configuring-and-managing-logical-volumes#doc-wrapper)
+   (`VG`) using `vgcreate` on top of the physical volume
+1. Create several [logical volumes](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-logical-volumes_configuring-and-managing-logical-volumes)
+   (`LV`) using `lvcreate` on top of the volume group
 
 ## Creating a physical volume on top of the `LUKS` partition
 
@@ -1685,7 +1688,7 @@ In the following table I summarized the flags (mount options) for each mount poi
 | `/home`           | `rw,nosuid,nodev`          | For security reasons, you should consider adding `nosuid,nodev`           |
 | `swap`            | `sw`                       | -                                                                         |
 
-Please note, the hardening mount options are taken from the [CIS Benchmark for Debian Bullseye](https://www.cisecurity.org/benchmark/debian_linux).
+Please note, the hardening mount options are taken from the [`CIS` Benchmark for Debian Bullseye](https://www.cisecurity.org/benchmark/debian_linux).
 
 The end result will look something like this:
 
@@ -2356,6 +2359,11 @@ root@rescue ~ #
 ```
 
 ## Change log
+
+### 2024-04-01
+
+- Replacing dead `tldp.org` links with `access.redhat.com` links, which describe the `LVM` way better
+- Spelling fix
 
 ### 2024-03-11
 
