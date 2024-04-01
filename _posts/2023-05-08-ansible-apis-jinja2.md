@@ -328,9 +328,13 @@ lot less painful if it was turned on by default ..
 
 ## Change log
 
+### 2024-04-01
+
+- Spelling fix
+
 ### 2024-03-17
 
-- Fixing incorrectly rendered codeblock
+- Fixing incorrectly rendered code block
 
 ### 2024-03-11
 
