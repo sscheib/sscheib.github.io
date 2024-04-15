@@ -15,4 +15,8 @@ jobs:
         with:
           folder-path: '_posts/'
           config-file: '.markdown-link-check.json'
+          check-modified-files-only: true
+          use-verbose-mode: true
+          base-branch: 'main'
+          file-extension: '.md'
 ...
