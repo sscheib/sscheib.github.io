@@ -9,6 +9,10 @@
       "pattern": "^https?://(:?www\\.)?cloudflare.com"
     },
     {
+      "___comment___": "raspberrypi.com *always* returns 403, probably because of their DDoS protection",
+      "pattern": "^https?://(?:www\\.)?raspberrypi.com"
+    },
+    {
       "___comment___": "ignoring SSHd ciphers",
       "pattern": "^mailto:.+@(openssh.com|libssh.org)$"
     },
