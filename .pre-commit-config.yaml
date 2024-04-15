@@ -12,25 +12,51 @@ repos:
     rev: 'v4.5.0'
     hooks:
       - id: 'check-executables-have-shebangs'
+        stages:
+          - 'pre-commit'
       - id: 'check-merge-conflict'
+        stages:
+          - 'pre-commit'
         args:
           - '--assume-in-merge'
       - id: 'check-json'
+        stages:
+          - 'pre-commit'
       - id: 'check-shebang-scripts-are-executable'
+        stages:
+          - 'pre-commit'
       - id: 'check-symlinks'
+        stages:
+          - 'pre-commit'
       - id: 'check-toml'
+        stages:
+          - 'pre-commit'
       - id: 'check-xml'
+        stages:
+          - 'pre-commit'
       - id: 'debug-statements'
+        stages:
+          - 'pre-commit'
       - id: 'destroyed-symlinks'
+        stages:
+          - 'pre-commit'
       - id: 'detect-private-key'
+        stages:
+          - 'pre-commit'
       - id: 'mixed-line-ending'
+        stages:
+          - 'pre-commit'
         args:
           - '--fix=no'
       - id: 'pretty-format-json'
+        stages:
+          - 'pre-commit'
         args:
           - '--no-sort-keys'
           - '--indent=2'
       - id: 'trailing-whitespace'
+        stages:
+          - 'pre-commit'
         args:
           - '--markdown-linebreak-ext=md'
 
@@ -38,6 +64,8 @@ repos:
     rev: 'v1.35.1'
     hooks:
       - id: 'yamllint'
+        stages:
+          - 'pre-commit'
         pass_filenames: true
         verbose: true
         args:
@@ -48,6 +76,8 @@ repos:
     rev: '63e4654f0be643ca0f1676227db24bb7f88dee29'
     hooks:
       - id: 'pyspelling'
+        stages:
+          - 'pre-commit'
         pass_filenames: false
         verbose: true
 
@@ -55,6 +85,8 @@ repos:
     rev: 'v3.12.1'
     hooks:
       - id: 'markdown-link-check'
+        stages:
+          - 'pre-commit'
         args:
           - '-c'
           - '.markdown-link-check.json'
@@ -65,6 +97,8 @@ repos:
     rev: 'v0.39.0'
     hooks:
       - id: 'markdownlint'
+        stages:
+          - 'pre-commit'
         verbose: true
         pass_filenames: true
 
