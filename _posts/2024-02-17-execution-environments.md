@@ -1458,6 +1458,31 @@ But wait a minute - why does it know about my files in `playbooks/files` and eve
 way to go**. This ensures portability and eliminates the typical problems of ".. but it works on my machine!". I just wanted to show case what's possible with
 `ansible-navigator` :sweat_smile:
 
+### Mounting certificates inside the `EE` while using `ansible-navigator`
+
+At times you might not want to build a new `EE` to provide an `EE` with your custom certificates. For this instance, you can utilize the
+[aforementioned](#running-playbooks-in-ansible-navigator) [`volume mounts`](https://docs.podman.io/en/latest/markdown/podman-volume-mount.1.html) with a special flag: `:O`.
+
+The [flag `:O`](https://docs.podman.io/en/v4.9.0/markdown/podman-run.1.html#volume-v-source-volume-host-dir-container-dir-options) mounts the directory as
+[`Overlay filesystem`](https://docs.kernel.org/filesystems/overlayfs.html), which makes it 'immutable'. Any changes to a mounted `Overlay filesystem` are temporary and will
+only happen in the container's context - not on the host the mount originated from.
+
+Additionally, `podman` applies the `private` `SELinux label` to the mount, which is the same as when specifying `:z` (as we used [above](#running-playbooks-in-ansible-navigator)).
+
+This enables you to use it [`rootless`](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) in `podman`, without the need to relabel the
+`SELinux` labels on your certificates.
+
+To make use of this feature for your certificates, you'll need to specify the following in your `ansible-navigator` configuration file:
+
+```yaml
+volume-mounts:
+  - src: '/etc/pki/ca-trust'
+    dest: '/etc/pki/ca-trust'
+    options: 'O'
+```
+
+Of course, you can mount all sorts of host directories the same way - this is not specifically tied to certificates.
+
 ## Building custom EEs with `ansible-builder`
 
 Now that we learned a ton of stuff about `ansible-navigator` and its capabilities, let's take a closer look at `ansible-builder`.
@@ -3246,6 +3271,11 @@ If you have any questions, just leave a comment and I might be able to incorpora
 Steffen
 
 ## Change log
+
+### 2024-04-25
+
+- Adding a section about [mounting certificates into an `EE`](#mounting-certificates-inside-the-ee-while-using-ansible-navigator). Thanks to my colleague
+  [Jason Breitweg](https://github.com/tuxpreacher) for discussing this with me!
 
 ### 2024-04-01
 
