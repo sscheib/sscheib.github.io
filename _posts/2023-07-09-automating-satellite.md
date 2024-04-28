@@ -1,6 +1,7 @@
 ---
 title: Automating Red Hat Satellite 6 - End to End
 author: Steffen Scheib
+last_modified_at: 2024-03-17
 ---
 <!-- markdownlint-disable MD033 -->
 {% raw %}

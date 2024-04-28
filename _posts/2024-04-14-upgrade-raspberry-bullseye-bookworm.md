@@ -1,6 +1,7 @@
 ---
 title: Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm)
 author: Steffen Scheib
+last_modified_at: 2024-04-15
 ---
 ## Preface
 

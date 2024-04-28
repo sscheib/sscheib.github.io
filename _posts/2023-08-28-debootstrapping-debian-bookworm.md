@@ -1,6 +1,7 @@
 ---
 title: Manually installing Debian 12 (Bookworm) with fully encrypted LUKS (besides /boot) using debootstrap
 author: Steffen Scheib
+last_modified_at: 2024-04-01
 ---
 ## Introduction
 

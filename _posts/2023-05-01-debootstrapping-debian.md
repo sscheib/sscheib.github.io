@@ -1,6 +1,7 @@
 ---
 title: Manually installing Debian 11 (Bullseye) with fully encrypted LUKS (besides /boot) using debootstrap
 author: Steffen Scheib
+last_modified_at: 2024-04-01
 ---
 ## Introduction
 
@@ -373,14 +374,14 @@ And will leave us with following logical volumes:
 ```terminal
 root@rescue ~ # lvs
   LV            VG        Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-  home          vg_system -wi-a-----  4.00g  
-  root          vg_system -wi-a----- 16.00g  
-  swap          vg_system -wi-a----- 16.00g  
-  tmp           vg_system -wi-a-----  4.00g  
-  var           vg_system -wi-a----- 32.00g  
-  var_log       vg_system -wi-a-----  8.00g  
-  var_log_audit vg_system -wi-a-----  2.00g  
-  var_tmp       vg_system -wi-a-----  4.00g  
+  home          vg_system -wi-a-----  4.00g
+  root          vg_system -wi-a----- 16.00g
+  swap          vg_system -wi-a----- 16.00g
+  tmp           vg_system -wi-a-----  4.00g
+  var           vg_system -wi-a----- 32.00g
+  var_log       vg_system -wi-a-----  8.00g
+  var_log_audit vg_system -wi-a-----  2.00g
+  var_tmp       vg_system -wi-a-----  4.00g
 root@rescue ~ #
 ```
 
@@ -388,7 +389,7 @@ root@rescue ~ #
 
 ```terminal
 root@rescue ~ # vgs
-  VG        #PV #LV #SN Attr   VSize    VFree  
+  VG        #PV #LV #SN Attr   VSize    VFree
   vg_system   1   8   0 wz--n- <442.94g <356.94g
 root@rescue ~ #
 ```
@@ -1035,7 +1036,7 @@ HTTP request sent, awaiting response... 200 OK
 Length: 76416 (75K) [application/x-debian-package]
 Saving to: ‘debootstrap_1.0.124_all.deb’
 
-debootstrap_1.0.124_all.deb                100%[=======================================================================================>]  74.62K  --.-KB/s    in 0.03s  
+debootstrap_1.0.124_all.deb                100%[=======================================================================================>]  74.62K  --.-KB/s    in 0.03s
 
 2021-08-22 12:42:35 (2.30 MB/s) - ‘debootstrap_1.0.124_all.deb’ saved [76416/76416]
 
@@ -1271,7 +1272,7 @@ Let’s update the cache .. :slightly_smiling_face:
 
 ```terminal
 root@rescue:/# apt-get update
-Fetched 22.9 MB in 3s (8565 kB/s)  
+Fetched 22.9 MB in 3s (8565 kB/s)
 [..]
 Reading package lists... Done
 Building dependency tree... Done
@@ -2061,7 +2062,7 @@ Installing `Fail2Ban` is best-practice with systems facing the internet directly
 ```terminal
 root@rescue:/# apt-get install -y fail2ban
 Reading package lists... Done
-Building dependency tree  
+Building dependency tree
 Reading state information... Done
 The following additional packages will be installed:
   python3-pyinotify python3-systemd whois

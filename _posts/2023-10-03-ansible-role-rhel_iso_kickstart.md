@@ -1,6 +1,7 @@
 ---
 title: Ansible role rhel_iso_kickstart
 author: Steffen Scheib
+last_modified_at: 2024-03-11
 ---
 ## Preface
 
