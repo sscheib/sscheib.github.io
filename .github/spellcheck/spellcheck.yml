@@ -100,7 +100,7 @@ matrix:
             # author: John and Jane Doe
             # ---
             #
-            - open: '(?s)^(?:title|author):'
+            - open: '(?s)^(?:title|author|last_modified_at):'
               content: '[^\n]+'
               close: '$'
 

@@ -1,6 +1,7 @@
 ---
 title: Ansible Automation Platform - Automating the execution of job templates and leveraging the 'prompt on launch' feature
 author: Steffen Scheib
+last_modified_at: 2024-03-09
 ---
 ## Introduction
 
