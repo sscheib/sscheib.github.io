@@ -82,8 +82,10 @@ As such data retrieved from the APIs of those systems will not always return *wh
 
 To name a random made up scenario:
 
-You retrieved a list of hosts of from your Red Hat Satellite and want to check which of those systems are on a particular hypervisor in your `VMware vCenter` to shut them down
-to perform some activity. Again, this is just something made up to set the scene :rofl:.
+You retrieved a list of hosts of from your Red Hat Satellite and want to check which of those systems are on a particular hypervisor in your VMware vCenter to shut them down
+to perform some activity.
+
+:information_source: Again, this is just something made up to set the scene :rofl:.
 
 What most people typically end up doing is something like (pseudo-code below):
 
@@ -101,7 +103,7 @@ How I would do it, is the following (again, pseudo-code):
 
 {% gist 8d5b5789538aee4c5c3a118dbb5bec3e %}
 
-If you wanted to have a list as fact, I'd go with:
+If you wanted to have a list as a fact, I'd go with:
 
 {% gist 6b19791bb6f284f6f334515cd105a554 %}
 
@@ -128,8 +130,9 @@ Besides the filters included in [`ansible.builtin`](https://docs.ansible.com/ans
 [`Jinja2`](https://jinja.palletsprojects.com/en/3.1.x/templates/#list-of-builtin-filters), there are various other filters, which are incredible handy to know about.
 One example are the filters included in [`ansible.utils`](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#filter-plugins).
 
-You also *need* to know about the concept of [`Jinja2 tests`](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html) and the various `test plugins` you can
-utilize. Much like the filters, tests are available from [`ansible.builtin`](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#test-plugins) and
+You also *need* to know about the concept of [`Jinja2 tests`](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html) and the various
+[`test plugins`](https://docs.ansible.com/ansible/latest/plugins/test.html) you can utilize. Much like the filters, tests are available from
+[`ansible.builtin`](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#test-plugins) and
 [`Jinja2`](https://jinja.palletsprojects.com/en/3.1.x/templates/#list-of-builtin-tests) as well as other collections like
 [`ansible.utils`](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#test-plugins).
 
@@ -146,7 +149,7 @@ Let's discuss these issues one by one.
 
 ### Syntax and coding guideline
 
-The first issue, is easily fixed by adapting [`YAML Multiline Syntax`](https://yaml-multiline.info/). There is no reason to not use the `YAML Multiline Syntax` - there is nothing
+The first issue, is easily fixed by adapting [`YAML Multiline Syntax`](https://yaml-multiline.info/). There is no reason to not make use of the `YAML Multiline Syntax` - there is nothing
 to be afraid of. Sure, it takes time to get it right, but once you practice it, it becomes easy.
 
 I decided for myself to put *every* filter on a new line and indent the code by two spaces if it is a nested expression. This greatly improves readability.
@@ -162,7 +165,7 @@ There a various ways nested expression can occur, I have some complex examples i
 
 ### Learning curve and different way of working
 
-The second and third issue can be grouped, as it basically refers to the same thing.
+The second and third issue can be grouped, as they basically refers to the same thing: Learning something new.
 
 Yes, the learning curve is pretty high. It took me quite some time to adapt to this way of writing Ansible code. In the beginning it felt very wrong and I had a hard time wrapping
 my head around **how** the filters work and 'interact' with each other.
@@ -177,7 +180,8 @@ apply the corresponding filtering and then convert it back to a dictionary with
 
 This is *significantly* quicker than anything you can achieve with `loops`.
 
-There are cases, however, where you *need* to use `loops`, but can still heavily benefit from the 'inline-filtering'.
+There are cases, however, where you *need* to use `loops`, but can still heavily benefit from the 'inline-filtering'. In the next chapter we'll pick one example where I needed
+loops and 'inline-filtering' together.
 
 ### A complex example broken down
 
@@ -185,9 +189,11 @@ Okay, let's break down the complex example I showed you earlier:
 
 {% gist c96be566ba3b73665b416b71ab0fae63 %}
 
-The context is that in the role, I have a set of `Content Views` I loop over and need to check if their definition (which is defined in `_satellite_content_views`) contains
+First, I'd like to provide you some context:
+
+I have a set of `Content Views` over which I loop and need to check if their definition (which is defined in `_satellite_content_views`) contains
 any `Lifecycle Environments` the `Content View` should be `promoted` to. Additionally, I want to make sure that those `Content Views` are not `promoted` to any
-`Lifecycle Environments` which are not 'allowed' (which are defined by the user, optionally).
+`Lifecycle Environments` which are not 'allowed'. Allowed `Lifecycle Environments` are optional and specified via `__t_allowed_lifecycle_environments`.
 
 Don't worry if that doesn't make much sense to you if you've never worked with Red Hat Satellite. We are specifically looking at the code; I just wanted to give a little context.
 
@@ -202,8 +208,8 @@ Let's start with the expression that gets us started:
 )
 ```
 
-With the above we are selecting all items from `_satellite_content_views` that match `__t_content_view.name` (which is our current item). Of those items that matched the
-earlier expression, we select the items that have the attribute `lifecycle_environments` defined. Lastly we check with the `length` filter if there are any items left.
+With the above we are selecting all items from `_satellite_content_views` that match `__t_content_view.name` (which is our current item's `name` attribute). Of those items that
+matched the earlier expression, we select the items that have the attribute `lifecycle_environments` defined. Lastly we check with the `length` filter if there are any items left.
 
 This expression results either in `true` or `false`.
 
@@ -245,8 +251,8 @@ map(attribute='lifecycle_environments') |
 ansible.builtin.flatten |
 ```
 
-With the above expression we are again selecting all items from `_satellite_content_views` that match `__t_content_view.name` (which is our current item). Of those items that
-matched the earlier expression we again select those that have the attribute `lifecycle_environments` defined. Then we go ahead and extract only the names of the
+With the above expression we are again selecting all items from `_satellite_content_views` that match `__t_content_view.name` (which is our current item's `name` attribute). Of
+those items that matched the earlier expression we again select those that have the attribute `lifecycle_environments` defined. Then we go ahead and extract only the names of the
 `Lifecycle Environment`. This will end up in a nested list, so we lastly `flatten` that list with `ansible.builtin.flatten`.
 
 At this point we have data that looks something like this:
@@ -320,7 +326,7 @@ list2: [
 ]
 ```
 
-:information_source: The lists are not assigned a name `list1` or `list2`. I just use this for illustrating the lists.
+:information_source: The lists are not assigned a name `list1` or `list2`. I just use this for illustrating the different lists.
 
 With the above data fed in, `ansible.builtin.intersect` would return a list with the following items:
 
@@ -359,6 +365,8 @@ list2: [
 ]
 ```
 
+:information_source: The lists are not assigned a name `list1` or `list2`. I just use this for illustrating the different lists.
+
 With the above data fed in, `ansible.builtin.intersect` would return a list with the following items:
 
 ```yaml
@@ -384,7 +392,7 @@ And finally, coming back to the very first expression:
 
 If that expression would result in `false`, we'd simply `omit` the parameter altogether.
 
-I know, it's complicated, but in my personal opinion definitively worth the effort when looking at the performance gain in the next chapter.
+I know, it's complex, but in my personal opinion definitively worth the effort when looking at the performance gain in the next chapter.
 
 ## Comparing performance
 
@@ -395,7 +403,7 @@ In this example we are going to create a list with numbers from 1 to 1000. Then 
 {% gist 33e2303f422ee41aab20e82c0832463e %}
 
 To compare the performance, we are going to use [`ansible.posix.profile_tasks`](https://docs.ansible.com/ansible/latest/collections/ansible/posix/profile_tasks_callback.html),
-which is a [`Callback Plugin`](https://docs.ansible.com/ansible/latest/plugins/callback.html) that shows at the end which task took how long.
+which is a [`Callback Plugin`](https://docs.ansible.com/ansible/latest/plugins/callback.html) that shows at the end of the playbook run which task took how long.
 
 Since we are dealing only with numbers (which is not a typical real world scenario), we need to enable `Jinja2 native` which allows for `integers` to be returned from a `Jinja2`
 expression to compare against.
@@ -450,7 +458,7 @@ What I use is usually shipped with Ansible Core itself. After all, I am only tra
 I *personally* think that this will be the future of writing Ansible code. The simple reason being that complex systems return complex data which you need to process as quickly
 as possible.
 
-I more than happy to hear the thoughts of those who read this post. Please let me know what you think about my way of writing Ansible code and if you consider adopting it.
+I am more than happy to hear the thoughts of those who read this post. Please let me know what you think about my way of writing Ansible code and if you consider adopting it.
 
 Until next time,
 
