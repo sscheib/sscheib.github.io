@@ -18,8 +18,9 @@ layout: default
         {%- endif %}
       </time>
       {%- if page.author -%}
-        • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">{{ page.author }}</span></span>
-      {%- endif -%}</p>
+        • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">{{ page.author }} </span></span>
+      {%- endif -%}
+        • <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">{% include reading-time.html %}</span></span></p>
   </header>
 
   <div class="toc">
