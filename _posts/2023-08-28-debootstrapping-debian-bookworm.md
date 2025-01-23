@@ -382,14 +382,12 @@ The differences are only a few simple things:
 
 ## Setting up `LVM`: Creating a physical volume, a volume group and several logical volumes for the encrypted `LUKS` partition
 
-In order to implement and use `LVM` we need to follow the following approach:
+In order to implement and use [`LVM`](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html-single/configuring_and_managing_logical_volumes/index#lvm-architecture_overview-of-logical-volume-management)
+we need to follow the following approach:
 
-1. Create a [physical volume](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-physical-volumes_configuring-and-managing-logical-volumes#doc-wrapper)
-   (`PV`) using `pvcreate` on top of the decrypted `LUKS` partition
-1. Create a [volume group](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-volume-groups_configuring-and-managing-logical-volumes#doc-wrapper)
-   (`VG`) using `vgcreate` on top of the physical volume
-1. Create several [logical volumes](https://access.redhat.com/documentation/en-en/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/managing-lvm-logical-volumes_configuring-and-managing-logical-volumes)
-   (`LV`) using `lvcreate` on top of the volume group
+1. Create a physical volume (`PV`) using `pvcreate` on top of the decrypted `LUKS` partition
+1. Create a volume group (`VG`) using `vgcreate` on top of the physical volume
+1. Create several logical volumes (`LV`) using `lvcreate` on top of the volume group
 
 ## Creating a physical volume on top of the `LUKS` partition
 
@@ -2360,6 +2358,10 @@ root@rescue ~ #
 ```
 
 ## Change log
+
+### 2025-01-23
+
+- Replacing dead individual `access.redhat.com` links with an overview of `LVM` (also from `access.redhat.com`)
 
 ### 2024-04-01
 
