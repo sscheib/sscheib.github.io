@@ -20,7 +20,7 @@ jobs:
           output_file: '.github/spellcheck/spellcheck-output.txt'
 
       - name: 'Upload pyspelling artifact'
-        uses: 'actions/upload-artifact@v3'
+        uses: 'actions/upload-artifact@v4'
         if: '!cancelled()'  # do not upload artifact if job was cancelled
         with:
           name: 'Spellcheck output'
