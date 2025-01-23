@@ -42,7 +42,7 @@ to Satellite 6.9), whenever a command failed in the `%post` section of the Kicks
 *after* deployment, you'd end up with an incompletely provisioned host.
 
 Since RHEL 7, Kickstart supports
-[error handling](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#kickstart-error-handling-section_kickstart-script-file-format-reference)
+[error handling](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/kickstart-script-file-format-reference_rhel-installer#kickstart-error-handling-section_kickstart-script-file-format-reference)
 to *some* degree. This error handling, however, concerns serious errors such as a failure in the Storage Selection. It does *not* cover, however, issues that happen due to
 failing commands in the `%post` section.
 
@@ -71,8 +71,8 @@ Perfect, keep on reading. :grin:
 ## Overview
 
 :information_source: If you are not familiar with Kickstart, please
-[read up on that](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_8_installation/index) first. This is not an
-*introduction* to Kickstart and I assume a good understanding of Kickstart throughout this blog post.
+[read up on that](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/installing-rhel-fully-and-semi-automated)
+first. This is not an *introduction* to Kickstart and I assume a good understanding of Kickstart throughout this blog post.
 
 To get started with Kickstart in Satellite, we first need to take a look at how Satellite handles Kickstarts.
 
@@ -140,7 +140,7 @@ os_minor = @host.operatingsystem.minor.to_i
 
 As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (`ERB`), specifically. Usually. I say usually, because the `%post` section
 of the Provisioning Template can be anything, really. That all depends on the options passed to the `%post` section. The `%post` section accepts an
-`--interpreter=` [argument](https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide#post-script-section-options_post-script-in-kickstart-file).
+`--interpreter=` [argument](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/kickstart-script-file-format-reference_rhel-installer#post-script-section-options_post-script-in-kickstart-file).
 With that, we can make use of BASH (the default) or make use of Python, etc. as our `interpreter`. The great thing about this is that we can still make use of `ERB` in the
 `%post` section. That is because Satellite *renders* the template *before* transmitting it to the client. So `ERB` code is evaluated before passing it to the client.
 
@@ -832,6 +832,10 @@ We have been discussing *my* way of Kickstarting in this blog post. There are vi
 Decide on your own, if such a highly customized Kickstart is worth the maintenance .. until next time :sunglasses:
 
 ## Change log
+
+### 2025-01-23
+
+- Fixing dead documentation links for kickstarting RHEL
 
 ### 2024-03-11
 
