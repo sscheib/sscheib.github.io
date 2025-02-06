@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm) | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm)">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Preface">
+<meta property="og:description" content="Preface">
+<link rel="canonical" href="https://blog.scheib.me/2024/04/14/upgrade-raspberry-bullseye-bookworm.html">
+<meta property="og:url" content="https://blog.scheib.me/2024/04/14/upgrade-raspberry-bullseye-bookworm.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2024-04-14T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm)">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-04-15T00:00:00+00:00","datePublished":"2024-04-14T00:00:00+00:00","description":"Preface","headline":"Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm)","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2024/04/14/upgrade-raspberry-bullseye-bookworm.html"},"url":"https://blog.scheib.me/2024/04/14/upgrade-raspberry-bullseye-bookworm.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Upgrading Raspberry Pi OS 11 (Bullseye) to 12 (Bookworm)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2024-04-14T00:00:00+00:00" itemprop="datePublished">Published: Apr 14, 2024
+      </time>
+      <time class="dt-modified" datetime="2024-04-15T00:00:00+00:00" itemprop="dateModified">• Last modified: Apr 15, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+14 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#prepare-the-upgrade">Prepare the upgrade</a></li>
+<li><a href="#migrating-boot-to-bootfirmware">Migrating <code class="language-plaintext highlighter-rouge">/boot</code> to <code class="language-plaintext highlighter-rouge">/boot/firmware</code></a></li>
+<li><a href="#install-new-kernel-and-remove-the-old-kernel">Install new kernel and remove the old kernel</a></li>
+<li><a href="#upgrading-the-operating-system">Upgrading the operating system</a></li>
+<li><a href="#legacy-gpg-trustedgpg-keyring">Legacy <code class="language-plaintext highlighter-rouge">GPG</code> <code class="language-plaintext highlighter-rouge">trusted.gpg</code> <code class="language-plaintext highlighter-rouge">keyring</code></a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li>
+<a href="#change-log">Change log</a><ul><li><a href="#2024-04-15">2024-04-15</a></li></ul>
+</li>
+<li><a href="#footnotes">Footnotes</a></li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="preface">
+  
+  
+    Preface <a href="#preface">#</a>
+  
+  
+</h2>
+    
+
+<p>This is going to be a short summary of the steps to do - mainly for my documentation <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+
+<p><img class="emoji" title=":warning:" alt=":warning:" src="https://github.githubassets.com/images/icons/emoji/unicode/26a0.png" height="20" width="20"> The <a href="https://www.raspberrypi.com/news/bookworm-the-new-version-of-raspberry-pi-os">official blog</a> announcing the release of <code class="language-plaintext highlighter-rouge">Raspberry Pi OS</code> based on
+<code class="language-plaintext highlighter-rouge">Debian Bookworm</code> <strong>strongly</strong> suggests to reinstall your <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> instead of updating it in-place. <strong>This procedure might break your <code class="language-plaintext highlighter-rouge">Raspberry Pi OS</code> installation.</strong></p>
+
+<p>In case you are adventurous, below you’ll find a way of in-place upgrading <code class="language-plaintext highlighter-rouge">Raspberry Pi OS</code> from <code class="language-plaintext highlighter-rouge">Bullseye</code> to <code class="language-plaintext highlighter-rouge">Bookworm</code> <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">.</p>
+<h2 id="prepare-the-upgrade">
+  
+  
+    Prepare the upgrade <a href="#prepare-the-upgrade">#</a>
+  
+  
+</h2>
+    
+
+<p>First, we’ll need to update our system to the latest available <code class="language-plaintext highlighter-rouge">Bullseye</code> release:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt update &amp;&amp; sudo apt upgrade &amp;&amp; sudo apt dist-upgrade
+</code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> If you’ve updated any packages in the previous step, I’d recommend rebooting your system as precaution.</p>
+
+<p>Next, we’ll update all source lists in <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list</code> and <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/</code> to match <code class="language-plaintext highlighter-rouge">bookworm</code>.</p>
+
+<p>Most important are the repositories that provide the system packages (which are located in <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list</code>) and those for the <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> related packages, such as a
+special kernel and specific firmware packages. These are located in <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/raspi.list</code>.</p>
+
+<p>Let’s first start with the system package repository located at <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+</code></pre></div></div>
+
+<p>If you’d like to have source packages available (via <code class="language-plaintext highlighter-rouge">apt-get source</code>), add the following as well to <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deb-src http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb-src http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+</code></pre></div></div>
+
+<p>Now, on to the <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> specific repository, defined in <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/raspi.list</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deb http://archive.raspberrypi.org/debian/ bookworm main
+</code></pre></div></div>
+
+<p>Again, if you’d like to have source packages available, add the following additionally to <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/raspi.list</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deb-src http://archive.raspberrypi.org/debian/ bookworm main
+</code></pre></div></div>
+
+<p>To ensure a smooth upgrade, ensure that the remainder of the repositories are updated to reflect the upgrade to <code class="language-plaintext highlighter-rouge">Bookworm</code> in <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/</code>. Depending on your
+system configuration, there might be no other repositories. In my case I had there as well the repository for <code class="language-plaintext highlighter-rouge">Zabbix</code> (<code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/zabbix.list</code>).</p>
+
+<p>Lastly, update the cache:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt update
+</code></pre></div></div>
+
+<p>Ensure no error or warning messages are observed. If you encounter any errors or warnings, I’d encourage you to resolve them prior to continuing - I haven’t encountered any.</p>
+<h2 id="migrating-boot-to-bootfirmware">
+  
+  
+    Migrating <code class="language-plaintext highlighter-rouge">/boot</code> to <code class="language-plaintext highlighter-rouge">/boot/firmware</code> <a href="#migrating-boot-to-bootfirmware">#</a>
+  
+  
+</h2>
+    
+
+<p>Starting from <code class="language-plaintext highlighter-rouge">Raspberry Pi OS 12</code>, we need to mount <code class="language-plaintext highlighter-rouge">/boot</code> to <code class="language-plaintext highlighter-rouge">/boot/firmware</code> <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup>.</p>
+
+<p>This can easily be done following the steps below:</p>
+
+<ol>
+  <li>Unmount <code class="language-plaintext highlighter-rouge">/boot</code> using <code class="language-plaintext highlighter-rouge">sudo umount /boot</code>
+</li>
+  <li>Create the directory <code class="language-plaintext highlighter-rouge">/boot/firmware</code> using <code class="language-plaintext highlighter-rouge">sudo mkdir /boot/firmware</code>
+</li>
+  <li>
+    <p>Adjust <code class="language-plaintext highlighter-rouge">/etc/fstab</code> so that the originally mount point <code class="language-plaintext highlighter-rouge">/boot</code> now points to <code class="language-plaintext highlighter-rouge">/boot/firmware</code>, e.g.:</p>
+
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code> PARTUUID=ffffffff-ff    /boot/firmware  vfat    defaults,flush                  0       2
+</code></pre></div>    </div>
+
+    <p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> I’ve modified the <code class="language-plaintext highlighter-rouge">PARTUUID</code> above. Yours will look different, of course.</p>
+  </li>
+  <li>Ensure <code class="language-plaintext highlighter-rouge">systemd</code> is notified about this change using <code class="language-plaintext highlighter-rouge">sudo systemctl daemon-reload</code>
+</li>
+  <li>Finally, ensure that <code class="language-plaintext highlighter-rouge">/boot/firmware</code> is correctly mounted using <code class="language-plaintext highlighter-rouge">sudo mount -a</code>
+</li>
+</ol>
+<h2 id="install-new-kernel-and-remove-the-old-kernel">
+  
+  
+    Install new kernel and remove the old kernel <a href="#install-new-kernel-and-remove-the-old-kernel">#</a>
+  
+  
+</h2>
+    
+
+<p>We need to install the new kernel and the new firmware packages. After that we’ll remove the old one. Yes, it sounds insane at first glance, but that’s the only way I am aware of to
+make it work <img class="emoji" title=":rofl:" alt=":rofl:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f923.png" height="20" width="20">.</p>
+
+<p>The required kernel is different for each <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> model used and whether it’s a 32 bit or 64 bit <code class="language-plaintext highlighter-rouge">Raspberry Pi</code>.</p>
+
+<p>You can find out which chip your <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> is based on using <code class="language-plaintext highlighter-rouge">lspci</code>. Below you’ll find the output of one of my <code class="language-plaintext highlighter-rouge">Raspberry Pis</code>:</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">$</span><span class="w"> </span>lspci
+<span class="go">00:00.0 PCI bridge: Broadcom Inc. and subsidiaries BCM2711 PCIe Bridge (rev 10)
+01:00.0 USB controller: VIA Technologies, Inc. VL805/806 xHCI USB 3.0 Controller (rev 01)
+</span></code></pre></div></div>
+
+<p>Following table summarizes the <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> models along with the old kernel path and the new kernel package name to the best of my knowledge:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Model</th>
+      <th style="text-align: left">Chip</th>
+      <th style="text-align: left">Bit</th>
+      <th style="text-align: left">Old kernel name and path</th>
+      <th style="text-align: left">New kernel package</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi Zero</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2835</code></td>
+      <td style="text-align: left">32</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v6</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 1</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2835</code></td>
+      <td style="text-align: left">32</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v6</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 2</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2836</code></td>
+      <td style="text-align: left">32</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel7.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v7</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 3</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2837</code></td>
+      <td style="text-align: left">32</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel7.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v7</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 4</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2711</code></td>
+      <td style="text-align: left">32</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel7l.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v7l</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 3</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2837</code></td>
+      <td style="text-align: left">64</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel8.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v8</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 4</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2711</code></td>
+      <td style="text-align: left">64</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel8.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-v8</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Raspberry Pi 5</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">BCM2712</code></td>
+      <td style="text-align: left">64</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">/boot/kernel8.img</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">linux-image-rpi-2712</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>You should be able to easily figure out the correct new kernel package name using the column <code class="language-plaintext highlighter-rouge">Chip</code> together with <code class="language-plaintext highlighter-rouge">Old kernel name and path</code> from above table.</p>
+
+<p>Now, up to the actual task.</p>
+
+<p>Installing the new kernel and firmware is done using:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>raspi-firmware linux-image-rpi-v8
+</code></pre></div></div>
+
+<p><img class="emoji" title=":warning:" alt=":warning:" src="https://github.githubassets.com/images/icons/emoji/unicode/26a0.png" height="20" width="20"> Please substitute the package name according to above table.</p>
+
+<p>Next, remove the old kernel - which is for all <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> models the same:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt remove raspberrypi-kernel raspberrypi-bootloader
+</code></pre></div></div>
+<h2 id="upgrading-the-operating-system">
+  
+  
+    Upgrading the operating system <a href="#upgrading-the-operating-system">#</a>
+  
+  
+</h2>
+    
+
+<p>The upgrade itself is straight-forward from this point:</p>
+
+<ol>
+  <li>Update once more the package lists using <code class="language-plaintext highlighter-rouge">sudo apt update</code> - just for good measure <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">
+</li>
+  <li>Run the actual upgrade using <code class="language-plaintext highlighter-rouge">sudo apt full-upgrade</code>
+</li>
+</ol>
+
+<p>After the update has concluded, ensure no further packages need installing:</p>
+
+<ol>
+  <li>Refresh once more the package lists using <code class="language-plaintext highlighter-rouge">sudo apt update</code>
+</li>
+  <li>Upgrade any leftover packages using <code class="language-plaintext highlighter-rouge">sudo apt upgrade</code>
+</li>
+</ol>
+
+<p>Lastly, cleanup obsolete data:</p>
+
+<ol>
+  <li>Remove obsolete packages using <code class="language-plaintext highlighter-rouge">sudo apt autoremove</code>
+</li>
+  <li>Clean the <code class="language-plaintext highlighter-rouge">apt</code> cache using <code class="language-plaintext highlighter-rouge">sudo apt clean</code>
+</li>
+</ol>
+
+<p>Finally, reboot your system using <code class="language-plaintext highlighter-rouge">sudo systemctl reboot</code>.</p>
+
+<p>Once the system is back up and running, you should find yourself in a <code class="language-plaintext highlighter-rouge">Raspberry Pi OS 12</code>, which can be verified by looking at <code class="language-plaintext highlighter-rouge">/etc/debian_version</code>:</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">$</span><span class="w"> </span><span class="nb">cat</span> /etc/debian_version
+<span class="go">12.5
+</span></code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> The version displayed in <code class="language-plaintext highlighter-rouge">/etc/debian_version</code> should be <code class="language-plaintext highlighter-rouge">12.x</code> - at the time of this writing <code class="language-plaintext highlighter-rouge">12.5</code>.</p>
+<h2 id="legacy-gpg-trustedgpg-keyring">
+  
+  
+    Legacy <code class="language-plaintext highlighter-rouge">GPG</code> <code class="language-plaintext highlighter-rouge">trusted.gpg</code> <code class="language-plaintext highlighter-rouge">keyring</code> <a href="#legacy-gpg-trustedgpg-keyring">#</a>
+  
+  
+</h2>
+    
+
+<p>When updating the package lists (using <code class="language-plaintext highlighter-rouge">sudo apt update</code>) after running the upgrade, you might encounter the following issue complaining about <code class="language-plaintext highlighter-rouge">GPG</code> keys stored in the
+legacy <code class="language-plaintext highlighter-rouge">trusted.gpg</code> <code class="language-plaintext highlighter-rouge">keyring</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>W: http://security.debian.org/debian-security/dists/bookworm-security/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: http://deb.debian.org/debian/dists/bookworm/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: http://deb.debian.org/debian/dists/bookworm-updates/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: http://archive.raspberrypi.org/debian/dists/bookworm/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://deb.nodesource.com/node_20.x/dists/bookworm/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+</code></pre></div></div>
+
+<p>This is fairly easy to fix.</p>
+
+<p>There is the ‘lazy’ way, which basically copies the old legacy <code class="language-plaintext highlighter-rouge">keyring</code> to the new location:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp</span> /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d/
+</code></pre></div></div>
+
+<p>Alternatively, you can use following <code class="language-plaintext highlighter-rouge">BASH</code> script to export each key stored in the legacy <code class="language-plaintext highlighter-rouge">keyring</code> to a file in <code class="language-plaintext highlighter-rouge">/etc/apt/trusted.gpg.d/</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<span class="c"># exit immediately if a command fails</span>
+<span class="nb">set</span> <span class="nt">-o</span> errexit
+
+<span class="c"># make the whole pipe fail if any commands within the pipe fail</span>
+<span class="nb">set</span> <span class="nt">-o</span> pipefail
+
+<span class="c"># treats unset variables as an error while performing parameter expansion</span>
+<span class="c"># special parameters $* and $@ are not affected from this</span>
+<span class="nb">set</span> <span class="nt">-o</span> nounset
+
+<span class="c"># set initial flag state</span>
+<span class="nb">declare </span><span class="nv">next</span><span class="o">=</span>1
+<span class="k">while </span><span class="nb">read</span> <span class="nt">-r</span> line<span class="p">;</span> <span class="k">do</span>
+  <span class="c"># skip on lines not matching ^pub or next is not equal to 0</span>
+  <span class="o">(</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">"</span> <span class="o">=</span>~ ^pub <span class="o">]]</span> <span class="o">||</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="k">${</span><span class="nv">next</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-eq</span> 0 <span class="o">]]</span>
+  <span class="o">)</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="k">continue</span><span class="p">;</span>
+  <span class="o">}</span><span class="p">;</span>
+
+  <span class="c"># line matches ^pub</span>
+  <span class="o">[[</span> <span class="o">!</span> <span class="s2">"</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">"</span> <span class="o">=</span>~ ^pub <span class="o">]]</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="c"># we'll need the next line</span>
+    <span class="nb">declare </span><span class="nv">next</span><span class="o">=</span>0<span class="p">;</span>
+    <span class="k">continue</span><span class="p">;</span>
+  <span class="o">}</span><span class="p">;</span>
+
+  <span class="c"># reset flag</span>
+  <span class="nb">declare </span><span class="nv">next</span><span class="o">=</span>1
+
+  <span class="o">[[</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">sudo </span>apt-key list <span class="s2">"</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">"</span> 2&gt; /dev/null | <span class="nb">grep</span> <span class="nt">-E</span> <span class="s1">'^uid'</span><span class="si">)</span><span class="s2">"</span> <span class="o">=</span>~ ^uid.+?<span class="se">\[</span>.+?<span class="se">\]</span><span class="o">[[</span>:space:]]+<span class="o">(</span>.+?<span class="o">)(</span><span class="se">\&lt;</span>.+?<span class="se">\&gt;</span><span class="o">)</span>?<span class="nv">$ </span><span class="o">]]</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="nb">echo</span> <span class="s2">"ERROR: Unable to extract uid of key with ID '</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">"</span><span class="p">;</span>
+    <span class="nb">exit </span>1<span class="p">;</span>
+  <span class="o">}</span><span class="p">;</span>
+
+  <span class="c"># transform e.g. Mike Thompson (Raspberry Pi Debian armhf ARMv6+VFP) &lt;mpthompson@gmail.com&gt;</span>
+  <span class="c"># into e.g. mike_thompson_raspberry_pi_debian_armhf_armv6_vfp.gpg</span>
+  <span class="nb">declare </span><span class="nv">keyName</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="k">${</span><span class="nv">BASH_REMATCH</span><span class="p">[1]</span><span class="k">}</span><span class="s2">"</span> | <span class="nb">sed</span> <span class="nt">-E</span> <span class="s1">'s/[[:space:]]+&lt;.+&gt;//'</span> | <span class="nb">sed</span> <span class="nt">-E</span> <span class="s1">'s/[^[:alnum:]]+/_/g'</span> | <span class="nb">tr</span> <span class="s1">'[[:upper:]]'</span> <span class="s1">'[[:lower:]]'</span> | <span class="nb">sed</span> <span class="nt">-E</span> <span class="s1">'s/_$//'</span><span class="si">)</span><span class="s2">.gpg"</span>
+
+  <span class="nb">sudo </span>apt-key <span class="nb">export</span> <span class="s2">"</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">"</span> 2&gt; /dev/null | <span class="nb">sudo </span>gpg <span class="nt">--dearmour</span> <span class="nt">-o</span> <span class="s2">"/etc/apt/trusted.gpg.d/</span><span class="k">${</span><span class="nv">keyName</span><span class="k">}</span><span class="s2">"</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="nb">echo</span> <span class="s2">"ERROR: Failed exporting GPG key with ID '</span><span class="k">${</span><span class="nv">line</span><span class="k">}</span><span class="s2">' to '/etc/apt/trusted.gpg.d/</span><span class="k">${</span><span class="nv">keyName</span><span class="k">}</span><span class="s2">'"</span><span class="p">;</span>
+    <span class="nb">exit </span>1<span class="p">;</span>
+  <span class="o">}</span><span class="p">;</span>
+
+<span class="k">done</span> &lt; &lt;<span class="o">(</span><span class="nb">sudo </span>apt-key list <span class="nt">--list-keys</span> 2&gt; /dev/null | <span class="nb">grep</span> <span class="nt">-Pzo</span> <span class="s1">'(?m)/etc/apt/trusted.gpg[\S\s]+/etc/apt/trusted.gpg.d/'</span><span class="o">)</span>
+<span class="c"># ^ match everything starting from /etc/apt/trusted.gpg (legacy keystore) to the next "modern" keystore (stored in /etc/apt/trusted.gpg.d/)</span>
+</code></pre></div></div>
+
+<p>The result will be filenames like the following in <code class="language-plaintext highlighter-rouge">/etc/apt/trusted.gpg.d/</code>:</p>
+
+<div class="language-terminal highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">root@example.com:~#</span><span class="w"> </span><span class="nb">ls</span> <span class="nt">-la</span> /etc/apt/trusted.gpg.d/
+<span class="go">total 80
+drwxr-xr-x 2 root root 4096 Apr 15 11:07 .
+drwxr-xr-x 9 root root 4096 Apr 14 22:14 ..
+-rw-r--r-- 1 root root 5834 Apr 15 11:07 debian_archive_automatic_signing_key_10_buster.gpg
+-rw-r--r-- 1 root root 5836 Apr 15 11:07 debian_archive_automatic_signing_key_11_bullseye.gpg
+-rw-r--r-- 1 root root 5836 Apr 15 11:07 debian_archive_automatic_signing_key_12_bookworm.gpg
+-rw-r--r-- 1 root root 4648 Apr 15 11:07 debian_archive_automatic_signing_key_9_stretch.gpg
+-rw-r--r-- 1 root root 5845 Apr 15 11:07 debian_security_archive_automatic_signing_key_11_bullseye.gpg
+-rw-r--r-- 1 root root 5845 Apr 15 11:07 debian_security_archive_automatic_signing_key_12_bookworm.gpg
+-rw-r--r-- 1 root root  280 Apr 15 11:07 debian_stable_release_key_12_bookworm.gpg
+-rw-r--r-- 1 root root 2760 Apr 15 11:07 docker_release_ce_deb.gpg
+-rw-r--r-- 1 root root 1225 Apr 15 11:07 mike_thompson_raspberry_pi_debian_armhf_armv6_vfp.gpg
+-rw-r--r-- 1 root root 2206 Apr 15 11:07 nodesource.gpg
+-rw-r--r-- 1 root root 1183 Apr 15 11:07 raspberry_pi_archive_signing_key.gpg
+-rwxr-xr-x 1 root root 1183 Sep 14  2022 zabbix-official-repo.gpg
+</span></code></pre></div></div>
+
+<p>The script leaves the legacy <code class="language-plaintext highlighter-rouge">keyring</code> (<code class="language-plaintext highlighter-rouge">/etc/apt/trusted.gpg</code>) untouched. It merely exports the keys <em>additionally</em> to <code class="language-plaintext highlighter-rouge">/etc/apt/trusted.gpg.d/</code>.</p>
+
+<p>With that, the warning with regards to using a legacy <code class="language-plaintext highlighter-rouge">keyring</code> should be gone <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+<h2 id="conclusion">
+  
+  
+    Conclusion <a href="#conclusion">#</a>
+  
+  
+</h2>
+    
+
+<p>I hope you learned something today and did not break your <code class="language-plaintext highlighter-rouge">Raspberry Pi OS</code> installation <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+
+<p>I upgraded four <code class="language-plaintext highlighter-rouge">Raspberry Pi 4 (64 bit)</code> and one <code class="language-plaintext highlighter-rouge">Raspberry Pi 3 (32bit)</code> using the procedure described in this blog.</p>
+
+<p>Until next Time,</p>
+
+<p>Steffen</p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2024-04-15">
+  
+  
+    2024-04-15 <a href="#2024-04-15">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>Initial release</li>
+</ul>
+<h2 id="footnotes">
+  
+  
+    Footnotes <a href="#footnotes">#</a>
+  
+  
+</h2>
+    
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p><a href="https://github.com/raspberrypi/documentation/issues/3089">Pull request <code class="language-plaintext highlighter-rouge">Raspberry Pi</code> documentation</a> <a href="#fnref:1" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2024/04/14/upgrade-raspberry-bullseye-bookworm.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>
