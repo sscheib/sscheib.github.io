@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Preface">
+<meta property="og:description" content="Preface">
+<link rel="canonical" href="https://blog.scheib.me/2023/11/22/github-actions-ansible.html">
+<meta property="og:url" content="https://blog.scheib.me/2023/11/22/github-actions-ansible.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-11-22T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-03-11T00:00:00+00:00","datePublished":"2023-11-22T00:00:00+00:00","description":"Preface","headline":"Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2023/11/22/github-actions-ansible.html"},"url":"https://blog.scheib.me/2023/11/22/github-actions-ansible.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-11-22T00:00:00+00:00" itemprop="datePublished">Published: Nov 22, 2023
+      </time>
+      <time class="dt-modified" datetime="2024-03-11T00:00:00+00:00" itemprop="dateModified">• Last modified: Mar 11, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+27 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#a-brief-look-into-history-testing-ansible-code-syntactically">A brief look into history: Testing Ansible code syntactically</a></li>
+<li>
+<a href="#introducing-ansible-lint">Introducing Ansible Lint</a><ul>
+<li><a href="#overview">Overview</a></li>
+<li>
+<a href="#getting-started">Getting started</a><ul>
+<li><a href="#exclude_paths"><code class="language-plaintext highlighter-rouge">exclude_paths</code></a></li>
+<li><a href="#kinds"><code class="language-plaintext highlighter-rouge">kinds</code></a></li>
+<li><a href="#offline"><code class="language-plaintext highlighter-rouge">offline</code></a></li>
+<li><a href="#profile"><code class="language-plaintext highlighter-rouge">profile</code></a></li>
+<li><a href="#write_list"><code class="language-plaintext highlighter-rouge">write_list</code></a></li>
+</ul>
+</li>
+<li>
+<a href="#yamllint">yamllint</a><ul><li><a href="#my-thoughts-on-key-ordering-in-the-context-of-ansible">My thoughts on <code class="language-plaintext highlighter-rouge">key-ordering</code> in the context of Ansible</a></li></ul>
+</li>
+<li><a href="#ansible-lint-summary">Ansible Lint summary</a></li>
+</ul>
+</li>
+<li>
+<a href="#pre-commit"></a><a href="https://pre-commit.com/"><code class="language-plaintext highlighter-rouge">pre-commit</code></a>
+</li>
+<li><a href="#ansible-lint-with-github-actions">Ansible Lint with GitHub Actions</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li>
+<a href="#change-log">Change log</a><ul>
+<li><a href="#2024-03-11">2024-03-11</a></li>
+<li><a href="#2024-02-02">2024-02-02</a></li>
+</ul>
+</li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="preface">
+  
+  
+    Preface <a href="#preface">#</a>
+  
+  
+</h2>
+    
+
+<p>A while ago I started playing around with <a href="https://github.com/features/actions">GitHub Actions</a> because I really liked the idea of having Ansible code automatically
+checked after I pushed code to GitHub or after I merged code
+from a
+<a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches#about-branches">feature branch</a>,
+e.g. <code class="language-plaintext highlighter-rouge">ft-my_feature</code> to the <code class="language-plaintext highlighter-rouge">main</code> branch.</p>
+
+<p>Of course this idea isn’t new, I am probably among the last ones that actively publishes Ansible code to adopt it. But the idea is simple: Ensure that whenever code
+gets committed and pushed or merged to a specific branch (or really to any branch) validate the code if it follows a set of common and good practices with regards to Ansible.</p>
+
+<p>With this blog post, I’d like to provide some guidance around getting started with syntactically testing Ansible code and translate the local testing to GitHub Actions.</p>
+<h2 id="a-brief-look-into-history-testing-ansible-code-syntactically">
+  
+  
+    A brief look into history: Testing Ansible code syntactically <a href="#a-brief-look-into-history-testing-ansible-code-syntactically">#</a>
+  
+  
+</h2>
+    
+
+<p>Let’s first have a look at a very basic way of testing Ansible code. This is really only suitable for beginners, as this way of testing code is very limited, as you’ll find
+out in a minute.</p>
+
+<p>If you’ve ever looked into testing an Ansible playbook, you’ve surely come across
+<a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html#verifying-playbooks"><code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code></a>. This command merely checks a given
+playbook for syntactical errors. Nothing more. This command is especially helpful when you first get started learning Ansible, as it provides an easy and quick way of
+identifying whether you have made any syntactical errors in your playbook.</p>
+
+<p>Let’s look at an easy example. A common mistake is the indentation of <code class="language-plaintext highlighter-rouge">YAML</code>. At times you just have a space too much or too less and Ansible will not run your playbook.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Testing</span><span class="nv"> </span><span class="s">Ansible</span><span class="nv"> </span><span class="s">code'</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s1">'</span><span class="s">all'</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+     <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Print</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">message'</span>
+       <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+         <span class="na">msg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Test</span><span class="nv"> </span><span class="s">message'</span>
+
+  <span class="err">  </span><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Another</span><span class="nv"> </span><span class="s">task'</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Another</span><span class="nv"> </span><span class="s">message'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>Can you spot the error already? Right, I have indented the first task by one space more than the others. Let’s see what <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check playbook.yml</code> has
+to say about the playbook:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+<span class="o">[</span>WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match <span class="s1">'all'</span>
+ERROR! We were unable to <span class="nb">read </span>either as JSON nor YAML, these are the errors we got from each:
+JSON: Expecting value: line 1 column 1 <span class="o">(</span>char 0<span class="o">)</span>
+
+Syntax Error <span class="k">while </span>loading YAML.
+  did not find expected key
+
+The error appears to be <span class="k">in</span> <span class="s1">'/home/sscheib/playbook.yml'</span>: line 10, column 5, but may
+be elsewhere <span class="k">in </span>the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+
+    - name: <span class="s1">'Another task'</span>
+    ^ here
+<span class="o">[</span>steffen@development ~]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>Great, it caught the error, perfect.</p>
+
+<p>Let’s fix the code and re-run that check:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+
+playbook: playbook.yml
+</code></pre></div></div>
+
+<p>Looks good <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+
+<p>As I said earlier, <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code> is great for getting started, but it certainly has its limitations.</p>
+
+<p>One of those, let’s call it ‘limitations’, is the fact that it can only test <em>playbooks</em>. Nothing else. It was never designed to test anything else, hence I
+called it a ‘limitation’, but nevertheless, it’s something <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code> is not capable of doing.</p>
+
+<p>Let’s take the simplest of all cases. I have a playbook and want to include some tasks using the <code class="language-plaintext highlighter-rouge">ansible.builtin.include_task</code> module. The file I’d like to include
+is <code class="language-plaintext highlighter-rouge">my_tasks.yml</code>, which looks like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Print</span><span class="nv"> </span><span class="s">yet</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">message'</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Test</span><span class="nv"> </span><span class="s">message'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>Let’s validate the syntax:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> my_tasks.yml
+<span class="o">[</span>WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match <span class="s1">'all'</span>
+ERROR! <span class="s1">'ansible.builtin.debug'</span> is not a valid attribute <span class="k">for </span>a Play
+
+The error appears to be <span class="k">in</span> <span class="s1">'/home/sscheib/my_tasks.yml'</span>: line 2, column 3, but may
+be elsewhere <span class="k">in </span>the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+<span class="nt">---</span>
+- name: <span class="s1">'Print yet another message'</span>
+  ^ here
+</code></pre></div></div>
+
+<p>It does not work. At least not like that. The reason is simple: <code class="language-plaintext highlighter-rouge">ansible-playbook</code> is only meant to test, well, <em>playbooks</em>. Okay, then let’s
+use <code class="language-plaintext highlighter-rouge">ansible.builtin.include_tasks</code> to include the tasks in <code class="language-plaintext highlighter-rouge">my_tasks.yml</code> and re-run the syntax check:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+
+playbook: playbook.yml
+</code></pre></div></div>
+
+<p>Great, that looks promising! But to be sure, let’s introduce an intentional issue into <code class="language-plaintext highlighter-rouge">my_tasks.yml</code> to ensure it is really checked:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Intentionally</span><span class="nv"> </span><span class="s">wrong'</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Print</span><span class="nv"> </span><span class="s">yet</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">message'</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Test</span><span class="nv"> </span><span class="s">message'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>Let’s re-run that check:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+
+playbook: playbook.yml
+</code></pre></div></div>
+
+<p>Erm, wait what?! Why did it pass?</p>
+
+<p>Well, there is an important distinction of <code class="language-plaintext highlighter-rouge">include_tasks</code> and <code class="language-plaintext highlighter-rouge">import_tasks</code><sup id="fnref:import_vs_include" role="doc-noteref"><a href="#fn:import_vs_include" class="footnote" rel="footnote">1</a></sup>. <code class="language-plaintext highlighter-rouge">include_tasks</code> will load the file <code class="language-plaintext highlighter-rouge">my_test.yml</code> when it encounters
+that exact task that loads the tasks. <code class="language-plaintext highlighter-rouge">import_tasks</code> on the other hand, loads the tasks <em>before</em> the playbook run has started. Essentially you can think of it as simple
+adding the tasks that we are including in place of the <code class="language-plaintext highlighter-rouge">import_tasks</code> statement.</p>
+
+<p>When we re-run the syntax check one last time, you’ll see, it’ll fail when using <code class="language-plaintext highlighter-rouge">import_tasks</code>:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+ERROR! We were unable to <span class="nb">read </span>either as JSON nor YAML, these are the errors we got from each:
+JSON: Expecting value: line 1 column 1 <span class="o">(</span>char 0<span class="o">)</span>
+
+Syntax Error <span class="k">while </span>loading YAML.
+  did not find expected key
+
+The error appears to be <span class="k">in</span> <span class="s1">'/home/sscheib/my_tasks.yml'</span>: line 3, column 5, but may
+be elsewhere <span class="k">in </span>the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+- name: <span class="s1">'Intentionally wrong'</span>
+    - name: <span class="s1">'Print yet another message'</span>
+    ^ here
+</code></pre></div></div>
+
+<p>Okay, do I need to use now <code class="language-plaintext highlighter-rouge">include_tasks</code> over <code class="language-plaintext highlighter-rouge">import_tasks</code> and all is resolved? Well, not quite.</p>
+
+<p>What about testing Ansible roles and not only playbooks? When we talk about testing roles, can we also test the variables located in <code class="language-plaintext highlighter-rouge">vars/</code> and <code class="language-plaintext highlighter-rouge">defaults/</code> within
+a role directory? What about <code class="language-plaintext highlighter-rouge">handlers/</code>?</p>
+
+<p>I am afraid that won’t work with <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code> at all. Which is perfectly fine because, again, <code class="language-plaintext highlighter-rouge">ansible-playbook</code> was never meant to test anything other than <em>playbooks</em>.</p>
+
+<p>But what, if I’d like to test my roles?! Keep on reading, we’ll talk about it in the next chapter <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="introducing-ansible-lint">
+  
+  
+    Introducing Ansible Lint <a href="#introducing-ansible-lint">#</a>
+  
+  
+</h2>
+    
+<h3 id="overview">
+  
+  
+    Overview <a href="#overview">#</a>
+  
+  
+</h3>
+    
+
+<p><a href="https://ansible.readthedocs.io/projects/lint/">Ansible Lint</a> is a tool that was introduced to aid Ansible playbook, role and collections developers in writing
+consistent good Ansible code. It basically starts where <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code> ends. Ansible Lint is <em>much</em> more sophisticated than the syntax check of
+the <code class="language-plaintext highlighter-rouge">ansible-playbook</code> command. Ansible Lint does not only syntactically check playbooks, roles and collections, but also ensures common practices are followed.
+Ansible Lint further ensures common practices are followed for <code class="language-plaintext highlighter-rouge">YAML</code> by using <code class="language-plaintext highlighter-rouge">yamllint</code>.</p>
+
+<p>In case you wondered whether you need to use Ansible Lint alongside <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax-check</code> to have a better test coverage, then I have good news for you:
+Ansible Lint calls the previously discussed <code class="language-plaintext highlighter-rouge">ansible-playbook --syntax check</code> <sup id="fnref:ansible_lint_playbook_syntax" role="doc-noteref"><a href="#fn:ansible_lint_playbook_syntax" class="footnote" rel="footnote">2</a></sup> by default. <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+
+<p>Ansible Lint works with rules. Rules can be individually enabled or disabled, but generally the rules included in Ansible Lint are well-thought out and shouldn’t
+be disabled carelessly. These rules are developed by the Ansible Community on <a href="https://github.com/ansible/ansible-lint/tree/main">Github</a>. Ansible Lint - and the rules -
+are written, the same as Ansible itself, in Python. The individual rules that are included in the upstream variant of Ansible Lint (which can be
+installed via <code class="language-plaintext highlighter-rouge">pip install ansible-lint</code>) can also be reviewed on <a href="https://github.com/ansible/ansible-lint/tree/main/src/ansiblelint/rules">GitHub</a>.</p>
+
+<p>For Red Hat subscribers, a RPM variant is provided by Red Hat in the Red Hat Ansible Automation Platform repository as part of the tool set for Ansible developers.</p>
+<h3 id="getting-started">
+  
+  
+    Getting started <a href="#getting-started">#</a>
+  
+  
+</h3>
+    
+
+<p>So what do you need to get started with Ansible Lint?</p>
+
+<p>First of, we need to install Ansible Lint. I personally use the <code class="language-plaintext highlighter-rouge">pip</code> variant, although I have access to the Ansible Automation Platform repository. I use the <code class="language-plaintext highlighter-rouge">pip</code> variant
+for two reasons:</p>
+
+<ol>
+  <li>Working with “the next” version of Ansible Lint helps me fix issues in my code before they actually are introduced into Red Hat’s downstream variant and thus I can guide
+my customers (as I work at Red Hat as a Technical Account Manager for Ansible) better</li>
+  <li>I use <a href="https://pre-commit.com/"><code class="language-plaintext highlighter-rouge">pre-commit</code></a> for all of my git repositories - we’ll come to that later - and thus need to use a Python virtual environment (<code class="language-plaintext highlighter-rouge">venv</code>) anyway
+so why not use Ansible Lint also via <code class="language-plaintext highlighter-rouge">pip</code> <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">
+</li>
+</ol>
+
+<p>To configure Ansible Lint to work with a good set of rules, I’ll primarily work with two configuration files (one for Ansible Lint, the other for <code class="language-plaintext highlighter-rouge">yamllint</code>), which
+I personally found to be very good for all my needs.</p>
+
+<p>The Ansible Lint configuration file can be put at three places in your current working directory <sup id="fnref:ansible_lint_config_location" role="doc-noteref"><a href="#fn:ansible_lint_config_location" class="footnote" rel="footnote">3</a></sup>:</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">.ansible-lint</code> (which is what I use personally)</li>
+  <li><code class="language-plaintext highlighter-rouge">.config/ansible-lint.yml</code></li>
+  <li><code class="language-plaintext highlighter-rouge">.config/ansible-lint.yaml</code></li>
+</ul>
+
+<p>My configuration file looks like the following:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">exclude_paths</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">.git/'</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">files/'</span>
+
+<span class="na">kinds</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">tasks</span><span class="pi">:</span> <span class="s1">'</span><span class="s">tasks/*.{yml,yaml}'</span>
+  <span class="pi">-</span> <span class="na">vars</span><span class="pi">:</span> <span class="s1">'</span><span class="s">vars/*.{yml,yaml}'</span>
+  <span class="pi">-</span> <span class="na">vars</span><span class="pi">:</span> <span class="s1">'</span><span class="s">defaults/*.{yml,yaml}'</span>
+  <span class="pi">-</span> <span class="na">meta</span><span class="pi">:</span> <span class="s1">'</span><span class="s">meta/main.{yml,yaml}'</span>
+  <span class="pi">-</span> <span class="na">yaml</span><span class="pi">:</span> <span class="s1">'</span><span class="s">.ansible-lint'</span>
+  <span class="pi">-</span> <span class="na">yaml</span><span class="pi">:</span> <span class="s1">'</span><span class="s">.github/workflows/*.{yml,yaml}'</span>
+  <span class="pi">-</span> <span class="na">yaml</span><span class="pi">:</span> <span class="s1">'</span><span class="s">.pre-commit-config.yaml'</span>
+  <span class="pi">-</span> <span class="na">yaml</span><span class="pi">:</span> <span class="s1">'</span><span class="s">.yamllint'</span>
+  <span class="pi">-</span> <span class="na">yaml</span><span class="pi">:</span> <span class="s1">'</span><span class="s">collections/requirements.yml'</span>
+
+<span class="na">loop_var_prefix</span><span class="pi">:</span> <span class="s1">'</span><span class="s">^(__|{role}_)'</span>
+<span class="na">max_block_depth</span><span class="pi">:</span> <span class="m">20</span>
+<span class="na">offline</span><span class="pi">:</span> <span class="no">true</span>
+<span class="na">profile</span><span class="pi">:</span> <span class="s1">'</span><span class="s">production'</span>
+<span class="na">skip_action_validation</span><span class="pi">:</span> <span class="no">false</span>
+<span class="na">skip_list</span><span class="pi">:</span> <span class="pi">[]</span>
+<span class="na">task_name_prefix</span><span class="pi">:</span> <span class="s1">'</span><span class="s">{stem}</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">'</span>
+<span class="na">use_default_rules</span><span class="pi">:</span> <span class="no">true</span>
+<span class="na">var_naming_pattern</span><span class="pi">:</span> <span class="s1">'</span><span class="s">^[a-z_][a-z0-9_]*$'</span>
+<span class="na">warn_list</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">experimental'</span>
+<span class="na">write_list</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">none'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>Let’s go through the more important rules step by step:</p>
+<h4 id="exclude_paths">
+  
+  
+    <code class="language-plaintext highlighter-rouge">exclude_paths</code> <a href="#exclude_paths">#</a>
+  
+  
+</h4>
+    
+
+<p>As the name says it: This will exclude paths from being processed. Anything below <code class="language-plaintext highlighter-rouge">.git</code> is not necessary to be scanned, nor do any files stored inside <code class="language-plaintext highlighter-rouge">files/</code>.</p>
+<h4 id="kinds">
+  
+  
+    <code class="language-plaintext highlighter-rouge">kinds</code> <a href="#kinds">#</a>
+  
+  
+</h4>
+    
+
+<p>With <code class="language-plaintext highlighter-rouge">kinds</code> we tell Ansible Lint which files should be considered as what file kind.</p>
+<h4 id="offline">
+  
+  
+    <code class="language-plaintext highlighter-rouge">offline</code> <a href="#offline">#</a>
+  
+  
+</h4>
+    
+
+<p>With <code class="language-plaintext highlighter-rouge">offline</code> we define that collections and roles defined in <code class="language-plaintext highlighter-rouge">collections/requirements.yml</code> should not be installed using <code class="language-plaintext highlighter-rouge">ansible-galaxy</code> <em>before</em> linting. That means
+in turn, of course, that you are responsible to install the roles and collections required by your role or collection. I disabled it on purpose to speed up the linting
+process a little.</p>
+<h4 id="profile">
+  
+  
+    <code class="language-plaintext highlighter-rouge">profile</code> <a href="#profile">#</a>
+  
+  
+</h4>
+    
+
+<p><code class="language-plaintext highlighter-rouge">profile</code> tells Ansible Lint which <a href="https://ansible.readthedocs.io/projects/lint/profiles/">profile</a> it should use. The profile defines which rules will be loaded by Ansible
+Lint and thus validated against. The profile <a href="https://ansible.readthedocs.io/projects/lint/profiles/#production"><code class="language-plaintext highlighter-rouge">production</code></a> is the most restrictive one and is intended
+for code that ‘meets requirements for inclusion in Ansible Automation Platform (AAP) as validated or certified content.’ - you can’t write any better code than with
+this profile, I guess <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+<h4 id="write_list">
+  
+  
+    <code class="language-plaintext highlighter-rouge">write_list</code> <a href="#write_list">#</a>
+  
+  
+</h4>
+    
+
+<p>Ansible Lint includes (in later versions) the possibility to <a href="https://ansible.readthedocs.io/projects/lint/autofix/">fix</a> problematic code by invoking Ansible Lint via
+<code class="language-plaintext highlighter-rouge">--fix</code>. I don’t want Ansible Lint to touch anything actively, thus I have set this to <code class="language-plaintext highlighter-rouge">none</code> which will prevent any action.</p>
+
+<p>There are many more options that can be configured in Ansible Lint, which I personally don’t use, please <a href="https://ansible.readthedocs.io/projects/lint/">check them out</a>.</p>
+<h3 id="yamllint">
+  
+  
+    yamllint <a href="#yamllint">#</a>
+  
+  
+</h3>
+    
+
+<p>So, I have spoken of two configuration files. The other one is <code class="language-plaintext highlighter-rouge">.yamllint</code> - yes, Ansible Lint invokes <a href="https://github.com/adrienverge/yamllint"><code class="language-plaintext highlighter-rouge">yamllint</code></a> as well <img class="emoji" title=":blush:" alt=":blush:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60a.png" height="20" width="20">.
+<code class="language-plaintext highlighter-rouge">yamllint</code> does one thing: Validate <code class="language-plaintext highlighter-rouge">YAML</code> files kind of the same way as Ansible Lint does: with rules. These rules can, the same as for Ansible Lint, be configured with the
+configuration file located at <code class="language-plaintext highlighter-rouge">.yamllint</code>. In other words, <code class="language-plaintext highlighter-rouge">yamllint</code> makes sure the <code class="language-plaintext highlighter-rouge">YAML</code> code itself is valid. It doesn’t care about the Ansible portion at all, as you can
+verify any <code class="language-plaintext highlighter-rouge">YAML</code> file with it. Conveniently, Ansible Lint includes <code class="language-plaintext highlighter-rouge">yamllint</code> <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">.</p>
+
+<p>My configuration file looks like follows:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">extends</span><span class="pi">:</span> <span class="s1">'</span><span class="s">default'</span>
+
+<span class="na">rules</span><span class="pi">:</span>
+  <span class="na">braces</span><span class="pi">:</span>
+    <span class="na">level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">error'</span>
+    <span class="na">max-spaces-inside</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">brackets</span><span class="pi">:</span>
+    <span class="na">level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">error'</span>
+    <span class="na">max-spaces-inside</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">colons</span><span class="pi">:</span>
+    <span class="na">level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">error'</span>
+    <span class="na">max-spaces-after</span><span class="pi">:</span> <span class="s">-1</span>
+  <span class="na">commas</span><span class="pi">:</span>
+    <span class="na">level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">error'</span>
+    <span class="na">max-spaces-after</span><span class="pi">:</span> <span class="s">-1</span>
+  <span class="na">comments</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">comments-indentation</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">document-end</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">document-start</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">empty-lines</span><span class="pi">:</span>
+    <span class="na">level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">error'</span>
+    <span class="na">max</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">empty-values</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">float-values</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">hyphens</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">indentation</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">key-duplicates</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">key-ordering</span><span class="pi">:</span> <span class="s1">'</span><span class="s">disable'</span>
+  <span class="na">line-length</span><span class="pi">:</span>
+    <span class="na">max</span><span class="pi">:</span> <span class="m">120</span>
+  <span class="na">new-line-at-end-of-file</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">new-lines</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s1">'</span><span class="s">unix'</span>
+  <span class="na">octal-values</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">quoted-strings</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">trailing-spaces</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+  <span class="na">truthy</span><span class="pi">:</span> <span class="s1">'</span><span class="s">enable'</span>
+
+<span class="na">yaml-files</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">*.yaml'</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">*.yml'</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">.yamllint'</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">.ansible.lint'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>I have basically enabled all rules, but one: <code class="language-plaintext highlighter-rouge">key-ordering</code> (more to that in a little bit). I also extended the default line length of 80 to a more reasonable 120. I did some
+research and this seems to be the “unwritten universally accepted” line length for Ansible. Anything below 120 is kind of hard to deal with, especially if you deal with long
+variable names.</p>
+<h4 id="my-thoughts-on-key-ordering-in-the-context-of-ansible">
+  
+  
+    My thoughts on <code class="language-plaintext highlighter-rouge">key-ordering</code> in the context of Ansible <a href="#my-thoughts-on-key-ordering-in-the-context-of-ansible">#</a>
+  
+  
+</h4>
+    
+
+<p>Okay, this is rather off topic, as this is more a very strong <em>personal</em> opinion on why this setting shouldn’t be used for Ansible. If you are interested in my thoughts,
+keep on reading <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+
+<p><code class="language-plaintext highlighter-rouge">yamllint</code> has a setting which is called <code class="language-plaintext highlighter-rouge">key-ordering</code>. <code class="language-plaintext highlighter-rouge">key-ordering</code> forces you to write module options in an alphabetical order, which I don’t want to do.</p>
+
+<p>Here is why:</p>
+
+<p>While ordering arguments alphabetically at first seems pretty useful, as it ensures you have the very same ordering for every task you write, I personally prefer
+to write the most important arguments of a module at the top, followed by an order that makes sense to me.</p>
+
+<p>For instance, creating a simple directory with <code class="language-plaintext highlighter-rouge">ansible.builtin.file</code> will look like the following when I write it:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Create</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">directory'</span>
+  <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/tmp/test_dir'</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s1">'</span><span class="s">directory'</span>
+    <span class="na">owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0644'</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s1">'</span><span class="s">out'</span>
+</code></pre></div></div>
+
+<p>With <code class="language-plaintext highlighter-rouge">key-ordering</code> enabled, I’d be forced to write it like so:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+    <span class="na">dest</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/tmp/test_dir'</span>
+    <span class="na">group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0644'</span>
+    <span class="na">owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s1">'</span><span class="s">directory'</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Create</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">directory'</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s1">'</span><span class="s">out'</span>
+</code></pre></div></div>
+
+<p>For me <em>personally</em> this is counter-intuitive. While it guarantees that you <em>always</em> have the very same ordering, having split <code class="language-plaintext highlighter-rouge">user</code> and <code class="language-plaintext highlighter-rouge">group</code> is not something I would do.
+Of course, your mileage may vary.</p>
+
+<p>Moreover, I think that it makes reading Ansible a lot harder. Maybe it’s just me, but I am used to having the <code class="language-plaintext highlighter-rouge">name</code> of a task as the <em>very first</em> attribute. Not the
+module. Of course, the position of the module can change - depending on the name. <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20"></p>
+
+<p>Look at the following example task:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Do</span><span class="nv"> </span><span class="s">something'</span>
+  <span class="na">theforeman.foreman.activation_key</span><span class="pi">:</span>
+    <span class="na">another_arg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">blubb'</span>
+    <span class="na">validate_certs</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s1">'</span><span class="s">output'</span>
+  <span class="na">loop</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">bla'</span><span class="pi">]</span>
+  <span class="na">loop_control</span><span class="pi">:</span>
+    <span class="na">loop_var</span><span class="pi">:</span> <span class="s1">'</span><span class="s">_my_var'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>When enabling <code class="language-plaintext highlighter-rouge">key-ordering</code>, the following ordering is required:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">loop</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">bla'</span><span class="pi">]</span>
+  <span class="na">loop_control</span><span class="pi">:</span>
+    <span class="na">loop_var</span><span class="pi">:</span> <span class="s1">'</span><span class="s">_my_var'</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">Do something'</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s1">'</span><span class="s">output'</span>
+  <span class="na">theforeman.foreman.activation_key</span><span class="pi">:</span>
+    <span class="na">another_arg</span><span class="pi">:</span> <span class="s1">'</span><span class="s">blubb'</span>
+    <span class="na">validate_certs</span><span class="pi">:</span> <span class="no">true</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>This is so far off Ansible-wise that I’d say, “No, that’s not Ansible. GO AWAY!”. Again, I think it makes reading Ansible <em>a lot</em> harder.</p>
+
+<p>And in case you ask yourself whether the above example would technically work with Ansible: Yes it does. Of course, <code class="language-plaintext highlighter-rouge">theforeman.foreman.activation_key</code> will complain it is
+missing required arguments, but Ansible accepts the above example perfectly fine.</p>
+
+<p>Again, your mileage may vary, but for me personally, this shouldn’t be allowed with Ansible. Really.</p>
+<h3 id="ansible-lint-summary">
+  
+  
+    Ansible Lint summary <a href="#ansible-lint-summary">#</a>
+  
+  
+</h3>
+    
+
+<p>For beginners Ansible Lint might seem intimidating at first, but keep in mind, you don’t need to start right away with the
+<a href="https://ansible.readthedocs.io/projects/lint/profiles/#production"><code class="language-plaintext highlighter-rouge">production</code></a> profile. Maybe start with the
+<a href="https://ansible.readthedocs.io/projects/lint/profiles/#basic"><code class="language-plaintext highlighter-rouge">basic</code></a> or the <a href="https://ansible.readthedocs.io/projects/lint/profiles/#basic"><code class="language-plaintext highlighter-rouge">moderate</code></a> profile and work your
+way up to the more sophisticated profiles.</p>
+
+<p>If you’d like to share your code via <a href="https://galaxy.ansible.com/ui/">Ansible Galaxy</a> (I’ll talk about that in a later blog post), I’d encourage you to validate your code
+against the <a href="https://ansible.readthedocs.io/projects/lint/profiles/#shared"><code class="language-plaintext highlighter-rouge">shared</code></a> profile (which is also what Ansible Lint recommends) or if you are really into it, go for
+the <a href="https://ansible.readthedocs.io/projects/lint/profiles/#production"><code class="language-plaintext highlighter-rouge">production</code></a> profile right away.</p>
+
+<p>Better Ansible code usually encourages other people to contribute to your code, so at the end, everybody benefits <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+<h2 id="pre-commit">
+  
+  
+    <a href="https://pre-commit.com/"><code class="language-plaintext highlighter-rouge">pre-commit</code></a> <a href="#pre-commit">#</a>
+  
+  
+</h2>
+    
+
+<p>Having the goal in mind to have your code linted when merging a branch or pushing code to a branch, one would think the general workflow would look something like
+the following:</p>
+
+<ol>
+  <li>Write Ansible code</li>
+  <li>Commit your code</li>
+  <li>Push your code to GitHub/GitLab/etc.</li>
+  <li>Get your code linted automatically</li>
+  <li>On linting errors, fix the Ansible code</li>
+  <li>Go back to 2.</li>
+</ol>
+
+<p>You can already see how time consuming and ineffective this approach would be.</p>
+
+<p>My workflow looks a little different. I start by writing Ansible Code and regularly test the code using Ansible Lint on my development machine. This helps with immediately
+correcting the code before I even finished writing it.</p>
+
+<p>To ‘force’ myself into that continuous testing, I make use of <a href="https://pre-commit.com/"><code class="language-plaintext highlighter-rouge">pre-commit</code></a>. <code class="language-plaintext highlighter-rouge">pre-commit</code> basically installs a
+<a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">git hook</a> script that runs anything I define before being allowed to commit the code.
+For <code class="language-plaintext highlighter-rouge">pre-commit</code> to work you need to have initialized a git repository in your current directory (<code class="language-plaintext highlighter-rouge">git init</code>) or cloned an existing git repository.
+<code class="language-plaintext highlighter-rouge">pre-commit</code> can be installed via <code class="language-plaintext highlighter-rouge">pip install pre-commit</code> (please use a Python virtual environment).</p>
+
+<p><code class="language-plaintext highlighter-rouge">pre-commit</code> can be individually configured using a <a href="https://pre-commit.com/#2-add-a-pre-commit-configuration">configuration file</a>, which can be placed in your git initialized
+directory at <code class="language-plaintext highlighter-rouge">.pre-commit-config.yaml</code></p>
+
+<p>My configuration file looks like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">repos</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">repo</span><span class="pi">:</span> <span class="s1">'</span><span class="s">https://github.com/ansible/ansible-lint'</span>
+    <span class="na">rev</span><span class="pi">:</span> <span class="s1">'</span><span class="s">v6.20.3'</span>
+    <span class="na">hooks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Ansible-lint'</span>
+        <span class="na">additional_dependencies</span><span class="pi">:</span>
+          <span class="c1"># https://github.com/pre-commit/pre-commit/issues/1526</span>
+          <span class="c1"># If you want to use specific version of ansible-core or ansible, feel</span>
+          <span class="c1"># free to override `additional_dependencies` in your own hook config</span>
+          <span class="c1"># file.</span>
+          <span class="pi">-</span> <span class="s1">'</span><span class="s">ansible-core&gt;=2.15'</span>
+        <span class="na">always_run</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">description</span><span class="pi">:</span> <span class="s1">'</span><span class="s">This</span><span class="nv"> </span><span class="s">hook</span><span class="nv"> </span><span class="s">runs</span><span class="nv"> </span><span class="s">ansible-lint.'</span>
+        <span class="na">entry</span><span class="pi">:</span> <span class="s1">'</span><span class="s">python3</span><span class="nv"> </span><span class="s">-m</span><span class="nv"> </span><span class="s">ansiblelint</span><span class="nv"> </span><span class="s">-v</span><span class="nv"> </span><span class="s">--force-color'</span>
+        <span class="na">id</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ansible-lint'</span>
+        <span class="na">language</span><span class="pi">:</span> <span class="s1">'</span><span class="s">python'</span>
+        <span class="c1"># do not pass files to ansible-lint, see:</span>
+        <span class="c1"># https://github.com/ansible/ansible-lint/issues/611</span>
+        <span class="na">pass_filenames</span><span class="pi">:</span> <span class="no">false</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>Once you have installed <code class="language-plaintext highlighter-rouge">pre-commit</code> and put the configuration file in place, it’s time to install the git hook using <code class="language-plaintext highlighter-rouge">pre-commit install</code>. The installed git hook will
+ensure that every time you commit code using <code class="language-plaintext highlighter-rouge">git commit</code>, the code is linted using Ansible Lint. If your code passes Ansible Lint, the commit will be performed, otherwise
+Ansible Lint will let you know what’s wrong and the commit is prevented. Your code remains untouched, of course (unless you run Ansible Lint with the <code class="language-plaintext highlighter-rouge">--fix</code> option that is).</p>
+
+<p>I usually run <code class="language-plaintext highlighter-rouge">pre-commit run --all</code> after I installed the git hook to check if everything works as expected.</p>
+
+<p><code class="language-plaintext highlighter-rouge">pre-commit</code> has been a game changer to me as it forces me to fix faulty Ansible code before I commit it.</p>
+<h2 id="ansible-lint-with-github-actions">
+  
+  
+    Ansible Lint with GitHub Actions <a href="#ansible-lint-with-github-actions">#</a>
+  
+  
+</h2>
+    
+
+<p>Finally, we are there. I know, it’s been a long post (again), but I felt this context was necessary before starting linting your code with GitHub Actions.</p>
+
+<p>So how do you actually use Ansible Lint with GitHub Actions? Well, with another configuration file, of course, but it’s <em>really</em> easy.</p>
+
+<p>First off, we’ll create a directory inside your git repository: <code class="language-plaintext highlighter-rouge">.github/workflows</code>. This is the place where GitHub looks for any workflows to run.
+I have a file in <code class="language-plaintext highlighter-rouge">.github/workflows</code> that configures the Ansible Lint GitHub action (you can name it whatever you want, as long as it has either <code class="language-plaintext highlighter-rouge">yml</code> or <code class="language-plaintext highlighter-rouge">yaml</code>
+as extension): <code class="language-plaintext highlighter-rouge">ansible-lint.yml</code></p>
+
+<p>My <code class="language-plaintext highlighter-rouge">ansible-lint.yml</code> looks like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ansible-lint'</span>
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">main'</span><span class="pi">]</span>
+  <span class="na">workflow_dispatch</span><span class="pi">:</span> <span class="pi">{}</span>
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">build</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Ansible</span><span class="nv"> </span><span class="s">Lint'</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ubuntu-latest'</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s1">'</span><span class="s">actions/checkout@v4'</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Run</span><span class="nv"> </span><span class="s">ansible-lint'</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ansible/ansible-lint@main'</span>
+<span class="nn">...</span>
+</code></pre></div></div>
+
+<p>The above configuration runs the official <a href="https://github.com/marketplace/actions/run-ansible-lint">GitHub Action for Ansible Lint</a> on a pull request to the <code class="language-plaintext highlighter-rouge">main</code> branch. By
+specifying the attribute <code class="language-plaintext highlighter-rouge">workflow_dispatch</code> (it’s on purpose an empty dictionary) you are able to run the linting on demand, even without a pull request.</p>
+<h2 id="conclusion">
+  
+  
+    Conclusion <a href="#conclusion">#</a>
+  
+  
+</h2>
+    
+
+<p>That’s it already for this time.</p>
+
+<p>I hope this post is helpful to dive into the world of linting Ansible code - with or without GitHub Actions. Happy Linting! <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2024-03-11">
+  
+  
+    2024-03-11 <a href="#2024-03-11">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+  <li>Spelling fixes</li>
+</ul>
+<h3 id="2024-02-02">
+  
+  
+    2024-02-02 <a href="#2024-02-02">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+</ul>
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:import_vs_include" role="doc-endnote">
+      <p><a href="https://docs.ansible.com/ansible/2.9/user_guide/playbooks_reuse_includes.html#includes-vs-imports">Including and Importing Task Files</a> <a href="#fnref:import_vs_include" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:ansible_lint_playbook_syntax" role="doc-endnote">
+      <p><a href="https://ansible.readthedocs.io/projects/lint/rules/syntax-check/#correct-code">Ansible Lint syntax-check</a> <a href="#fnref:ansible_lint_playbook_syntax" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:ansible_lint_config_location" role="doc-endnote">
+      <p><a href="https://ansible.readthedocs.io/projects/lint/configuring/">Ansible Lint configuration file locations</a> <a href="#fnref:ansible_lint_config_location" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2023/11/22/github-actions-ansible.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>
