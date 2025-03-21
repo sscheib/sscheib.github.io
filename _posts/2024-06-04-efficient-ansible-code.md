@@ -466,6 +466,10 @@ Steffen
 
 ## Change log
 
+### 2025-03-21
+
+- Fixing dead Ansible `rulebooks` link
+
 ### 2024-06-04
 
 - Initial release
