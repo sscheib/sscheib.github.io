@@ -45,7 +45,7 @@ Please don't get me wrong. Ansible itself has evolved **a lot** since it was fir
 [`roles`](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html),
 to [`collections`](https://docs.ansible.com/ansible/latest/collections_guide/index.html), the introduction of
 [Event-Driven Ansible](https://ansible.readthedocs.io/projects/rulebook/en/latest/introduction.html#what-is-event-driven-ansible) with
-[`rulebooks`](https://ansible.readthedocs.io/projects/rulebook/en/stable/) to Red Hat's latest announcement
+[`rulebooks`](https://ansible.readthedocs.io/projects/rulebook) to Red Hat's latest announcement
 [Policy as Code](https://www.redhat.com/en/about/press-releases/red-hat-introduces-policy-code-help-address-ai-complexities-scale).
 
 Ansible is more relevant than ever to fulfill a variety of use cases in today's ever changing IT landscape.
