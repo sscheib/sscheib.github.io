@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Ansible role rhel_iso_kickstart | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Ansible role rhel_iso_kickstart">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Preface">
+<meta property="og:description" content="Preface">
+<link rel="canonical" href="https://blog.scheib.me/2023/10/03/ansible-role-rhel_iso_kickstart.html">
+<meta property="og:url" content="https://blog.scheib.me/2023/10/03/ansible-role-rhel_iso_kickstart.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-10-03T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Ansible role rhel_iso_kickstart">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-03-11T00:00:00+00:00","datePublished":"2023-10-03T00:00:00+00:00","description":"Preface","headline":"Ansible role rhel_iso_kickstart","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2023/10/03/ansible-role-rhel_iso_kickstart.html"},"url":"https://blog.scheib.me/2023/10/03/ansible-role-rhel_iso_kickstart.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Ansible role rhel_iso_kickstart</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-10-03T00:00:00+00:00" itemprop="datePublished">Published: Oct 3, 2023
+      </time>
+      <time class="dt-modified" datetime="2024-03-11T00:00:00+00:00" itemprop="dateModified">• Last modified: Mar 11, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+14 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#prerequisite-obtaining-an-api-token-to-authenticate-to-the-red-hat-customer-portal">Prerequisite: Obtaining an API token to authenticate to the Red Hat Customer Portal</a></li>
+<li><a href="#prerequisite-obtaining-the-checksum-of-an-iso-image-to-download">Prerequisite: Obtaining the checksum of an <code class="language-plaintext highlighter-rouge">ISO image</code> to download</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#a-deeper-look-into-the-role">A deeper look into the role</a></li>
+<li>
+<a href="#use-cases">Use cases</a><ul>
+<li><a href="#downloading-an-iso-image">Downloading an <code class="language-plaintext highlighter-rouge">ISO image</code></a></li>
+<li><a href="#downloading-an-iso-image-and-enabling-fips-for-the-iso-image">Downloading an <code class="language-plaintext highlighter-rouge">ISO image</code> and enabling <code class="language-plaintext highlighter-rouge">FIPS</code> for the <code class="language-plaintext highlighter-rouge">ISO image</code></a></li>
+<li><a href="#download-a-rhel-iso-image-implant-a-kickstart-create-users-add-custom-post-sections-implant-an-md5-checksum-and-enable-fips">Download a RHEL <code class="language-plaintext highlighter-rouge">ISO image</code>, implant a Kickstart, create users, add custom <code class="language-plaintext highlighter-rouge">%post</code> sections, implant an <code class="language-plaintext highlighter-rouge">MD5</code> checksum and enable <code class="language-plaintext highlighter-rouge">FIPS</code></a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li>
+<a href="#change-log">Change log</a><ul><li><a href="#2024-03-11">2024-03-11</a></li></ul>
+</li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="preface">
+  
+  
+    Preface <a href="#preface">#</a>
+  
+  
+</h2>
+    
+
+<p>I have been playing around with the idea of writing a blog post series about my Ansible roles for quite a while now. Not only to ‘promote’ my Ansible roles, but also to show case
+how extremely flexible Ansible really is. Often times people think of Ansible as “just another configuration management tool”. While this is absolutely true, Ansible - in my
+opinion - is so much more than that. Ansible is great in automating a series of tasks across multiple systems - that is really the <strong>strength of Ansible</strong>.</p>
+
+<p>To disclose it right away: I am working at Red Hat as Senior Technical Account Manager Ansible - so please take the above with a grain of salt, as I am most probably biased.</p>
+
+<p>With that being said, let’s dive into my Ansible role <a href="https://github.com/sscheib/ansible-role-rhel_iso_kickstart"><code class="language-plaintext highlighter-rouge">rhel_iso_kickstart</code></a> <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="introduction">
+  
+  
+    Introduction <a href="#introduction">#</a>
+  
+  
+</h2>
+    
+
+<p>I regularly deploy new <a href="https://www.redhat.com/de/technologies/management/satellite">Red Hat Satellite</a> instances - for testing purposes. Or when I broke one of the Satellite
+instances (again) while playing around a bit <em>too much</em>. Or when I (once again) move to a new server or basically revamp my complete infrastructure. So you see, I have quite a
+need for that <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20">.</p>
+
+<p>I also noticed that a few of my colleagues had the same need, as well as some of our customers. I couldn’t find an existing <em>automated way</em> of downloading a given RHEL
+<code class="language-plaintext highlighter-rouge">ISO image</code> and implanting a Kickstart into it, while also allowing to customize certain things, such as enabling
+<a href="https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards"><code class="language-plaintext highlighter-rouge">FIPS</code></a>.</p>
+
+<p>So I decided, I’ll just write an Ansible role for everybody to use to ease this regular task.</p>
+<h2 id="prerequisite-obtaining-an-api-token-to-authenticate-to-the-red-hat-customer-portal">
+  
+  
+    Prerequisite: Obtaining an API token to authenticate to the Red Hat Customer Portal <a href="#prerequisite-obtaining-an-api-token-to-authenticate-to-the-red-hat-customer-portal">#</a>
+  
+  
+</h2>
+    
+
+<p>First off, to download an <code class="language-plaintext highlighter-rouge">ISO image</code> from the <a href="https://access.redhat.com">Red Hat Customer Portal</a> you need to be a Red Hat subscriber. If you don’t own any subscriptions,
+you can make use of <a href="https://developers.redhat.com/articles/faqs-no-cost-red-hat-enterprise-linux">Red Hat’s Developer Subscription</a> which is provided at no cost by Red Hat.</p>
+
+<p>Once you created your account and are able to download from the Red Hat Customer Portal, you need to create an API Token, which we’ll use to authenticate to the Red Hat
+Customer Portal. For that, simply login to Red Hat’s Customer Portal and create an <a href="https://access.redhat.com/management/api">API Token</a>.</p>
+
+<p>Note down that token, as we are going to need it for the role to function.</p>
+<h2 id="prerequisite-obtaining-the-checksum-of-an-iso-image-to-download">
+  
+  
+    Prerequisite: Obtaining the checksum of an <code class="language-plaintext highlighter-rouge">ISO image</code> to download <a href="#prerequisite-obtaining-the-checksum-of-an-iso-image-to-download">#</a>
+  
+  
+</h2>
+    
+
+<p>The Red Hat Customer Portal API enables downloading of <code class="language-plaintext highlighter-rouge">ISO images</code> only <strong>by checksum</strong>. To download an <code class="language-plaintext highlighter-rouge">ISO image</code>, you first need to identify the checksum to pass to the
+role. This checksum can be retrieved for any <code class="language-plaintext highlighter-rouge">ISO image</code> on the Red Hat Customer Portal and can be found on the respective download page of the <code class="language-plaintext highlighter-rouge">ISO image</code> itself.</p>
+
+<p>For RHEL you can visit <a href="https://access.redhat.com/downloads/content/rhel">https://access.redhat.com/downloads/content/rhel</a> and simply click on <strong>Show details</strong>.
+As an example, the <strong>Red Hat Enterprise Linux 8.8 Binary DVD</strong> will show the following additional details:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>File name: rhel-8.8-x86_64-dvd.iso
+File Size: 11.7 GB
+SHA-256 Checksum: 517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09
+Last Updated: 2023-04-26
+</code></pre></div></div>
+
+<p>We are going to need the <code class="language-plaintext highlighter-rouge">SHA-256 Checksum</code> <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+<h2 id="installation">
+  
+  
+    Installation <a href="#installation">#</a>
+  
+  
+</h2>
+    
+
+<p>Installation is easy and straight forward. I tag my Role releases using <a href="https://semver.org/">semantic versioning</a> on GitHub. Installing a specific tag works through providing
+a <code class="language-plaintext highlighter-rouge">requirements.yml</code> to the <code class="language-plaintext highlighter-rouge">ansible-galaxy</code> command.</p>
+
+<p>If you’d want to install v2.0.0 of my Role, you could use the following <code class="language-plaintext highlighter-rouge">requirements.yml</code>:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">roles</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">rhel_iso_kickstart'</span>
+    <span class="na">src</span><span class="pi">:</span> <span class="s1">'</span><span class="s">https://github.com/sscheib/ansible-role-rhel_iso_kickstart.git'</span>
+    <span class="na">scm</span><span class="pi">:</span> <span class="s1">'</span><span class="s">git'</span>
+    <span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">v2.0.0'</span>
+</code></pre></div></div>
+
+<p>Installing it is as easy as that:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role <span class="nb">install</span> <span class="nt">-r</span> requirements.yml
+</code></pre></div></div>
+<h2 id="a-deeper-look-into-the-role">
+  
+  
+    A deeper look into the role <a href="#a-deeper-look-into-the-role">#</a>
+  
+  
+</h2>
+    
+
+<p>So what actually does this role?</p>
+
+<p>The role does the following:</p>
+
+<ol>
+  <li>Download a RHEL <code class="language-plaintext highlighter-rouge">ISO image</code> to your local filesystem - that can be your local machine or a server in a data center</li>
+  <li>Optional: Unpack the <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Optional: Add a custom Kickstart or the Kickstart shipped with the role to the unpacked <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Optional: Adjust the Kickstart to set a root password, create users and add custom <code class="language-plaintext highlighter-rouge">%post</code> sections</li>
+  <li>Optional: Validate the Kickstart using <code class="language-plaintext highlighter-rouge">ksvalidator</code>
+</li>
+  <li>Optional: Adjust the kernel parameters to load the Kickstart automatically</li>
+  <li>Optional: Enable <code class="language-plaintext highlighter-rouge">FIPS</code> in the kernel parameters</li>
+  <li>Optional: Adjust the timeout of GRUB, so you don’t have to wait 60 seconds for the installation to start</li>
+  <li>Optional: Adjust the GRUB menu entry to use; Either validate the <code class="language-plaintext highlighter-rouge">ISO image</code> before installing or directly install it</li>
+  <li>Optional: Create the actual <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Optional: Make the <code class="language-plaintext highlighter-rouge">ISO image</code> bootable on <code class="language-plaintext highlighter-rouge">BIOS</code> and <code class="language-plaintext highlighter-rouge">UEFI</code> systems</li>
+  <li>Optional: Implant an MD5 sum so it can be checked during booting</li>
+</ol>
+
+<p>TL;DR: Quite a lot.</p>
+
+<p>Chances are that you do not need or want to use certain features of the role, such as enabling <code class="language-plaintext highlighter-rouge">FIPS</code>. Then I have good news for you: All steps but the very first are optional
+and can be configured through variables. <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="use-cases">
+  
+  
+    Use cases <a href="#use-cases">#</a>
+  
+  
+</h2>
+    
+
+<p>I have identified three major use cases for the role:</p>
+
+<ol>
+  <li>Only download an <code class="language-plaintext highlighter-rouge">ISO image</code>, don’t touch it</li>
+  <li>Download the <code class="language-plaintext highlighter-rouge">ISO image</code> and enable <code class="language-plaintext highlighter-rouge">FIPS</code>, so you don’t have to do it manually every time before th <code class="language-plaintext highlighter-rouge">ISO image</code> boots, but do not perform any other changes to
+the <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Embed a customized Kickstart into the <code class="language-plaintext highlighter-rouge">ISO image</code> to use it for unattended installing</li>
+</ol>
+
+<p>I am sure, there plenty of other use cases I haven’t thought of yet. If you happen to have a different use case, consider contributing with a feature request or
+simply comment on this blog post <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+
+<p>Now, let’s take look at the above use cases and how to configure the role to achieve each of them.</p>
+<h3 id="downloading-an-iso-image">
+  
+  
+    Downloading an <code class="language-plaintext highlighter-rouge">ISO image</code> <a href="#downloading-an-iso-image">#</a>
+  
+  
+</h3>
+    
+
+<p>Downloading the <code class="language-plaintext highlighter-rouge">ISO image</code> is the easiest of the three use cases. You’ll only need to configure:</p>
+
+<ul>
+  <li>Which <code class="language-plaintext highlighter-rouge">ISO image</code> to download</li>
+  <li>Where to download it to</li>
+  <li>The permissions of both the download directory and the <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Provide the API token to authenticate against the Red Hat Customer Portal</li>
+</ul>
+
+<p>An example of a playbook could look something like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">hosts</span><span class="pi">:</span> <span class="s1">'</span><span class="s">localhost'</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">roles</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">rhel_iso_kickstart'</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="c1"># the checksum of a RHEL 8.8 ISO to download from the Red Hat Customer Portal</span>
+    <span class="na">checksum</span><span class="pi">:</span> <span class="s1">'</span><span class="s">517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09'</span>
+    <span class="na">download_directory</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">download_timeout</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3600'</span>
+    <span class="na">download_directory_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">download_directory_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">download_directory_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">iso_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">iso_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">iso_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0600'</span>
+    <span class="na">api_token</span><span class="pi">:</span> <span class="kt">!vault</span> <span class="pi">|</span>
+          <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+          <span class="s">[..]</span>
+</code></pre></div></div>
+<h3 id="downloading-an-iso-image-and-enabling-fips-for-the-iso-image">
+  
+  
+    Downloading an <code class="language-plaintext highlighter-rouge">ISO image</code> and enabling <code class="language-plaintext highlighter-rouge">FIPS</code> for the <code class="language-plaintext highlighter-rouge">ISO image</code> <a href="#downloading-an-iso-image-and-enabling-fips-for-the-iso-image">#</a>
+  
+  
+</h3>
+    
+
+<p>Enabling <code class="language-plaintext highlighter-rouge">FIPS</code> on top of downloading the image is not much more complicated. You need to configure the following:</p>
+
+<ul>
+  <li>Which <code class="language-plaintext highlighter-rouge">ISO image</code> to download</li>
+  <li>Where to download it to</li>
+  <li>The permissions of both the download directory and the <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Provide the API token to authenticate against the Red Hat Customer Portal</li>
+  <li>Disable Kickstart validation</li>
+  <li>Specify a temporary work directory and the permissions to it</li>
+  <li>Specify a temporary mount path to mount the original downloaded <code class="language-plaintext highlighter-rouge">ISO image</code> (to extract it’s content)</li>
+  <li>Destination path to the custom <code class="language-plaintext highlighter-rouge">ISO image</code> along with the permissions of it</li>
+  <li>Enabling the option to enable <code class="language-plaintext highlighter-rouge">FIPS</code>
+</li>
+  <li>Enabling the option to recreate the custom <code class="language-plaintext highlighter-rouge">ISO image</code> every time</li>
+  <li>Enabling the option to implanting an MD5 checksum which can be checked during booting</li>
+</ul>
+
+<p>An example playbook could look something like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">hosts</span><span class="pi">:</span> <span class="s1">'</span><span class="s">localhost'</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">roles</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">rhel_iso_kickstart'</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="c1"># the checksum of a RHEL 8.8 ISO to download from the Red Hat Customer Portal</span>
+    <span class="na">checksum</span><span class="pi">:</span> <span class="s1">'</span><span class="s">517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09'</span>
+    <span class="na">download_directory</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">download_directory_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">download_directory_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">download_directory_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">iso_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">iso_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">iso_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0600'</span>
+    <span class="na">validate_kickstart</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">temporary_mount_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/mnt'</span>
+    <span class="na">temporary_work_dir_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">temporary_work_dir_path_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_path_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_path_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">temporary_work_dir_source_files_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">src'</span>
+    <span class="na">temporary_work_dir_source_files_path_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_source_files_path_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_source_files_path_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">dest_dir_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">custom_iso_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">custom_iso_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">custom_iso_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">force_recreate_custom_iso</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">implant_md5</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">enable_fips</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">api_token</span><span class="pi">:</span> <span class="kt">!vault</span> <span class="pi">|</span>
+          <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+</code></pre></div></div>
+<h3 id="download-a-rhel-iso-image-implant-a-kickstart-create-users-add-custom-post-sections-implant-an-md5-checksum-and-enable-fips">
+  
+  
+    Download a RHEL <code class="language-plaintext highlighter-rouge">ISO image</code>, implant a Kickstart, create users, add custom <code class="language-plaintext highlighter-rouge">%post</code> sections, implant an <code class="language-plaintext highlighter-rouge">MD5</code> checksum and enable <code class="language-plaintext highlighter-rouge">FIPS</code> <a href="#download-a-rhel-iso-image-implant-a-kickstart-create-users-add-custom-post-sections-implant-an-md5-checksum-and-enable-fips">#</a>
+  
+  
+</h3>
+    
+
+<p>This use case leverages basically all the functionality the role offers. It will:</p>
+
+<ul>
+  <li>Download a RHEL <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Implant a Kickstart into the <code class="language-plaintext highlighter-rouge">ISO image</code>
+</li>
+  <li>Add create user statements to the Kickstart</li>
+  <li>Implant custom <code class="language-plaintext highlighter-rouge">%post</code> sections, but adding to the default ones</li>
+  <li>Configure SSH keys for the users that are created</li>
+  <li>Implant a MD5 checksum</li>
+  <li>Enable <code class="language-plaintext highlighter-rouge">FIPS</code>
+</li>
+</ul>
+
+<p>A thorough example of the possible usage can be found down below. Some of the variables are redundant, as they merely reflect the defaults already set, but I wanted to show
+<em>what</em> can be changed.</p>
+
+<p>Example playbook:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nn">---</span>
+<span class="pi">-</span> <span class="na">hosts</span><span class="pi">:</span> <span class="s1">'</span><span class="s">localhost'</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">roles</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">rhel_iso_kickstart'</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="c1"># the checksum of a RHEL 8.8 ISO to download from the Red Hat Customer Portal</span>
+    <span class="na">checksum</span><span class="pi">:</span> <span class="s1">'</span><span class="s">517abcc67ee3b7212f57e180f5d30be3e8269e7a99e127a3399b7935c7e00a09'</span>
+    <span class="na">download_directory</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">download_timeout</span><span class="pi">:</span> <span class="m">3600</span>
+    <span class="na">kickstart_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">example.ks'</span>
+    <span class="na">validate_kickstart</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">ksvalidator_package_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">pykickstart'</span>
+    <span class="na">temporary_mount_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/mnt'</span>
+    <span class="na">temporary_work_dir_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen/workdir'</span>
+    <span class="na">temporary_work_dir_path_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_path_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_path_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">temporary_work_dir_source_files_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">src'</span>
+    <span class="na">temporary_work_dir_source_files_path_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_source_files_path_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">temporary_work_dir_source_files_path_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">dest_dir_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/steffen'</span>
+    <span class="na">xorriso_package_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">xorriso'</span>
+    <span class="na">isolinux_bin_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">isolinux/isolinux.bin'</span>
+    <span class="na">boot_cat_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">isolinux/boot.cat'</span>
+    <span class="na">pxelinux_cfg_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">isolinux/isolinux.cfg'</span>
+    <span class="na">grub_cfg_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">isolinux/grub.conf'</span>
+    <span class="na">download_directory_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">download_directory_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">download_directory_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">cleanup_iso</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">cleanup_work_dir</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">iso_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">iso_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">steffen'</span>
+    <span class="na">iso_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0600'</span>
+    <span class="na">custom_iso_owner</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">custom_iso_group</span><span class="pi">:</span> <span class="s1">'</span><span class="s">root'</span>
+    <span class="na">custom_iso_mode</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0755'</span>
+    <span class="na">force_recreate_custom_iso</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">grub_menu_selection_timeout</span><span class="pi">:</span> <span class="m">3</span>
+    <span class="na">implant_md5</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">implantisomd5_package_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">isomd5sum'</span>
+    <span class="na">quiet_assert</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">enable_fips</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">post_sections</span><span class="pi">:</span> <span class="pi">&gt;</span>
+      <span class="s">{{</span>
+         <span class="s">_def_post_sections +</span>
+         <span class="s">[</span>
+           <span class="s">{</span>
+             <span class="s">'name': 'Custom %post section',</span>
+             <span class="s">'template': 'custom_post.j2'</span>
+           <span class="s">},</span>
+           <span class="s">{</span>
+             <span class="s">'name': 'Another %post section',</span>
+             <span class="s">'template': 'another_post.j2'</span>
+           <span class="s">}</span>
+         <span class="s">]</span>
+      <span class="s">}}</span>
+    <span class="na">users</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ansible-user'</span>
+        <span class="na">gid</span><span class="pi">:</span> <span class="m">2000</span>
+        <span class="na">uid</span><span class="pi">:</span> <span class="m">2000</span>
+        <span class="na">gecos</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Ansible</span><span class="nv"> </span><span class="s">User'</span>
+        <span class="na">create_user_group</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">groups</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s1">'</span><span class="s">wheel'</span>
+        <span class="na">shell</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/bin/bash'</span>
+        <span class="na">home</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/home/remote-ansible'</span>
+        <span class="na">privileged</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">lock</span><span class="pi">:</span> <span class="no">false</span>
+        <span class="na">password</span><span class="pi">:</span> <span class="kt">!vault</span> <span class="pi">|</span>
+              <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+              <span class="s">[..]</span>
+        <span class="na">authorized_keys</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="kt">!vault</span> <span class="pi">|</span>
+              <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+              <span class="s">[..]</span>
+
+          <span class="pi">-</span> <span class="kt">!vault</span> <span class="pi">|</span>
+              <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+              <span class="s">[..]</span>
+    <span class="na">kickstart_root_password</span><span class="pi">:</span> <span class="kt">!vault</span> <span class="pi">|</span>
+          <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+          <span class="s">[..]</span>
+    <span class="na">api_token</span><span class="pi">:</span> <span class="kt">!vault</span> <span class="pi">|</span>
+          <span class="s">$ANSIBLE_VAULT;1.1;AES256</span>
+          <span class="s">[..]</span>
+
+</code></pre></div></div>
+<h2 id="conclusion">
+  
+  
+    Conclusion <a href="#conclusion">#</a>
+  
+  
+</h2>
+    
+
+<p>I hope this role spares you a little time in your day to day work. That’s already it for the time being - I hope you enjoyed it <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2024-03-11">
+  
+  
+    2024-03-11 <a href="#2024-03-11">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>Adding change log</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+  <li>Spelling fixes</li>
+</ul>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2023/10/03/ansible-role-rhel_iso_kickstart.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>
