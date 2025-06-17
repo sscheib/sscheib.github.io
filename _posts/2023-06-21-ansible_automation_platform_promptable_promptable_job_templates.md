@@ -18,8 +18,8 @@ This is no longer possible with Ansible Automation Platform 2.x, as the executio
 via SSH, but via [receptor](https://github.com/ansible/receptor) from a controller or hop node (through the [Automation Mesh](https://www.ansible.com/products/automation-mesh)).
 The most straight forward way to overcome this obstacle is to basically duplicate the job templates as many times as required, but each time assign a new instance group and the
 corresponding hosts to it. Either by specifying the `Limit` or creating a
-[Smart Inventory](https://docs.ansible.com/automation-controller/latest/html/userguide/inventories.html#smart-inventories) that would only contain the hosts that are reachable
-by the assigned [Instance Group](https://docs.ansible.com/automation-controller/latest/html/userguide/instance_groups.html).
+[Smart Inventory](https://docs.ansible.com/ansible-tower/latest/html/userguide/inventories.html#smart-inventories) that would only contain the hosts that are reachable
+by the assigned [Instance Group](https://docs.ansible.com/ansible-tower/latest/html/userguide/instance_groups.html).
 
 Unfortunately, this recommendation did not work for the customer, because the requirement of the customer was, that their internal customers do not know where the servers are
 located and don't want to launch multiple job templates to achieve one simple task.
