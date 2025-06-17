@@ -24,7 +24,7 @@ by the assigned [Instance Group](https://docs.ansible.com/automation-controller/
 Unfortunately, this recommendation did not work for the customer, because the requirement of the customer was, that their internal customers do not know where the servers are
 located and don't want to launch multiple job templates to achieve one simple task.
 
-Okay, so, but what about [Workflow Templates](https://docs.ansible.com/automation-controller/latest/html/userguide/workflows.html)? Still not good enough, because that
+Okay, so, but what about [Workflow Templates](https://docs.ansible.com/ansible-tower/latest/html/userguide/workflows.html)? Still not good enough, because that
 still would require multiple job templates to be set up to achieve the requirement of "1 Task, 1 Inventory, 1 Job Template".
 
 ## Ansible Automation Platform and the 'Prompt on launch' option
