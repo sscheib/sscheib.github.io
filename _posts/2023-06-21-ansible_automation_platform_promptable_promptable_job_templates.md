@@ -1,7 +1,7 @@
 ---
 title: Ansible Automation Platform - Automating the execution of job templates and leveraging the 'prompt on launch' feature
 author: Steffen Scheib
-last_modified_at: 2024-03-09
+last_modified_at: 2025-06-17
 ---
 ## Introduction
 
@@ -84,7 +84,7 @@ What I do in the playbook is the following:
 - Gather information about the Job Template, from which we will extract the Inventory
 - We will use the Inventory to determine the actual hosts, that will be targeted
 - The most challenging part was to build a dictionary of Instance Groups, of which each one would contain a list of hosts to target. The information was present in the `variables`
-  of the host. You can take look at what I mean [here](https://github.com/sscheib/ansible-demo-promptable_job_concept/blob/main/launch_jobs.yml#L52)
+  of the host. You can take look at what I mean in [my code](https://github.com/sscheib/ansible-demo-promptable_job_concept/blob/main/launch_jobs.yml#L52)
 - Finally, iterate over that dictionary and launch as many Jobs as required :slightly_smiling_face:
 
 For a better visualization, that dictionary would look something like this:
