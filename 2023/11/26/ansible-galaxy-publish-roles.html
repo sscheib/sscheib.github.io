@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Publishing roles to Ansible Galaxy - with or without GitHub Actions | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Publishing roles to Ansible Galaxy - with or without GitHub Actions">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Preface">
+<meta property="og:description" content="Preface">
+<link rel="canonical" href="https://blog.scheib.me/2023/11/26/ansible-galaxy-publish-roles.html">
+<meta property="og:url" content="https://blog.scheib.me/2023/11/26/ansible-galaxy-publish-roles.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-11-26T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Publishing roles to Ansible Galaxy - with or without GitHub Actions">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-03-10T00:00:00+00:00","datePublished":"2023-11-26T00:00:00+00:00","description":"Preface","headline":"Publishing roles to Ansible Galaxy - with or without GitHub Actions","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2023/11/26/ansible-galaxy-publish-roles.html"},"url":"https://blog.scheib.me/2023/11/26/ansible-galaxy-publish-roles.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Publishing roles to Ansible Galaxy - with or without GitHub Actions</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-11-26T00:00:00+00:00" itemprop="datePublished">Published: Nov 26, 2023
+      </time>
+      <time class="dt-modified" datetime="2024-03-10T00:00:00+00:00" itemprop="dateModified">• Last modified: Mar 10, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+15 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li>
+<a href="#publishing-roles-using-the-command-line">Publishing roles using the command line</a><ul>
+<li><a href="#updating-a-role">Updating a role</a></li>
+<li><a href="#tagging-releases">Tagging releases</a></li>
+</ul>
+</li>
+<li><a href="#publishing-roles-using-github-actions">Publishing roles using GitHub Actions</a></li>
+<li><a href="#closing-thoughts">Closing thoughts</a></li>
+<li>
+<a href="#change-log">Change log</a><ul>
+<li><a href="#2024-03-10">2024-03-10</a></li>
+<li><a href="#2024-02-02">2024-02-02</a></li>
+</ul>
+</li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="preface">
+  
+  
+    Preface <a href="#preface">#</a>
+  
+  
+</h2>
+    
+
+<p>First off, this is going to be a small blog post. I personally found it too difficult to figure out how to publish my roles to
+<a href="https://galaxy.ansible.com/ui/">Ansible Galaxy</a>, that’s why I didn’t used do it for my roles right from the start.</p>
+
+<p>Instead I simply published my roles on GitHub. One downside was, the roles were
+not as easy to discover as if they were published on Ansible Galaxy - the place where people usually look for existing roles.</p>
+
+<p>A few weeks back, I was asked on LinkedIn whether I could publish my roles on Ansible Galaxy, so that more users could discover them and use them - and maybe contribute some
+features to them <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">. That’s when I started looking into this again and I have to admit, that I struggled quite a bit until I finally figured out how
+to publish the roles.</p>
+
+<p>At that time I thought it was only me who was not able to figure it out, but quite recently another person reached out to me on LinkedIn asking me whether I could
+help getting some roles published to Ansible Galaxy.</p>
+
+<p>So I decided to write this small blog post to provide a little bit of guidance. Once you know where to look, it really is easy.</p>
+<h2 id="requirements">
+  
+  
+    Requirements <a href="#requirements">#</a>
+  
+  
+</h2>
+    
+
+<p>What you’ll need to follow along is the following:</p>
+
+<ol>
+  <li>A GitHub account. With the GitHub account you’ll be able to login to Ansible Galaxy. To my knowledge there is no other way (anymore) to register or log into Ansible Galaxy</li>
+  <li>A role you’d like to publish. The role needs to be stored in a git repository that is publicly accessible on GitHub. Anything other than GitHub does not work (to my knowledge)</li>
+  <li>
+    <p>An Ansible Galaxy API token. You’ll find it by visiting <a href="https://galaxy.ansible.com/">Ansible Galaxy</a>, then login via GitHub, click on <code class="language-plaintext highlighter-rouge">Collections</code> on the left hand side,
+followed by <code class="language-plaintext highlighter-rouge">API token</code>. Finally, click on <code class="language-plaintext highlighter-rouge">Load token</code></p>
+
+    <p><img class="emoji" title=":warning:" alt=":warning:" src="https://github.githubassets.com/images/icons/emoji/unicode/26a0.png" height="20" width="20"> Be aware that loading a new token, invalidates your old token (if you had a token previously)</p>
+  </li>
+</ol>
+
+<p>Please be aware, that the role needs to follow the <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html#role-directory-structure">official role structure</a>.</p>
+
+<p>Further, you’ll need the role content to be at the top level of your git repository - at least I couldn’t figure out a different way. What I mean by that is, that you
+cannot have a <code class="language-plaintext highlighter-rouge">roles/</code> directory inside your git repository and publish any role that is inside <code class="language-plaintext highlighter-rouge">roles/</code>, but instead the role structure needs to be at the top level.</p>
+
+<p>If you struggle to understand what I mean, please look at one of my roles (e.g.
+<a href="https://github.com/sscheib/ansible-role-rhel_iso_kickstart">ansible-role-rhel_iso_kickstart</a>) to understand the role structure I am referring to.</p>
+<h2 id="publishing-roles-using-the-command-line">
+  
+  
+    Publishing roles using the command line <a href="#publishing-roles-using-the-command-line">#</a>
+  
+  
+</h2>
+    
+
+<p>Once you meet all the requirements, let’s look into publishing your role using the command line first.</p>
+
+<p>For the purpose of this blog, I have create a <a href="https://github.com/sscheib/ansible-role-dummy">sample/dummy role</a> which merely prints a given message via
+<code class="language-plaintext highlighter-rouge">ansible.builtin.debug</code>. As the blog post’s purpose is to provide a little help when publishing roles to Ansible Galaxy, the complexity of the role doesn’t matter at all.</p>
+
+<p>Once you have written your role, please lint it using Ansible Lint, as described in my blog post
+<a href="https://blog.scheib.me/2023/11/22/github-actions-ansible.html">Getting started with testing Ansible code using Ansible Lint - with or without GitHub Actions</a>. Ansible
+Galaxy will perform some form of linting, but I don’t know which profile is getting applied.</p>
+
+<p>Let’s first look at my role structure:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>tree ansible-role-dummy/
+ansible-role-dummy/
+├── defaults
+│   └── main.yml
+├── LICENSE
+├── meta
+│   └── main.yml
+├── README.md
+├── tasks
+│   └── main.yml
+└── vars
+    └── main.yml
+
+4 directories, 6 files
+</code></pre></div></div>
+
+<p>As you can see it is a very basic role without any bells and whistles.</p>
+
+<p>With that being said, importing the role is actually pretty straight forward. We need to run the command <code class="language-plaintext highlighter-rouge">ansible-galaxy role import</code> and provide some command line
+switches and values.</p>
+
+<p>What the <code class="language-plaintext highlighter-rouge">ansible-galaxy role import</code> command needs, is the following:</p>
+
+<ol>
+  <li>The Galaxy server to use. In our case that’s <a href="https://galaxy.ansible.com"><code class="language-plaintext highlighter-rouge">https://galaxy.ansible.com</code></a>. The corresponding command line argument is <code class="language-plaintext highlighter-rouge">--server</code> or <code class="language-plaintext highlighter-rouge">-s</code>
+</li>
+  <li>The aforementioned token you generated on <a href="https://galaxy.ansible.com"><code class="language-plaintext highlighter-rouge">https://galaxy.ansible.com</code></a>. The corresponding command line argument is <code class="language-plaintext highlighter-rouge">--token</code> or <code class="language-plaintext highlighter-rouge">--api-key</code>
+</li>
+  <li>Your GitHub username. This is a positional argument without any dedicated command line switch.</li>
+  <li>Your repository name. This is also a positional argument without any dedicated command line switch.</li>
+  <li>By default the repository name will be the role name. If you want a different role name to be used you need to have set that in <code class="language-plaintext highlighter-rouge">meta/main.yml</code> and additionally pass it to
+the <code class="language-plaintext highlighter-rouge">ansible-galaxy</code> command</li>
+  <li>Also by default, the <code class="language-plaintext highlighter-rouge">master</code> branch is going to get used of your GitHub repository. I’ll use <code class="language-plaintext highlighter-rouge">main</code> as my default branch, therefore I need to pass the command line
+argument <code class="language-plaintext highlighter-rouge">--branch</code> to it and provide it with the value of <code class="language-plaintext highlighter-rouge">main</code>
+</li>
+</ol>
+
+<p>Additionally, as said, your role needs to be pushed to your GitHub repository and the repository needs to be publicly accessible.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">ansible-galaxy</code> command will look like following:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role import <span class="nt">--branch</span> &lt;YOUR_BRANCH&gt; <span class="nt">--role-name</span> &lt;YOUR_ROLE_NAME&gt; <span class="nt">--server</span> https://galaxy.ansible.com <span class="nt">--token</span> &lt;YOUR_TOKEN&gt; &lt;YOUR_GITHUB_USERNAME&gt; &lt;YOUR_GITHUB_REPOSITORY_NAME&gt;
+</code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> <code class="language-plaintext highlighter-rouge">&lt;YOUR_GITHUB_REPOSITORY_NAME&gt;</code> really refers to the <strong>name</strong> of the repository, not the URL you’d use to pull down your code.</p>
+
+<p>To import my role <code class="language-plaintext highlighter-rouge">dummy</code> from my GitHub repository <a href="https://github.com/sscheib/ansible-role-dummy"><code class="language-plaintext highlighter-rouge">ansible-role-dummy</code></a>, with my GitHub username <code class="language-plaintext highlighter-rouge">sscheib</code>, I need to run
+the following command:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role import <span class="nt">--branch</span> main <span class="nt">--role-name</span> dummy <span class="nt">--server</span> https://galaxy.ansible.com <span class="nt">--token</span> MY_TOKEN sscheib ansible-role-dummy
+</code></pre></div></div>
+
+<p>The import process looks like the following:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ansible-galaxy role import <span class="nt">--branch</span> main <span class="nt">--role-name</span> dummy <span class="nt">--server</span> https://galaxy.ansible.com <span class="nt">--token</span> e4a4811672a51e064bb5fc97290b5d0a92f9094d sscheib ansible-role-dummy
+Successfully submitted import request 2056392558890447847457884111007500265
+Starting import: <span class="nv">task_id</span><span class="o">=</span>2056392558890447847457884111007500265, <span class="nv">pulp_id</span><span class="o">=</span>018c0bfb-20c0-7d1a-9559-11f84021c7e9
+
+<span class="o">====</span> PARAMETERS <span class="o">====</span>
+importer username: sscheib
+matched user: sscheib <span class="nb">id</span>:XXXXX
+github_user: sscheib
+github_repo: ansible-role-dummy
+github_reference: main
+alternate_role_name: dummy
+
+<span class="o">====</span> CHECK FOR MATCHING ROLE<span class="o">(</span>S<span class="o">)</span> <span class="o">====</span>
+user:sscheib repo:ansible-role-dummy did not match any existing roles
+
+<span class="o">=====</span> CLONING REPO <span class="o">=====</span>
+cloning https://github.com/sscheib/ansible-role-dummy ...
+
+<span class="o">=====</span> GIT ATTRIBUTES <span class="o">=====</span>
+github_reference<span class="o">(</span>branch<span class="o">)</span>: main
+github_commit: b689e1ee5c8c165ceb0531b7560f234b064fd443
+github_commit_message: Initial commit
+github_commit_date: 2023-11-26T15:09:54+01:00
+
+<span class="o">=====</span> LOADING ROLE <span class="o">=====</span>
+Importing with galaxy-importer 0.4.16
+Determined role name to be dummy
+Linting role dummy via ansible-lint...
+...ansible-lint run <span class="nb">complete
+</span>Legacy role loading <span class="nb">complete</span>
+
+<span class="o">=====</span> PROCESSING LOADER RESULTS <span class="o">====</span>
+enumerated role name dummy
+created new role <span class="nb">id</span>:37383 sscheib.dummy
+
+<span class="o">=====</span> COMPUTING ROLE VERSIONS <span class="o">====</span>
+
+<span class="o">====</span> SAVING ROLE <span class="o">====</span>
+
+Import completed
+</code></pre></div></div>
+
+<p>Once that’s completed successfully, you can now login to <a href="https://galaxy.ansible.com"><code class="language-plaintext highlighter-rouge">https://galaxy.ansible.com</code></a> and browse to your profile and see the imported role.
+In my case, you can find it on my <a href="https://galaxy.ansible.com/ui/standalone/roles/sscheib/dummy/">Ansible Galaxy profile</a>.</p>
+<h3 id="updating-a-role">
+  
+  
+    Updating a role <a href="#updating-a-role">#</a>
+  
+  
+</h3>
+    
+
+<p>I intentionally did not fully adjust the <code class="language-plaintext highlighter-rouge">README.md</code> which I copied from one of my other roles, so I’ll be able to showcase what updating a role looks like.</p>
+
+<p>First, I went ahead and edited my <code class="language-plaintext highlighter-rouge">README.md</code> file, as can be seen by the
+<a href="https://github.com/sscheib/ansible-role-dummy/commit/26e6b2f5396eaf4a9d73682ba657fa8ef5340fd1">git commit</a> I have performed. I basically removed a bunch of lines,
+which I ‘forgot’ to remove earlier.</p>
+
+<p>Once I pushed the code to GitHub, I can now trigger an import of the same role again:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role import <span class="nt">--branch</span> main <span class="nt">--role-name</span> dummy <span class="nt">--server</span> https://galaxy.ansible.com <span class="nt">--token</span> MY_TOKEN sscheib ansible-role-dummy
+Successfully submitted import request 2056399856190313650539110125029237695
+Starting import: <span class="nv">task_id</span><span class="o">=</span>2056399856190313650539110125029237695, <span class="nv">pulp_id</span><span class="o">=</span>018c0c57-3b99-762f-ad6b-85509cb723bf
+
+<span class="o">====</span> PARAMETERS <span class="o">====</span>
+importer username: sscheib
+matched user: sscheib <span class="nb">id</span>:XXXXX
+github_user: sscheib
+github_repo: ansible-role-dummy
+github_reference: main
+alternate_role_name: dummy
+
+<span class="o">====</span> CHECK FOR MATCHING ROLE<span class="o">(</span>S<span class="o">)</span> <span class="o">====</span>
+user:sscheib repo:ansible-role-dummy matched existing role sscheib.dummy <span class="nb">id</span>:37383
+
+<span class="o">=====</span> CLONING REPO <span class="o">=====</span>
+cloning https://github.com/sscheib/ansible-role-dummy ...
+
+<span class="o">=====</span> GIT ATTRIBUTES <span class="o">=====</span>
+github_reference<span class="o">(</span>branch<span class="o">)</span>: main
+github_commit: 26e6b2f5396eaf4a9d73682ba657fa8ef5340fd1
+github_commit_message: README.md
+github_commit_date: 2023-11-26T16:52:39+01:00
+
+<span class="o">=====</span> LOADING ROLE <span class="o">=====</span>
+Importing with galaxy-importer 0.4.16
+Determined role name to be dummy
+Linting role dummy via ansible-lint...
+...ansible-lint run <span class="nb">complete
+</span>Legacy role loading <span class="nb">complete</span>
+
+<span class="o">=====</span> PROCESSING LOADER RESULTS <span class="o">====</span>
+enumerated role name dummy
+
+<span class="o">=====</span> COMPUTING ROLE VERSIONS <span class="o">====</span>
+
+<span class="o">====</span> SAVING ROLE <span class="o">====</span>
+
+Import completed
+</code></pre></div></div>
+
+<p>This time the output looks a little different, as it found an existing role (which we pushed earlier) and now only updates it.</p>
+<h3 id="tagging-releases">
+  
+  
+    Tagging releases <a href="#tagging-releases">#</a>
+  
+  
+</h3>
+    
+
+<p>The last thing to do is to create a new <a href="https://git-scm.com/book/en/v2/Git-Basics-Tagging"><code class="language-plaintext highlighter-rouge">git tag</code></a> to have a proper version on the role in Ansible Galaxy.</p>
+
+<p>This can easily be done via <code class="language-plaintext highlighter-rouge">git tag v1.0.1</code> (of course substitute the version with yours) and by pushing the tag to GitHub using <code class="language-plaintext highlighter-rouge">git push origin v1.0.1</code> (again, please
+substitute the version with yours).</p>
+
+<p>This will looks something like this:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git tag v1.0.1
+<span class="nv">$ </span>git push origin v1.0.1
+Total 0 <span class="o">(</span>delta 0<span class="o">)</span>, reused 0 <span class="o">(</span>delta 0<span class="o">)</span>, pack-reused 0
+To github.com:sscheib/ansible-role-dummy.git
+ <span class="k">*</span> <span class="o">[</span>new tag]         v1.0.1 -&gt; v1.0.1
+</code></pre></div></div>
+
+<p>Perfect. We can list the tags using <code class="language-plaintext highlighter-rouge">git tag</code>:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git tag
+v1.0.1
+</code></pre></div></div>
+
+<p>Finally, we import the role once again:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role import <span class="nt">--branch</span> main <span class="nt">--role-name</span> dummy <span class="nt">--server</span> https://galaxy.ansible.com <span class="nt">--token</span> MY_TOKEN sscheib ansible-role-dummy
+Successfully submitted import request 2056400027670397563943177324356333381
+Starting import: <span class="nv">task_id</span><span class="o">=</span>2056400027670397563943177324356333381, <span class="nv">pulp_id</span><span class="o">=</span>018c0c59-65ae-7667-85db-e266b7826f45
+
+<span class="o">====</span> PARAMETERS <span class="o">====</span>
+importer username: sscheib
+matched user: sscheib <span class="nb">id</span>:XXXXX
+github_user: sscheib
+github_repo: ansible-role-dummy
+github_reference: main
+alternate_role_name: dummy
+
+<span class="o">====</span> CHECK FOR MATCHING ROLE<span class="o">(</span>S<span class="o">)</span> <span class="o">====</span>
+user:sscheib repo:ansible-role-dummy matched existing role sscheib.dummy <span class="nb">id</span>:37383
+
+<span class="o">=====</span> CLONING REPO <span class="o">=====</span>
+cloning https://github.com/sscheib/ansible-role-dummy ...
+
+<span class="o">=====</span> GIT ATTRIBUTES <span class="o">=====</span>
+github_reference<span class="o">(</span>branch<span class="o">)</span>: main
+github_commit: 26e6b2f5396eaf4a9d73682ba657fa8ef5340fd1
+github_commit_message: README.md
+github_commit_date: 2023-11-26T16:52:39+01:00
+
+<span class="o">=====</span> LOADING ROLE <span class="o">=====</span>
+Importing with galaxy-importer 0.4.16
+Determined role name to be dummy
+Linting role dummy via ansible-lint...
+...ansible-lint run <span class="nb">complete
+</span>Legacy role loading <span class="nb">complete</span>
+
+<span class="o">=====</span> PROCESSING LOADER RESULTS <span class="o">====</span>
+enumerated role name dummy
+
+<span class="o">=====</span> COMPUTING ROLE VERSIONS <span class="o">====</span>
+adding new version from tag: v1.0.1
+tag: v1.0.1 version: 1.0.1
+
+<span class="o">====</span> SAVING ROLE <span class="o">====</span>
+</code></pre></div></div>
+
+<p>This time the output looks again a little different, please pay attention to the following from the above output:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>..]
+<span class="o">=====</span> COMPUTING ROLE VERSIONS <span class="o">====</span>
+adding new version from tag: v1.0.1
+tag: v1.0.1 version: 1.0.1
+<span class="o">[</span>..]
+</code></pre></div></div>
+
+<p>Browsing now to my role on <a href="https://galaxy.ansible.com/ui/standalone/roles/sscheib/dummy/">Ansible Galaxy</a> I can see that indeed the current version is labeled as <code class="language-plaintext highlighter-rouge">v1.0.1</code>.</p>
+
+<p>Mission accomplished <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">.</p>
+<h2 id="publishing-roles-using-github-actions">
+  
+  
+    Publishing roles using GitHub Actions <a href="#publishing-roles-using-github-actions">#</a>
+  
+  
+</h2>
+    
+
+<p>Lastly, I’d like to show you an automated way of publishing your roles to Ansible Galaxy by using <a href="https://github.com/features/actions">GitHub Actions</a>.</p>
+
+<p>As in my <a href="https://blog.scheib.me/2023/11/22/github-actions-ansible.html#ansible-lint-with-github-actions">other blog post about Ansible Lint</a>, setting up a GitHub Action is
+super easy. I am using <a href="https://github.com/robertdebock"><code class="language-plaintext highlighter-rouge">@robertdebock's</code></a> GitHub Action <a href="https://github.com/robertdebock/galaxy-action"><code class="language-plaintext highlighter-rouge">galaxy-action</code></a>, which takes care
+of publishing a role to Ansible Galaxy.</p>
+
+<p>For this, we need two things:</p>
+
+<ol>
+  <li>The Ansible Galaxy token</li>
+  <li>A GitHub Action workflow definition file</li>
+</ol>
+
+<p>Let’s first create the workflow definition file.
+For that we need to create a directory path for the Github workflows within your repository’s root directory via:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> .github/workflows
+</code></pre></div></div>
+
+<p>Next, simply place the workflow configuration file in there. I named mine <code class="language-plaintext highlighter-rouge">ansible-galaxy.yml</code> (but you can choose any name) and it contains the following:</p>
+
+<!-- markdownlint-disable MD003 MD022 -->
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="nn">---</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Publish</span><span class="nv"> </span><span class="s">latest</span><span class="nv"> </span><span class="s">release</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">Ansible</span><span class="nv"> </span><span class="s">Galaxy'</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">main'</span>
+  <span class="na">workflow_dispatch</span><span class="pi">:</span> <span class="pi">{}</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">build</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">Publish</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">Ansible</span><span class="nv"> </span><span class="s">Galaxy'</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s1">'</span><span class="s">ubuntu-latest'</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">checkout'</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s1">'</span><span class="s">actions/checkout@v2'</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">galaxy'</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s1">'</span><span class="s">robertdebock/galaxy-action@1.2.0'</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">galaxy_api_key</span><span class="pi">:</span> <span class="s1">'</span><span class="s">${{</span><span class="nv"> </span><span class="s">secrets.galaxy_api_key</span><span class="nv"> </span><span class="s">}}'</span>
+          <span class="na">git_branch</span><span class="pi">:</span> <span class="s1">'</span><span class="s">main'</span>
+<span class="nn">...</span></code></pre></figure>
+
+<!-- markdownlint-enable MD003 MD022 -->
+
+<p>The above workflow will run on any push or merge to the <code class="language-plaintext highlighter-rouge">main</code> branch and will publish the latest code in the branch <code class="language-plaintext highlighter-rouge">main</code> to Ansible Galaxy.</p>
+
+<p>There is one catch, however. The Action will need access to your Ansible Galaxy token you created earlier. Of course, you don’t want to put that into the workflow definition
+file in plain text, that’s why we are going to use a <a href="https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions">GitHub Repository Secret</a>, which is
+referenced via</p>
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">${{ secrets.galaxy_api_key }}</span></code></pre></figure>
+<p>in the above workflow definition.</p>
+
+<p>To create a GitHub Repository Secret for your repository, head to your GitHub repository, click on <code class="language-plaintext highlighter-rouge">Settings</code>. On the left-hand side, select <code class="language-plaintext highlighter-rouge">Secrets and variables</code>, followed
+by <code class="language-plaintext highlighter-rouge">Actions</code>. Lastly click on <code class="language-plaintext highlighter-rouge">New repository secret</code> to create a new Repository Secret. Give it the name of <code class="language-plaintext highlighter-rouge">GALAXY_API_KEY</code> and put in your token you created earlier.</p>
+
+<p>Finally, push the changed code to GitHub and enjoy an automated upload of your roles to Ansible Galaxy. <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+
+<p>You can always check for the status of the workflow by visiting your GitHub repository’s page, click on <code class="language-plaintext highlighter-rouge">Actions</code> and check on the latest run. From there you can also
+run the workflow manually again (thanks to the definition of <code class="language-plaintext highlighter-rouge">workflow_dispatch: {}</code> in the workflow file), should you have the need for it.</p>
+<h2 id="closing-thoughts">
+  
+  
+    Closing thoughts <a href="#closing-thoughts">#</a>
+  
+  
+</h2>
+    
+
+<p>A small blog post this time around, but I hope you learned something new! <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+
+<p>Until next time,</p>
+
+<p>Steffen <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2024-03-10">
+  
+  
+    2024-03-10 <a href="#2024-03-10">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+</ul>
+<h3 id="2024-02-02">
+  
+  
+    2024-02-02 <a href="#2024-02-02">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+</ul>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2023/11/26/ansible-galaxy-publish-roles.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Writing efficient Ansible code - An unpopular opinion | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Writing efficient Ansible code - An unpopular opinion">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Preface">
+<meta property="og:description" content="Preface">
+<link rel="canonical" href="https://blog.scheib.me/2024/06/04/efficient-ansible-code.html">
+<meta property="og:url" content="https://blog.scheib.me/2024/06/04/efficient-ansible-code.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2024-06-04T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Writing efficient Ansible code - An unpopular opinion">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-06-04T00:00:00+00:00","datePublished":"2024-06-04T00:00:00+00:00","description":"Preface","headline":"Writing efficient Ansible code - An unpopular opinion","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2024/06/04/efficient-ansible-code.html"},"url":"https://blog.scheib.me/2024/06/04/efficient-ansible-code.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Writing efficient Ansible code - An unpopular opinion</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2024-06-04T00:00:00+00:00" itemprop="datePublished">Published: Jun 4, 2024
+      </time>
+      <time class="dt-modified" datetime="2024-06-04T00:00:00+00:00" itemprop="dateModified">• Last modified: Jun 4, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+20 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#preface">Preface</a></li>
+<li><a href="#ansibles-origin">Ansible’s origin</a></li>
+<li><a href="#the-problem">The problem</a></li>
+<li>
+<a href="#the-solution">The solution</a><ul>
+<li><a href="#syntax-and-coding-guideline">Syntax and coding guideline</a></li>
+<li><a href="#learning-curve-and-different-way-of-working">Learning curve and different way of working</a></li>
+<li><a href="#a-complex-example-broken-down">A complex example broken down</a></li>
+</ul>
+</li>
+<li><a href="#comparing-performance">Comparing performance</a></li>
+<li><a href="#why-no-module-or-filter-">Why no module or filter ?!</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li>
+<a href="#change-log">Change log</a><ul>
+<li><a href="#2025-03-21">2025-03-21</a></li>
+<li><a href="#2024-06-04">2024-06-04</a></li>
+</ul>
+</li>
+<li><a href="#footnotes">Footnotes</a></li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="preface">
+  
+  
+    Preface <a href="#preface">#</a>
+  
+  
+</h2>
+    
+
+<p><strong>Writing simple Ansible code is outdated and you shouldn’t do it anymore in 2024.</strong></p>
+
+<p>I know this is a bold statement, but I guess I have your attention now <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">.</p>
+
+<p>With this blog post I’d like to explain my way of writing Ansible code and why I think the days where Ansible was just <em>simple</em> are no more. I know, this is an unpopular
+opinion, but hear me out first, please.</p>
+<h2 id="ansibles-origin">
+  
+  
+    Ansible’s origin <a href="#ansibles-origin">#</a>
+  
+  
+</h2>
+    
+
+<p>Ansible started of as a simple, easy to use automation language, which is based on <a href="https://yaml.org/"><code class="language-plaintext highlighter-rouge">YAML</code></a> and therefore pretty much self-explanatory. In fact, Ansible
+still is (mostly) the same language and is still marketed as such <sup id="fnref:ansible_intro" role="doc-noteref"><a href="#fn:ansible_intro" class="footnote" rel="footnote">1</a></sup>:</p>
+
+<blockquote>
+  <p>Ansible uses simple, human-readable scripts called playbooks to automate your tasks. You declare the desired state of a local or remote system in your playbook. Ansible
+ensures that the system remains in that state.</p>
+</blockquote>
+
+<p>While this is still the case today for smaller deployments, we are in a different time. Remember, Ansible was <a href="https://en.wikipedia.org/wiki/Ansible_(software)">released</a> way
+back in 2012 where there were simply other needs.</p>
+
+<p>Tasks would commonly be written something like this:</p>
+
+<script src="https://gist.github.com/51faef45c51def24084891b850417ce4.js"> </script>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> While this still works today, please do not make it a habit to write tasks like that. It’s just not up-to-date anymore.</p>
+
+<p>As you can imagine, with just one or two module options, this was okay back then. But as soon as you have more module options, you’ll end up with a super long string that
+is not easy to read or to maintain.</p>
+
+<p>Nowadays, the same task above would be implemented like this:</p>
+
+<script src="https://gist.github.com/e1789ff8327a94648f1bdf90a9cf6f2a.js"> </script>
+
+<p>In a real-world use case you most likely would parameterize each of the available options to allow users to override them. This helps in avoiding to write the same task over
+and over again - just slightly different each time (due to installing different packages for instance).</p>
+
+<p>.. anyway, this is where we stand today. The way you define Ansible code today has largely remained the same.</p>
+
+<p>Please don’t get me wrong. Ansible itself has evolved <strong>a lot</strong> since it was first released. Starting from
+<a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html"><code class="language-plaintext highlighter-rouge">roles</code></a>,
+to <a href="https://docs.ansible.com/ansible/latest/collections_guide/index.html"><code class="language-plaintext highlighter-rouge">collections</code></a>, the introduction of
+<a href="https://ansible.readthedocs.io/projects/rulebook/en/latest/introduction.html#what-is-event-driven-ansible">Event-Driven Ansible</a> with
+<a href="https://ansible.readthedocs.io/projects/rulebook"><code class="language-plaintext highlighter-rouge">rulebooks</code></a> to Red Hat’s latest announcement
+<a href="https://www.redhat.com/en/about/press-releases/red-hat-introduces-policy-code-help-address-ai-complexities-scale">Policy as Code</a>.</p>
+
+<p>Ansible is more relevant than ever to fulfill a variety of use cases in today’s ever changing IT landscape.</p>
+<h2 id="the-problem">
+  
+  
+    The problem <a href="#the-problem">#</a>
+  
+  
+</h2>
+    
+
+<p>In the earlier days of Ansible you’d most likely automated a few hundred or thousand systems; Today we are speaking of tens of thousands to hundred of thousands different
+systems.</p>
+
+<p>Not only has the number of systems dramatically increased, but also their complexity. Installing packages on systems (like in the above example) or making simple configuration
+changes to a systems’ configuration files is just not going to cut it anymore.</p>
+
+<p>Today we are talking to complex systems via various APIs - often <a href="https://www.redhat.com/en/topics/api/what-is-a-rest-api">REST APIs</a>.</p>
+
+<p>Such systems are for instance:</p>
+
+<ul>
+  <li>Various cloud providers, such as <a href="https://aws.amazon.com">Amazon Web Services (AWS)</a>, <a href="https://azure.microsoft.com/">Microsoft Azure</a> or
+<a href="https://console.cloud.google.com/">Google Cloud Platform (GCP)</a>, etc.</li>
+  <li>Applications that help deploying systems, such as <a href="https://www.vmware.com/products/vcenter.html">VMware vCenter</a>,
+<a href="https://www.redhat.com/en/technologies/management/satellite">Red Hat Satellite</a>,
+<a href="https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview">Microsoft Active Directory</a>, etc.</li>
+  <li>Network devices such as
+<a href="https://www.cisco.com/c/en/us/support/docs/ios-nx-os-software/ios-software-releases-110/13327-ios-early.html">Cisco Internetworking Operating Systems (IOS)</a>,
+<a href="https://www.arista.com/en/products/eos">Arista Extensible Operating System (EOS)</a>,
+<a href="https://www.juniper.net/us/en/products/network-operating-system/junos-os.html">Junos OS</a>,
+etc.</li>
+  <li>Virtually any system that has some sort of API to interact with</li>
+</ul>
+
+<p>This is just to name a few to set the scene. This list can easily be extended by a few thousand other systems.</p>
+
+<p>All of the named systems above have something in common, though. They are complex.</p>
+
+<p>As such data retrieved from the APIs of those systems will not always return <em>what</em> you need in the <em>way</em> you need it.</p>
+
+<p>To name a random made up scenario:</p>
+
+<p>You retrieved a list of hosts of from your Red Hat Satellite and want to check which of those systems are on a particular hypervisor in your VMware vCenter to shut them down
+to perform some activity.</p>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> Again, this is just something made up to set the scene <img class="emoji" title=":rofl:" alt=":rofl:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f923.png" height="20" width="20">.</p>
+
+<p>What most people typically end up doing is something like (pseudo-code below):</p>
+
+<script src="https://gist.github.com/ba6e7a5eb30ea98a0acc90371b494314.js"> </script>
+
+<p>Does that look remotely familiar to you?</p>
+
+<p>Yes? <strong>You are doing it wrong.</strong></p>
+
+<p>I know, this is an unpopular opinion, but let me elaborate on that in the following chapter.</p>
+<h2 id="the-solution">
+  
+  
+    The solution <a href="#the-solution">#</a>
+  
+  
+</h2>
+    
+
+<p>How I would do it, is the following (again, pseudo-code):</p>
+
+<script src="https://gist.github.com/8d5b5789538aee4c5c3a118dbb5bec3e.js"> </script>
+
+<p>If you wanted to have a list as a fact, I’d go with:</p>
+
+<script src="https://gist.github.com/6b19791bb6f284f6f334515cd105a554.js"> </script>
+
+<p>I know, it looks fancy and totally uncommon, but hear me out first <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20">.</p>
+
+<p>Why would you do something like this in the first place?</p>
+
+<p>Well, in a recent example of one of my customers, they did it the way most people do it: Multiple <code class="language-plaintext highlighter-rouge">loops</code> and/or <code class="language-plaintext highlighter-rouge">include_tasks</code> to end up with a list of systems.</p>
+
+<p>They needed to iterate over around 30000 systems. That took them around <em>eight hours</em>. I showed them my way of doing it, and they ended up with a <em>couple of seconds</em> for
+the <em>exact</em> same task: Extract a list of relevant systems based on some criteria.</p>
+
+<p>I’ll show you below how you can try and measure the performance gain out yourself, but let’s first talk about the way I write these tasks.</p>
+
+<p>You need to make yourself familiar with <em>at least</em> the <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html"><code class="language-plaintext highlighter-rouge">Jinja2 filters</code></a> below that will help
+you to write efficient code:</p>
+
+<ul>
+  <li>
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.selectattr"><code class="language-plaintext highlighter-rouge">selectattr</code></a>: Select items of a list of dictionaries</li>
+  <li>
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.rejectattr"><code class="language-plaintext highlighter-rouge">rejectattr</code></a>: Reject items of a list of dictionaries</li>
+  <li>
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.select"><code class="language-plaintext highlighter-rouge">select</code></a>: Select items of a list</li>
+  <li>
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.reject"><code class="language-plaintext highlighter-rouge">reject</code></a>: Reject items of a list</li>
+</ul>
+
+<p>Besides the filters included in <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#filter-plugins"><code class="language-plaintext highlighter-rouge">ansible.builtin</code></a> and the ones included with
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#list-of-builtin-filters"><code class="language-plaintext highlighter-rouge">Jinja2</code></a>, there are various other filters, which are incredible handy to know about.
+One example are the filters included in <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#filter-plugins"><code class="language-plaintext highlighter-rouge">ansible.utils</code></a>.</p>
+
+<p>You also <em>need</em> to know about the concept of <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html"><code class="language-plaintext highlighter-rouge">Jinja2 tests</code></a> and the various
+<a href="https://docs.ansible.com/ansible/latest/plugins/test.html"><code class="language-plaintext highlighter-rouge">test plugins</code></a> you can utilize. Much like the filters, tests are available from
+<a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#test-plugins"><code class="language-plaintext highlighter-rouge">ansible.builtin</code></a> and
+<a href="https://jinja.palletsprojects.com/en/3.1.x/templates/#list-of-builtin-tests"><code class="language-plaintext highlighter-rouge">Jinja2</code></a> as well as other collections like
+<a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html#test-plugins"><code class="language-plaintext highlighter-rouge">ansible.utils</code></a>.</p>
+
+<p><em>Ideally</em>, you also know about <a href="https://docs.ansible.com/ansible/latest/plugins/lookup.html"><code class="language-plaintext highlighter-rouge">lookups</code></a> to further enhance your ability to write efficient code.</p>
+
+<p>There are certain obstacles when chaining filters together, however:</p>
+
+<ol>
+  <li>If you simply chain the filters after each other, you’ll end up with a super long string that is - very much as in the beginning of Ansible - hard to read and maintain</li>
+  <li>The learning curve is incredible steep for newcomers and seasoned Ansible content creators alike</li>
+  <li>You need to wrap your head around how these filters interact with each other. I think it helped me a lot that I used to be a developer early in my career and therefore could
+relate to most of the concepts required to master this technique</li>
+</ol>
+
+<p>Let’s discuss these issues one by one.</p>
+<h3 id="syntax-and-coding-guideline">
+  
+  
+    Syntax and coding guideline <a href="#syntax-and-coding-guideline">#</a>
+  
+  
+</h3>
+    
+
+<p>The first issue, is easily fixed by adapting <a href="https://yaml-multiline.info/"><code class="language-plaintext highlighter-rouge">YAML Multiline Syntax</code></a>. There is no reason to not make use of the <code class="language-plaintext highlighter-rouge">YAML Multiline Syntax</code> - there is nothing
+to be afraid of. Sure, it takes time to get it right, but once you practice it, it becomes easy.</p>
+
+<p>I decided for myself to put <em>every</em> filter on a new line and indent the code by two spaces if it is a nested expression. This greatly improves readability.</p>
+
+<p>With a nested expression, I refer to something like:</p>
+
+<script src="https://gist.github.com/5f82b0147b7b80ae6c34bd9c10c043f1.js"> </script>
+
+<p>There a various ways nested expression can occur, I have some complex examples in one of my
+<a href="https://github.com/sscheib/ansible-role-satellite_publish_promote_content_views">roles</a> - for instance:</p>
+
+<script src="https://gist.github.com/c96be566ba3b73665b416b71ab0fae63.js"> </script>
+<h3 id="learning-curve-and-different-way-of-working">
+  
+  
+    Learning curve and different way of working <a href="#learning-curve-and-different-way-of-working">#</a>
+  
+  
+</h3>
+    
+
+<p>The second and third issue can be grouped, as they basically refers to the same thing: Learning something new.</p>
+
+<p>Yes, the learning curve is pretty high. It took me quite some time to adapt to this way of writing Ansible code. In the beginning it felt very wrong and I had a hard time wrapping
+my head around <strong>how</strong> the filters work and ‘interact’ with each other.</p>
+
+<p>Essentially, <code class="language-plaintext highlighter-rouge">selectattr</code>, <code class="language-plaintext highlighter-rouge">rejectattr</code>, <code class="language-plaintext highlighter-rouge">select</code> and <code class="language-plaintext highlighter-rouge">reject</code> work by iterating over all items of a list and select or reject every item that matches your criteria. In a way
+we are <strong>combining</strong> <code class="language-plaintext highlighter-rouge">loop</code> and <code class="language-plaintext highlighter-rouge">when</code> in a faster way.</p>
+
+<p>For cases where you only have a dictionary available, you can make use of
+<a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dict2items_filter.html#ansible-collections-ansible-builtin-dict2items-filter"><code class="language-plaintext highlighter-rouge">ansible.builtin.dict2items</code></a>,
+apply the corresponding filtering and then convert it back to a dictionary with
+<a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/items2dict_filter.html#ansible-collections-ansible-builtin-items2dict-filter"><code class="language-plaintext highlighter-rouge">ansible.builtin.items2dict</code></a>.</p>
+
+<p>This is <em>significantly</em> quicker than anything you can achieve with <code class="language-plaintext highlighter-rouge">loops</code>.</p>
+
+<p>There are cases, however, where you <em>need</em> to use <code class="language-plaintext highlighter-rouge">loops</code>, but can still heavily benefit from the ‘inline-filtering’. In the next chapter we’ll pick one example where I needed
+loops and ‘inline-filtering’ together.</p>
+<h3 id="a-complex-example-broken-down">
+  
+  
+    A complex example broken down <a href="#a-complex-example-broken-down">#</a>
+  
+  
+</h3>
+    
+
+<p>Okay, let’s break down the complex example I showed you earlier:</p>
+
+<script src="https://gist.github.com/c96be566ba3b73665b416b71ab0fae63.js"> </script>
+
+<p>First, I’d like to provide you some context:</p>
+
+<p>I have a set of <code class="language-plaintext highlighter-rouge">Content Views</code> over which I loop and need to check if their definition (which is defined in <code class="language-plaintext highlighter-rouge">_satellite_content_views</code>) contains
+any <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> the <code class="language-plaintext highlighter-rouge">Content View</code> should be <code class="language-plaintext highlighter-rouge">promoted</code> to. Additionally, I want to make sure that those <code class="language-plaintext highlighter-rouge">Content Views</code> are not <code class="language-plaintext highlighter-rouge">promoted</code> to any
+<code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> which are not ‘allowed’. Allowed <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> are optional and specified via <code class="language-plaintext highlighter-rouge">__t_allowed_lifecycle_environments</code>.</p>
+
+<p>Don’t worry if that doesn’t make much sense to you if you’ve never worked with Red Hat Satellite. We are specifically looking at the code; I just wanted to give a little context.</p>
+
+<p>Let’s start with the expression that gets us started:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">(</span>
+  <span class="s">_satellite_content_views |</span>
+  <span class="s">selectattr('name', 'equalto', __t_content_view.name) |</span>
+  <span class="s">selectattr('lifecycle_environments', 'defined') |</span>
+  <span class="s">length &gt; </span><span class="m">0</span>
+<span class="s">)</span>
+</code></pre></div></div>
+
+<p>With the above we are selecting all items from <code class="language-plaintext highlighter-rouge">_satellite_content_views</code> that match <code class="language-plaintext highlighter-rouge">__t_content_view.name</code> (which is our current item’s <code class="language-plaintext highlighter-rouge">name</code> attribute). Of those items that
+matched the earlier expression, we select the items that have the attribute <code class="language-plaintext highlighter-rouge">lifecycle_environments</code> defined. Lastly we check with the <code class="language-plaintext highlighter-rouge">length</code> filter if there are any items left.</p>
+
+<p>This expression results either in <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code>.</p>
+
+<p>Next up, is <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ternary_filter.html"><code class="language-plaintext highlighter-rouge">ansible.builtin.ternary</code></a>:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">) | ansible.builtin.ternary (</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ansible.builtin.ternary</code> takes two arguments: <code class="language-plaintext highlighter-rouge">true_val</code> and <code class="language-plaintext highlighter-rouge">false_val</code>.</p>
+
+<p>Essentially, we implement an <code class="language-plaintext highlighter-rouge">if</code> statement:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (expression):
+  do this
+else:
+  do that
+</code></pre></div></div>
+
+<p>The expression we are validating against is what we had in step one:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">(</span>
+  <span class="s">_satellite_content_views |</span>
+  <span class="s">selectattr('name', 'equalto', __t_content_view.name) |</span>
+  <span class="s">selectattr('lifecycle_environments', 'defined') |</span>
+  <span class="s">length &gt; </span><span class="m">0</span>
+<span class="s">)</span>
+</code></pre></div></div>
+
+<p>Let’s assume this expression evaluates to <code class="language-plaintext highlighter-rouge">true</code>, then we’ll continue with:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">_satellite_content_views |</span>
+<span class="s">selectattr('name', 'equalto', __t_content_view.name) |</span>
+<span class="s">selectattr('lifecycle_environments', 'defined') |</span>
+<span class="s">map(attribute='lifecycle_environments') |</span>
+<span class="s">ansible.builtin.flatten |</span>
+</code></pre></div></div>
+
+<p>With the above expression we are again selecting all items from <code class="language-plaintext highlighter-rouge">_satellite_content_views</code> that match <code class="language-plaintext highlighter-rouge">__t_content_view.name</code> (which is our current item’s <code class="language-plaintext highlighter-rouge">name</code> attribute). Of
+those items that matched the earlier expression we again select those that have the attribute <code class="language-plaintext highlighter-rouge">lifecycle_environments</code> defined. Then we go ahead and extract only the names of the
+<code class="language-plaintext highlighter-rouge">Lifecycle Environment</code>. This will end up in a nested list, so we lastly <code class="language-plaintext highlighter-rouge">flatten</code> that list with <code class="language-plaintext highlighter-rouge">ansible.builtin.flatten</code>.</p>
+
+<p>At this point we have data that looks something like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">etc.'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p>Next up we’ll use <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/intersect_filter.html"><code class="language-plaintext highlighter-rouge">ansible.builtin.intersect</code></a> which will return the common items
+of two lists.</p>
+
+<p>Remember what we want to have are the <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> defined in <code class="language-plaintext highlighter-rouge">_satellite_content_views</code> and compare that to a potentially defined list that holds the ‘allowed’
+<code class="language-plaintext highlighter-rouge">Lifecycle Environments</code>.</p>
+
+<p>The portion of the code, I am referring to is:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">ansible.builtin.intersect(</span>
+</code></pre></div></div>
+
+<p>Our first list contains the <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> we found out already:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">etc.'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p>The second list we compare it to, is either defined and contains elements, or isn’t: <code class="language-plaintext highlighter-rouge">__t_allowed_lifecycle_environments</code></p>
+
+<p>The statement we use to evaluate that is the following:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">(</span>
+  <span class="s">__t_allowed_lifecycle_environments is defined</span>
+  <span class="s">and __t_allowed_lifecycle_environments != None</span>
+  <span class="s">and __t_allowed_lifecycle_environments | length &gt; </span><span class="m">0</span>
+<span class="s">)</span>
+</code></pre></div></div>
+
+<p>The result of that expression will either be <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code> again. This result will be our input for another <code class="language-plaintext highlighter-rouge">if</code> statement (using once again <code class="language-plaintext highlighter-rouge">ansible.builtin.ternary</code>):</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">) | ansible.builtin.ternary(</span>
+</code></pre></div></div>
+
+<p>If the expression is <code class="language-plaintext highlighter-rouge">true</code>, we’ll simply pass the list <code class="language-plaintext highlighter-rouge">__t_allowed_lifecycle_environments</code> as the second list for the <code class="language-plaintext highlighter-rouge">ansible.builtin.intersect</code>.</p>
+
+<p>So we might end up with data like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">list1</span><span class="pi">:</span> <span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">list2</span><span class="pi">:</span> <span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> The lists are not assigned a name <code class="language-plaintext highlighter-rouge">list1</code> or <code class="language-plaintext highlighter-rouge">list2</code>. I just use this for illustrating the different lists.</p>
+
+<p>With the above data fed in, <code class="language-plaintext highlighter-rouge">ansible.builtin.intersect</code> would return a list with the following items:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p>If the last expression is <code class="language-plaintext highlighter-rouge">false</code>, we basically repeat our step from earlier by selecting all <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> for the current processing <code class="language-plaintext highlighter-rouge">Content View</code>:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">_satellite_content_views |</span>
+<span class="s">selectattr('name', 'equalto', __t_content_view.name) |</span>
+<span class="s">selectattr('lifecycle_environments', 'defined') |</span>
+<span class="s">map(attribute='lifecycle_environments') |</span>
+<span class="s">ansible.builtin.flatten</span>
+</code></pre></div></div>
+
+<p>Which would result in the following data:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">list1</span><span class="pi">:</span> <span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">list2</span><span class="pi">:</span> <span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> The lists are not assigned a name <code class="language-plaintext highlighter-rouge">list1</code> or <code class="language-plaintext highlighter-rouge">list2</code>. I just use this for illustrating the different lists.</p>
+
+<p>With the above data fed in, <code class="language-plaintext highlighter-rouge">ansible.builtin.intersect</code> would return a list with the following items:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">[</span>
+  <span class="s1">'</span><span class="s">lce-name1'</span>
+  <span class="s1">'</span><span class="s">lce-name2'</span><span class="pi">,</span>
+  <span class="s1">'</span><span class="s">lce-name3'</span>
+<span class="pi">]</span>
+</code></pre></div></div>
+
+<p>Which is exactly what we want, as there are no ‘allowed’ <code class="language-plaintext highlighter-rouge">Lifecycle Environments</code> defined <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20">.</p>
+
+<p>And finally, coming back to the very first expression:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">(</span>
+  <span class="s">_satellite_content_views |</span>
+  <span class="s">selectattr('name', 'equalto', __t_content_view.name) |</span>
+  <span class="s">selectattr('lifecycle_environments', 'defined') |</span>
+  <span class="s">length &gt; </span><span class="m">0</span>
+<span class="s">)</span>
+</code></pre></div></div>
+
+<p>If that expression would result in <code class="language-plaintext highlighter-rouge">false</code>, we’d simply <code class="language-plaintext highlighter-rouge">omit</code> the parameter altogether.</p>
+
+<p>I know, it’s complex, but in my personal opinion definitively worth the effort when looking at the performance gain in the next chapter.</p>
+<h2 id="comparing-performance">
+  
+  
+    Comparing performance <a href="#comparing-performance">#</a>
+  
+  
+</h2>
+    
+
+<p>To compare a <em>very</em> simple use case, I created a playbook you can run and evaluate on your own.</p>
+
+<p>In this example we are going to create a list with numbers from 1 to 1000. Then we’ll randomly select three numbers and compare if looping is quicker or using <code class="language-plaintext highlighter-rouge">select</code>:</p>
+
+<script src="https://gist.github.com/33e2303f422ee41aab20e82c0832463e.js"> </script>
+
+<p>To compare the performance, we are going to use <a href="https://docs.ansible.com/ansible/latest/collections/ansible/posix/profile_tasks_callback.html"><code class="language-plaintext highlighter-rouge">ansible.posix.profile_tasks</code></a>,
+which is a <a href="https://docs.ansible.com/ansible/latest/plugins/callback.html"><code class="language-plaintext highlighter-rouge">Callback Plugin</code></a> that shows at the end of the playbook run which task took how long.</p>
+
+<p>Since we are dealing only with numbers (which is not a typical real world scenario), we need to enable <code class="language-plaintext highlighter-rouge">Jinja2 native</code> which allows for <code class="language-plaintext highlighter-rouge">integers</code> to be returned from a <code class="language-plaintext highlighter-rouge">Jinja2</code>
+expression to compare against.</p>
+
+<p>The options in the <code class="language-plaintext highlighter-rouge">ansible.cfg</code> would be the following:</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[defaults]</span>
+<span class="py">jinja2_native</span>           <span class="p">=</span> <span class="s">true</span>
+<span class="py">callbacks_enabled</span>       <span class="p">=</span> <span class="s">ansible.posix.profile_tasks</span>
+
+<span class="nn">[callback_profile_tasks]</span>
+<span class="py">task_output_limit</span>       <span class="p">=</span> <span class="s">100</span>
+<span class="py">sort_order</span>              <span class="p">=</span> <span class="s">descending</span>
+</code></pre></div></div>
+
+<p>Running the playbook will result in something like the following:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Generate a list of 1000 items --------------------------------------------------------------------------------------------------------------------------------------------- 16.03s
+Loop over all items to find the 3 random numbers --------------------------------------------------------------------------------------------------------------------------- 8.27s
+Use select to cut down the list -------------------------------------------------------------------------------------------------------------------------------------------- 0.13s
+Choose 3 random numbers ---------------------------------------------------------------------------------------------------------------------------------------------------- 0.06s
+Show random numbers chosen ------------------------------------------------------------------------------------------------------------------------------------------------- 0.05s
+</code></pre></div></div>
+
+<p>In the above example I had a performance improvement of 63x, calculated with:</p>
+
+<blockquote>
+  <p>8.27s / 0.13s = 63.615384615</p>
+</blockquote>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> This way of ‘testing’ is overly simplified. It just helps to showcase the general notion that ‘in-place filtering’ is much quicker than looping.</p>
+
+<p>Your results <em>will</em> differ, as I randomly choose numbers and shuffle those around to make it as ‘random’ as possible.</p>
+
+<p>You’ll experience the real world performance impact when you apply it to your own data you process in your playbooks and roles where you know how long it used to run.</p>
+
+<!-- markdownlint-disable MD026 -->
+<h2 id="why-no-module-or-filter-">
+  
+  
+    Why no module or filter ?! <a href="#why-no-module-or-filter-">#</a>
+  
+  
+</h2>
+    
+<!-- markdownlint-enable MD026 -->
+
+<p>Most of you probably think:</p>
+
+<blockquote>
+  <p>Why does this guy even bother, when you can simply write a module or a filter to achieve the same result?</p>
+</blockquote>
+
+<p>Let me ask you: Are you prepared to write, maintain and distribute tens if not hundreds of filters and modules on your own/in your company? You’d end up with a ton of modules and
+filters which essentially do what can be done today using the provided filters by Ansible itself.</p>
+
+<p>What I use is usually shipped with Ansible Core itself. After all, I am only transforming data.</p>
+<h2 id="conclusion">
+  
+  
+    Conclusion <a href="#conclusion">#</a>
+  
+  
+</h2>
+    
+
+<p>I <em>personally</em> think that this will be the future of writing Ansible code. The simple reason being that complex systems return complex data which you need to process as quickly
+as possible.</p>
+
+<p>I am more than happy to hear the thoughts of those who read this post. Please let me know what you think about my way of writing Ansible code and if you consider adopting it.</p>
+
+<p>Until next time,</p>
+
+<p>Steffen</p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2025-03-21">
+  
+  
+    2025-03-21 <a href="#2025-03-21">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>Fixing dead Ansible <code class="language-plaintext highlighter-rouge">rulebooks</code> link</li>
+</ul>
+<h3 id="2024-06-04">
+  
+  
+    2024-06-04 <a href="#2024-06-04">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>Initial release</li>
+</ul>
+<h2 id="footnotes">
+  
+  
+    Footnotes <a href="#footnotes">#</a>
+  
+  
+</h2>
+    
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:ansible_intro" role="doc-endnote">
+      <p><a href="https://docs.ansible.com/ansible/latest/getting_started/introduction.html#introduction-to-ansible">Introduction to Ansible</a> <a href="#fnref:ansible_intro" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2024/06/04/efficient-ansible-code.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>

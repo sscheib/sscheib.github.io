@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6 | Steffen’s random thoughts</title>
+<meta name="generator" content="Jekyll v3.9.5">
+<meta property="og:title" content="Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6">
+<meta name="author" content="Steffen Scheib">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Introduction">
+<meta property="og:description" content="Introduction">
+<link rel="canonical" href="https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html">
+<meta property="og:url" content="https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html">
+<meta property="og:site_name" content="Steffen’s random thoughts">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-07-01T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Steffen Scheib"},"dateModified":"2024-03-11T00:00:00+00:00","datePublished":"2023-07-01T00:00:00+00:00","description":"Introduction","headline":"Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html"},"url":"https://blog.scheib.me/2023/07/01/highly-customized-kickstart.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+<link type="application/atom+xml" rel="alternate" href="https://blog.scheib.me/feed.xml" title="Steffen's random thoughts">
+</head>
+<body>
+<header class="site-header" role="banner">
+
+  <div class="wrapper">
+<a class="site-title" rel="author" href="/">Steffen's random thoughts</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">/about</a></div>
+      </nav>
+</div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Kickstarting Red Hat Enterprise Linux (RHEL) systems using a highly customized Kickstart with Red Hat Satellite 6</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-07-01T00:00:00+00:00" itemprop="datePublished">Published: Jul 1, 2023
+      </time>
+      <time class="dt-modified" datetime="2024-03-11T00:00:00+00:00" itemprop="dateModified">• Last modified: Mar 11, 2024
+      </time>• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span class="p-author h-card" itemprop="name">Steffen Scheib </span></span>• <span itemprop="readingTime" itemscope><span class="h-card" itemprop="readingTime">
+
+65 minutes to read
+</span></span></p>
+  </header>
+
+  <div class="toc">
+    <h2>Table of contents</h2>
+    <ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#overview">Overview</a></li>
+<li>
+<a href="#diving-deeper">Diving Deeper</a><ul>
+<li><a href="#partition-table">Partition Table</a></li>
+<li><a href="#provision-template">Provision Template</a></li>
+<li>
+<a href="#post-section-flow"><code class="language-plaintext highlighter-rouge">%post</code> section flow</a><ul>
+<li><a href="#template-pvt-provision">Template: <code class="language-plaintext highlighter-rouge">pvt-provision</code></a></li>
+<li><a href="#snippet-snt-post_provisioning_init">Snippet: <code class="language-plaintext highlighter-rouge">snt-post_provisioning_init</code></a></li>
+<li><a href="#snippet-snt-networking_setup_post_installation">Snippet: <code class="language-plaintext highlighter-rouge">snt-networking_setup_post_installation</code></a></li>
+<li><a href="#snippet-snt-subscription_manager_registration">Snippet: <code class="language-plaintext highlighter-rouge">snt-subscription_manager_registration</code></a></li>
+<li><a href="#snippet-snt-configure_time_synchronization">Snippet: <code class="language-plaintext highlighter-rouge">snt-configure_time_synchronization</code></a></li>
+<li><a href="#snippet-snt-idm_register">Snippet: <code class="language-plaintext highlighter-rouge">snt-idm_register</code></a></li>
+<li><a href="#snippets-snt-remote_execution_ssh_keys-and-snt-ansible_ssh_keys">Snippets: <code class="language-plaintext highlighter-rouge">snt-remote_execution_ssh_keys</code> and <code class="language-plaintext highlighter-rouge">snt-ansible_ssh_keys</code></a></li>
+<li><a href="#snippet-snt-enable_epel">Snippet: <code class="language-plaintext highlighter-rouge">snt-enable_epel</code></a></li>
+<li><a href="#snippet-snt-luks_encryption">Snippet: <code class="language-plaintext highlighter-rouge">snt-luks_encryption</code></a></li>
+<li><a href="#snippets-snt-ansible_provisioning_callback_script-and-snt-ansible_provisioning_callback_service">Snippets: <code class="language-plaintext highlighter-rouge">snt-ansible_provisioning_callback_script</code> and <code class="language-plaintext highlighter-rouge">snt-ansible_provisioning_callback_service</code></a></li>
+</ul>
+</li>
+<li><a href="#the-different-post-sections">The different <code class="language-plaintext highlighter-rouge">%post</code> sections</a></li>
+<li>
+<a href="#pxelinux-templates"><code class="language-plaintext highlighter-rouge">PXELinux</code> Templates</a><ul>
+<li><a href="#template-pvt-pxelinux">Template: <code class="language-plaintext highlighter-rouge">pvt-pxelinux</code></a></li>
+<li><a href="#template-pvt-pxelinux_default_local_boot">Template: <code class="language-plaintext highlighter-rouge">pvt-pxelinux_default_local_boot</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#closing-thoughts">Closing thoughts</a></li>
+<li>
+<a href="#change-log">Change log</a><ul>
+<li><a href="#2025-01-23">2025-01-23</a></li>
+<li><a href="#2024-03-11">2024-03-11</a></li>
+<li><a href="#2024-03-09">2024-03-09</a></li>
+</ul>
+</li>
+<li><a href="#footnotes">Footnotes</a></li>
+</ul>
+  </div>
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="introduction">
+  
+  
+    Introduction <a href="#introduction">#</a>
+  
+  
+</h2>
+    
+
+<p>Following my <a href="https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html">Red Hat Satellite 6 concept suggestion blog post</a>, I thought it made sense to share my highly
+customized Kickstart to use with Red Hat Satellite 6.</p>
+
+<p>In a later blog post, I’ll further share how I make use of
+<a href="https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/synchronizing_templates_repositories_managing-hosts">Template Sync</a> in Satellite. A
+functionality, that allows importing the templates and also automatically assigning them to defined Operating Systems.</p>
+
+<p><img class="emoji" title=":warning:" alt=":warning:" src="https://github.githubassets.com/images/icons/emoji/unicode/26a0.png" height="20" width="20"> <strong>Before you dig into this: Please read the following paragraph carefully.</strong></p>
+
+<p>While it is absolutely possible to customize Kickstarts using Satellite, the degree of flexibility comes with a trade-off: <strong>maintenance</strong>. Please understand that in almost all
+cases the provided Kickstarts by Red Hat fulfill perfectly the need of almost all use cases. When using highly customized Kickstarts you need to keep up with changes in the
+Satellite and you need to keep up with the changes to Kickstart and RHEL. This means, every time a new update of the Satellite is released or a new major
+version<sup id="fnref:kickstart_changes" role="doc-noteref"><a href="#fn:kickstart_changes" class="footnote" rel="footnote">1</a></sup> of RHEL is released, you need to carefully read the change log of the new Satellite version and check whether things you use
+(e.g. <a href="https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/template_writing_reference_managing-hosts#Generic_Project-specific_Macros_managing-hosts">Satellite-Specific Macros</a>)
+have changed, have been deprecated or have been removed. The same for RHEL.</p>
+
+<p>Further, you have to verify with each new Satellite release - and preferably RHEL release, that your Host Provisioning works exactly as you have designed it.</p>
+
+<p><strong>This adds additional maintenance overhead that has to be done with <em>at least every</em> Satellite and RHEL major release!</strong></p>
+
+<p>Please evaluate carefully whether the already provided Kickstarts fulfill your needs and if not, whether the things you’d like to change can be changed after provisioning a
+system using automation (e.g. Ansible, Chef, Puppet, Salt, etc.).</p>
+
+<p>Usually, the things you cannot change with ease <em>after</em> deploying hosts (such as partition tables), can easily be customized in Satellite without the need to completely
+customize the Kickstarts. Partition tables, for instance, can easily be provided to Satellite using the Partition Tables object.</p>
+
+<p>Back to topic .. <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20"></p>
+
+<p>A few years back when I didn’t fully understand the complete process of Kickstart in Satellite, I made an exercise and completely customized all the Kickstarts to my customer’s
+needs. That meant, removing everything that is not used actively and further to introduce a better logging mechanism and error handling. Since then, I have further optimized
+and updated the Kickstart to be fully compatible with <em>my</em> use case.</p>
+
+<p>Speaking of error handling: To be perfectly honest, I don’t know if that has changed in the meanwhile, but back then (with Kickstart on RHEL 8 and using Satellite at least up
+to Satellite 6.9), whenever a command failed in the <code class="language-plaintext highlighter-rouge">%post</code> section of the Kickstart, the Kickstart would continue to run. If you did not verify the provided host thoroughly
+<em>after</em> deployment, you’d end up with an incompletely provisioned host.</p>
+
+<p>Since RHEL 7, Kickstart supports
+<a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/kickstart-script-file-format-reference_rhel-installer#kickstart-error-handling-section_kickstart-script-file-format-reference">error handling</a>
+to <em>some</em> degree. This error handling, however, concerns serious errors such as a failure in the Storage Selection. It does <em>not</em> cover, however, issues that happen due to
+failing commands in the <code class="language-plaintext highlighter-rouge">%post</code> section.</p>
+
+<p>Let me provide you with an example: Say we want to install a custom monitoring agent (e.g. <a href="https://www.zabbix.com/">Zabbix</a>) during Kickstart using the following command:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dnf <span class="nb">install </span>zabbix-agent <span class="nt">-y</span>
+</code></pre></div></div>
+
+<p>The monitoring agent might be a necessity for your deployment and you want to make sure that it is installed. Well, if the package <code class="language-plaintext highlighter-rouge">zabbix-agent</code> isn’t available, because you
+might forgot to enable the repository within the Activation Key or you forgot to add the Content View that provides Zabbix, the Kickstart <em>will</em> continue to run like nothing
+happened. It <em>will</em> show as a <em>successful build</em> within Satellite. Obviously, the build was not successful - at least not entirely, as a step failed. I’d consider this a
+<em>failed</em> build.</p>
+
+<p>You might argue that if you set up your services<sup id="fnref:service" role="doc-noteref"><a href="#fn:service" class="footnote" rel="footnote">2</a></sup> properly, this shouldn’t happen. While you are correct, mistakes happen. For everybody.</p>
+
+<p>Even if everything was set up correctly, what about a temporary network issue between your host and the responsible Capsule only at the moment when you try to install the
+Zabbix agent? You will never notice it and you’d think the deployment was <em>successful</em>.</p>
+
+<p>As you see, while customizing Kickstarts can provide you with some benefits, it comes with the trade-off of maintenance. If you are not comfortable in writing and
+troubleshooting Kickstarts and troubleshooting the Host Provisioning in Satellite - or don’t have the time to - you might consider stopping right here and now.</p>
+
+<p>If you’d like to learn more about the way I Kickstart my systems to build from that your very own customized way of Kickstarting your systems, or if you are just curious:
+Perfect, keep on reading. <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20"></p>
+<h2 id="overview">
+  
+  
+    Overview <a href="#overview">#</a>
+  
+  
+</h2>
+    
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> If you are not familiar with Kickstart, please
+<a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/installing-rhel-fully-and-semi-automated">read up on that</a>
+first. This is not an <em>introduction</em> to Kickstart and I assume a good understanding of Kickstart throughout this blog post.</p>
+
+<p>To get started with Kickstart in Satellite, we first need to take a look at how Satellite handles Kickstarts.</p>
+
+<p>A Kickstart file in Satellite is rendered <em>before</em> transmitting it to the host that requested it. But what Satellite makes awesome for using with Kickstart is the high degree of
+flexibility you get when using it. The reason being: <strong>metadata</strong>. If you followed my <a href="https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html">earlier blog post</a>, you
+know we defined <em>a lot</em> of different objects. Each of those objects provide a small piece of information about a system.</p>
+
+<p>We can use these information pieces - or like I call them, metadata - to stitch together a highly customized Kickstart that <em>perfectly</em> fits for the system we are about to
+deploy.</p>
+
+<p>Before we dig deeper into Kickstart, we first need to understand how Satellite makes use of Templates and how we can leverage that functionality.</p>
+
+<p>Satellite provides the following Template types:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Template Type</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Partition Tables</td>
+      <td style="text-align: left">This template type provides the possibility to, surprise, surprise, create partition templates for our hosts</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Job Templates</td>
+      <td style="text-align: left">We can use Job Templates to run Jobs within Satellite</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Provisioning Templates</td>
+      <td style="text-align: left">These are the templates we can use for Kickstarting systems</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Report Templates</td>
+      <td style="text-align: left">Report templates can be used to create, who have guessed that, reports</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Our focus will be on <em>Partition Tables</em> and <em>Provisioning Templates</em>. Provisioning Templates are further separated into several
+<a href="https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/provisioning_hosts/configuring_provisioning_resources_provisioning#types-of-provisioning-templates_provisioning">Provisioning Template Types</a>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Provisioning Template Types</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Provision</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">PXELinux</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">PXEGrub</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">PXEGrub2</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Finish</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">user_data</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">cloud_init</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Bootdisk</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Kernel Execution (kexec)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Script</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">ZTP</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">POAP</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">iPXE</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>As you see, there a lot of different Provisioning Templates available. In this blog post I’ll focus on the following two:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">PXELinux</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Provision</code></li>
+</ul>
+
+<p>We’ll use the <code class="language-plaintext highlighter-rouge">PXELinux</code> template to render the parameters that are transmitted to a server that will boot into the
+<a href="https://de.wikipedia.org/wiki/Preboot_Execution_Environment"><code class="language-plaintext highlighter-rouge">Preboot Execution Environment</code> (<code class="language-plaintext highlighter-rouge">PXE</code>)</a>. And the <code class="language-plaintext highlighter-rouge">Provision</code> template is where all the magic will happen. This will
+define the Kickstart in its entirety.</p>
+
+<p>There is one ‘Template type’ we haven’t talked about. <a href="https://access.redhat.com/documentation/de-de/red_hat_satellite/6.12/html/managing_hosts/template_writing_reference_managing-hosts#Example_Template_Snippets_managing-hosts">Snippets</a>.
+Snippets are small portions of code that can be reused multiple times throughout the Templates.</p>
+
+<p>A Snippet might look something like this:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;%</span>
+<span class="n">os_major</span> <span class="o">=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">operatingsystem</span><span class="p">.</span><span class="nf">major</span><span class="p">.</span><span class="nf">to_i</span>
+<span class="n">os_minor</span> <span class="o">=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">operatingsystem</span><span class="p">.</span><span class="nf">minor</span><span class="p">.</span><span class="nf">to_i</span>
+<span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="k">if</span> <span class="p">((</span><span class="n">os_minor</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">os_major</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">))</span> <span class="cp">-%&gt;</span>
+<span class="c">&lt;%# do something #%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">-%&gt;</span>
+</code></pre></div></div>
+
+<p>As you might have guessed, the Templates (and Snippets) in Satellite are written in Ruby, Embedded Ruby (<code class="language-plaintext highlighter-rouge">ERB</code>), specifically. Usually. I say usually, because the <code class="language-plaintext highlighter-rouge">%post</code> section
+of the Provisioning Template can be anything, really. That all depends on the options passed to the <code class="language-plaintext highlighter-rouge">%post</code> section. The <code class="language-plaintext highlighter-rouge">%post</code> section accepts an
+<code class="language-plaintext highlighter-rouge">--interpreter=</code> <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/automatically_installing_rhel/kickstart-script-file-format-reference_rhel-installer#post-script-section-options_post-script-in-kickstart-file">argument</a>.
+With that, we can make use of BASH (the default) or make use of Python, etc. as our <code class="language-plaintext highlighter-rouge">interpreter</code>. The great thing about this is that we can still make use of <code class="language-plaintext highlighter-rouge">ERB</code> in the
+<code class="language-plaintext highlighter-rouge">%post</code> section. That is because Satellite <em>renders</em> the template <em>before</em> transmitting it to the client. So <code class="language-plaintext highlighter-rouge">ERB</code> code is evaluated before passing it to the client.</p>
+
+<p>With that we can still use for instance <code class="language-plaintext highlighter-rouge">@host.operatingsystem.major.to_i</code> in any section of the Kickstart as it will be rendered by Satellite before the client actually uses it.</p>
+<h2 id="diving-deeper">
+  
+  
+    Diving Deeper <a href="#diving-deeper">#</a>
+  
+  
+</h2>
+    
+
+<p>Now that we have set a baseline, let’s dive into my Kickstart templates. You can find them in my <a href="https://github.com/sscheib/satellite_templates">GitHub repository</a>.</p>
+
+<p><img class="emoji" title=":warning:" alt=":warning:" src="https://github.githubassets.com/images/icons/emoji/unicode/26a0.png" height="20" width="20"> The Kickstarts are built around <em>my</em> use case. Please <em>don’t</em> use them as is. Evaluate them and check if they work for <em>your</em> use case.</p>
+
+<p>Looking at the repository contents, we have the following files available:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pt-standard_bios.erb
+pvt-ipxe.erb
+pvt-provisioning.erb
+pvt-pxelinux_default_local_boot.erb
+pvt-pxelinux.erb
+snt-ansible_provisioning_callback_script.erb
+snt-ansible_provisioning_callback_service.erb
+snt-ansible_ssh_keys.erb
+snt-configure_time_synchronization.erb
+snt-create_ip_config_string.erb
+snt-enable_epel.erb
+snt-idm_register.erb
+snt-luks_encryption.erb
+snt-networking_setup_post_installation.erb
+snt-post_provisioning_init.erb
+snt-remote_execution_ssh_keys.erb
+snt-subscription_manager_registration.erb
+</code></pre></div></div>
+
+<p>As you can see, I have implemented a basic name concept:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Prefix</th>
+      <th style="text-align: left">Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">pt-</code></td>
+      <td style="text-align: left">
+<strong>P</strong>artition <strong>T</strong>able</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">pvt-</code></td>
+      <td style="text-align: left">
+<strong>P</strong>ro<strong>v</strong>ision <strong>T</strong>emplate</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">snt-</code></td>
+      <td style="text-align: left">
+<strong>Sn</strong>ippe<strong>t</strong>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>And I make heavy use of Snippets to make the Provision Template a little smaller and easier to read through.</p>
+<h3 id="partition-table">
+  
+  
+    Partition Table <a href="#partition-table">#</a>
+  
+  
+</h3>
+    
+
+<p>Let’s look first at the Partition Table:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;%#
+kind: ptable
+name: pt-standard_bios
+model: Ptable
+oses:
+- RedHat 7
+- RHEL 7
+- RedHat 8
+- RHEL 8
+- RedHat 9
+- RHEL 9
+
+locations:
+- loc-core
+
+organizations:
+- org-core
+-%&gt;</span>
+
+<span class="c">&lt;%#
+author: Steffen Scheib (steffen@scheib.me)
+
+custom snippets:
+  none
+
+snippets:
+  none
+
+changelog:
+22.05.2023 - Steffen Scheib:
+- Renamed encrypt_system host parameter to p-encrypt_system
+
+04.09.2021 - Steffen Scheib:
+- Initial version
+%&gt;</span>
+#Dynamic
+
+# Define some variables
+<span class="cp">&lt;%</span>
+   <span class="n">os_major</span> <span class="o">=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">operatingsystem</span><span class="p">.</span><span class="nf">major</span><span class="p">.</span><span class="nf">to_i</span>
+   <span class="n">fs_type</span> <span class="o">=</span> <span class="s1">'xfs'</span>
+   <span class="n">vg_name</span> <span class="o">=</span> <span class="s1">'system'</span>
+<span class="cp">-%&gt;</span>
+
+if [ -e /dev/sda ]; then
+  dev_device="sda"
+elif [ -e /dev/vda ]; then
+  dev_device="vda"
+fi
+
+cat <span class="nt">&lt;</span><span class="err">&lt;</span><span class="na">EOF</span> <span class="nt">&gt;</span> /tmp/diskpart.cfg
+  zerombr
+  # Partition clearing information
+  bootloader --location=mbr --append="splash=quiet"
+  clearpart --all --initlabel --drives="${dev_device}" --disklabel=gpt
+  # as we have gpt, we need a separate biosboot partition
+  part biosboot --fstype=biosboot --size=1
+EOF
+
+cat <span class="nt">&lt;</span><span class="err">&lt;</span><span class="na">EOF</span> <span class="nt">&gt;</span>&gt; /tmp/diskpart.cfg
+  # Disk partitioning information with <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span>
+  part /boot --fstype=<span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --size=4096
+
+  # encrypt only systems with the host parameter p-encrypt_system set
+  <span class="cp">&lt;%</span> <span class="k">if</span> <span class="n">host_param</span><span class="p">(</span><span class="s1">'p-encrypt_system'</span><span class="p">)</span> <span class="cp">%&gt;</span>
+    # create an encrypted physical volume
+    part pv.0 --grow --ondisk="${dev_device}" --encrypted --passphrase=<span class="cp">&lt;%=</span> <span class="n">host_param</span><span class="p">(</span><span class="s1">'crypted_system_initial_passphrase'</span><span class="p">)</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span>
+    part pv.0 --grow --ondisk="${dev_device}"
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">-%&gt;</span>
+
+  volgroup vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> pv.0
+
+  logvol /              --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_root          --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=10240
+  logvol /var/log/audit --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_var_log_audit --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=2048   --fsoptions="nodev,nosuid,noexec"
+  logvol /var/log       --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_var_log       --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=5120   --fsoptions="nodev,nosuid,noexec"
+  logvol /var/tmp       --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_var_tmp       --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=2048   --fsoptions="nodev,nosuid"
+  logvol /usr           --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_usr           --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=8192   --fsoptions="nodev"
+  logvol /usr/local     --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_usr_local     --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=1024   --fsoptions="nodev"
+  logvol /openscap      --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_openscap      --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=512    --fsoptions="nodev,noexec"
+  logvol /home          --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_home          --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=1024   --fsoptions="nodev,nosuid"
+  logvol /tmp           --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_tmp           --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=5120   --fsoptions="nodev,nosuid,noexec"
+  logvol /var           --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_var           --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=8192   --fsoptions="nodev,nosuid"
+  logvol /opt           --fstype <span class="cp">&lt;%=</span> <span class="n">fs_type</span> <span class="cp">%&gt;</span> --name=lv_opt           --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=4096   --fsoptions="nodev"
+  logvol swap           --fstype swap           --name=lv_swap          --vgname=vg_<span class="cp">&lt;%=</span> <span class="n">vg_name</span> <span class="cp">%&gt;</span> --size=4096
+EOF
+</code></pre></div></div>
+
+<p>The Partition Table itself is pretty straight forward, but I’d like to point out two things.</p>
+
+<p>First, I start <em>every</em> template with a comment block of <code class="language-plaintext highlighter-rouge">ERB</code> (<code class="language-plaintext highlighter-rouge">&lt;%# #%&gt;</code>) which contains metadata for Satellite’s <code class="language-plaintext highlighter-rouge">TemplateSync</code> (more on that in a later blog post).</p>
+
+<p>Secondly, the next comment block is <em>not</em> used by Satellite, but rather by myself to quickly look up what I changed when. I know, this is rather an old-school technique, but
+for me it works to keep track of what I have changed when and why. Yes, the same is present as well in <code class="language-plaintext highlighter-rouge">git log</code>, but I find it quite handy to have such things in each template
+as well.</p>
+<h3 id="provision-template">
+  
+  
+    Provision Template <a href="#provision-template">#</a>
+  
+  
+</h3>
+    
+
+<p>My Provision Templates and Snippets contain further a section with <code class="language-plaintext highlighter-rouge">Supported host parameters</code><sup id="fnref:host_params" role="doc-noteref"><a href="#fn:host_params" class="footnote" rel="footnote">3</a></sup>. These list the parameters of each Template and Snippet that can be
+overridden/set to customize the behavior of them. The exception is <code class="language-plaintext highlighter-rouge">pvt-provisioning</code>. Within this template <em>all</em> available parameters for the Provision Template are included -
+including those that are actually included through Snippets during provisioning. This way you have <em>one</em> place to look up which parameters are supported. Of course this is a
+manual effort, and thus the documentation inside those templates is only helpful when you keep it up-to-date. I also include a section with <code class="language-plaintext highlighter-rouge">Snippets</code> and <code class="language-plaintext highlighter-rouge">Custom snippets</code>.
+These are self explanatory.</p>
+
+<p>Below you’ll find an excerpt of the Provision Template’s header which lists the supported parameters:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;%#
+author: Steffen Scheib (steffen@scheib.me)
+
+description:
+This kickstart provisioning template is the "base" template and contains all required key arguments for the kickstart installation.
+
+custom snippets:
+- snt-post_provisioning_init
+- snt-subscription_manager_registration
+- snt-configure_time_synchronization
+- snt-remote_execution_ssh_keys
+- snt-enable_epel
+- snt-networking_setup_post_installation
+- snt-luks_encryption
+
+snippets:
+  none
+
+supported host parameters:
+&gt; host parameter name                    | type      | snippet/template name                        | description                                     &lt;
+-----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; lang                                   | string    | pvt-provision                                | Language to set for the operating system
+*                                        |           |                                              | Default: 'en_US.UTF-8'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; keyboard                               | string    | pvt-provision                                | Keyboard layout to use for the operating system
+*                                        |           |                                              | Default: 'de'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; selinux                                | string    | pvt-provision                                | Mode of SELinux to set for the operating system
+*                                        |           |                                              | Default: 'enforcing'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; time-zone                              | string    | pvt-provision                                | Timezone the operating system should be set to
+*                                        |           |                                              | Default: 'UTC'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-encrypt_system                       | boolean   | pvt-provision                                | Whether to encrypt the system with luks
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ks_debug                             | boolean   | snt-post_provisioning_init                   | If true, the %post section will enable set -x for
+*                                        |           |                                              | BASH
+*                                        |           |                                              | Default: false
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; syspurpose_role                        | string    | snt-subscription_manager_registration        | If set, sets the syspurpose role within
+*                                        |           |                                              | subscription-manager
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; syspurpose_usage                       | string    | snt-subscription_manager_registration        | If set, sets the syspurpose usage within
+*                                        |           |                                              | subscription-manager
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; syspurpose_sla                         | string    | snt-subscription_manager_registration        | If set, sets the syspurpose SLA within
+*                                        |           |                                              | subscription-manager
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; syspurpose_addons                      | string    | snt-subscription_manager_registration        | If set, sets the syspurpose addons within
+*                                        |           |                                              | subscription-manager
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; additional_repositories                | string    | snt-subscription_manager_registration        | Additional repositories to enable to the already
+*                                        |           |                                              | enabled within the activation key. Repositories
+*                                        |           |                                              | have to be passed as comma-seperated string
+*                                        |           |                                              | Example: 'repo1,repo2'
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; idm_ssh                                | boolean   | snt-idm_register                             | If false, disables sssd ssh integration with
+*                                        |           |                                              | command line parameter --no-ssh
+*                                        |           |                                              | Default: true
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; idm_mkhomedir                          | boolean   | snt-idm_register                             | If false, disables the configuration of ssd for
+*                                        |           |                                              | automatical creation of home
+*                                        |           |                                              | directories (--mkhomedir will not be passed as
+*                                        |           |                                              | argument)
+*                                        |           |                                              | Default: true
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; idm_opts                               | string    | snt-idm_register                             | If set, these additional command line parameters
+*                                        |           |                                              | will be passed to the ipa-client-install command
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; remote_execution_ssh_user              | string    | snt-remote_execution_ssh_keys                | User for which remote_execution_ssh_keys will be
+*                                        |           |                                              | authorized
+*                                        |           |                                              | Default: 'satellite-remote'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; remote_execution_ssh_user_comment      | string    | snt-remote_execution_ssh_keys                | Comment to set for the user
+*                                        |           |                                              | Default: 'RedHat Satellite Remote User'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-remote_execution_ssh_keys            | string    | snt-remote_execution_ssh_keys                | Public keys to be put in
+*                                        |           |                                              | &lt;ssh_user&gt;/.ssh/authorized_keys
+*                                        |           |                                              | One key per line should be added
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; dns_alt_names                          | string    | snt-puppet                                   | If set, sets the alternative dns name in the
+*                                        |           |                                              | Puppet configuration file
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ks_debug_network                     | boolean   | snt-networking_setup_post_installation       | If true, writes networking information for
+*                                        |           |                                              | debugging purposed to
+*                                        |           |                                              | /root/network_during_installation.log
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-crypted_system_initial_passphrase    | string    | snt-luks_encryption                          | This passphrase was used to initially create the
+*                                        |           |                                              | luks partition and within this snippet will be
+*                                        |           |                                              | removed again
+*                                        |           |                                              | Default: Some Secret Password :)
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_provisioning                 | boolean   | pvt-provisioning                             | Determines whether post provisioning with Ansible
+*                                        |           |                                              | should be done
+*                                        |           |                                              | Default: true
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_host_config_key              | string    | snt-ansible_provisioning_callback_service    | Host config key to pass to the Ansible
+*                                        |           |                                              | Automation Controller call
+*                                        |           |                                              | Default: None
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_job_template_id              | integer   | snt-ansible_provisioning_callback_service    | ID of the job template to trigger of the
+*                                        |           |                                              | Ansible Automation Controller
+*                                        |           |                                              | Default: None
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_ssh_user                     | string    | snt-ansible_ssh_keys                         | User for which p-ansible_ssh_keys will be authorized
+*                                        |           |                                              | Default: 'remote-ansible'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_ssh_user_comment             | string    | snt-ansible_ssh_keys                         | Comment to set for the user
+*                                        |           |                                              | Default: 'Red Hat Ansible Automation Platform Remote User'
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_ssh_keys                     | string    | snt-ansible_ssh_keys                         | Public keys to be put in &lt;ssh_user&gt;/.ssh/authorized_keys
+*                                        |           |                                              | One key per line should be added
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-ansible_controller_host              | string    | snt-ansible_provisioning_callback_service    | Ansible Automation Controller Host
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------+
+&gt; p-enable_fips_deployment               | boolean   | pvt-provisioning                             | Whether to enable FIPS mode
+*                                        |           |                                              | Default: Unset
++----------------------------------------+-----------+----------------------------------------------+-------------------------------------------------&gt;
+</span></code></pre></div></div>
+
+<p><img class="emoji" title=":information_source:" alt=":information_source:" src="https://github.githubassets.com/images/icons/emoji/unicode/2139.png" height="20" width="20"> Variables that have prefixed a <code class="language-plaintext highlighter-rouge">p-</code> are custom parameters of my Snippets or the Provisioning Template. Parameters without <code class="language-plaintext highlighter-rouge">p-</code> are parameters that are present
+in Red Hat’s default Kickstart.</p>
+
+<p>The Provision Template also includes the exit codes of the <code class="language-plaintext highlighter-rouge">%post</code> section (should it fail) and the log files that are used during provisioning, which will be helpful when
+troubleshooting a failed installation:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>exit codes:
+0: Installation successfully finished
+1: Unable to determine package manager to use
+2: Unused
+3: Host parameter 'p-encrypt_system' given (true), but unable to determine a single currently installed kernel and thus cannot decide which kernel version to use
+4: Host parameter 'p-encrypt_system' given (true), but no Tang servers could be discovered using _tang._tcp.@host.domain
+5: Host parameter 'p-encrypt_system' given (true), but not all Tang servers discovered via _tang._tcp.@host.domain were reachable
+6: Host parameter 'p-encrypt_system' given (true), but it was discovered, that GRUB_CMDLINE_LINUX in file /etc/default/grub is empty
+7: /var/log is not mounted
+8: Realm is not set
+9: Command 'dig' is not available
+10: Unable to create directory /mnt/sysimage/var/log/journal
+11: Unable to run command 'sync'
+
+Note: These are only the *defined* exit codes! If a command exits with an error (exit code not equals zero) within the main %post section,
+      this exit code will be used to exit the post installation.
+
+log files:
+&gt; log file path                                         | description &lt;
++-------------------------------------------------------+--------------------------------------------------------------------------------------------+
+&gt; /root/install.post.no.chroot.log                      | Contains the log of the first post section without chroot, which basically copies only the
+&gt;                                                       | file /etc/resolv.conf from the host system to the chroot
++-------------------------------------------------------+--------------------------------------------------------------------------------------------+
+&gt; /root/install.post.script.log                         | Contains the output of the "main" post section from the function write_output
++-------------------------------------------------------+--------------------------------------------------------------------------------------------+
+&gt; /root/install.post.log                                | Contains stdout and stderr of the "main" post section
++-------------------------------------------------------+--------------------------------------------------------------------------------------------+
+&gt; /root/install.post.no.chroot.journal.log              | Contains the output from the post section, which makes journald logs persistent
++-------------------------------------------------------+--------------------------------------------------------------------------------------------+
+&gt; /root/install.post.notification.log                   | Contains the output of the post section, which notifies foreman about the finished build
++-------------------------------------------------------+--------------------------------------------------------------------------------------------&gt;
+-%&gt;
+</code></pre></div></div>
+<h3 id="post-section-flow">
+  
+  
+    <code class="language-plaintext highlighter-rouge">%post</code> section flow <a href="#post-section-flow">#</a>
+  
+  
+</h3>
+    
+
+<p>Since the <code class="language-plaintext highlighter-rouge">%post</code> section is the most complex one, let me walk you through it step by step.</p>
+
+<p>Okay, actually there are multiple <code class="language-plaintext highlighter-rouge">%post</code> sections. Let’s focus on the one that does the heavy lifting (I’ll briefly explain the others later on):</p>
+
+<p><code class="language-plaintext highlighter-rouge">%post --interpreter=/bin/bash --log=/root/install.post.log</code></p>
+
+<p>For an initial overview, let’s start with a flow chart:</p>
+
+<svg class="flowchart" id="mermaid-svg" width="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 2528.93603515625px;" viewbox="0 0 2528.93603515625 2154.25" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style>
+<style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#fff;}#mermaid-svg .error-text{fill:#000000;stroke:#000000;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#0b0b0b;stroke:#0b0b0b;}#mermaid-svg .marker.cross{stroke:#0b0b0b;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#000000;}#mermaid-svg .cluster-label span{color:#000000;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#fff4dd;stroke:hsl(40.5882352941, 60%, 83.3333333333%);stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#0b0b0b!important;stroke-width:0;stroke:#0b0b0b;}#mermaid-svg .arrowheadPath{fill:#0b0b0b;}#mermaid-svg .edgePath .path{stroke:#0b0b0b;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#0b0b0b;fill:none;}#mermaid-svg .edgeLabel{background-color:#ffffff00;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#ffffff00;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#ffffff00;fill:#ffffff00;}#mermaid-svg .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#mermaid-svg .cluster rect{fill:#fff;stroke:hsl(0, 0%, 90%);stroke-width:1px;}#mermaid-svg .cluster text{fill:#000000;}#mermaid-svg .cluster span{color:#000000;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:#fff;border:1px solid hsl(0, 0%, 90%);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#ffffff00;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#ffffff00;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#ffffff00;fill:#ffffff00;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style>
+<g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewbox="0 0 10 10" refx="5" refy="5" markerunits="userSpaceOnUse" markerwidth="8" markerheight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewbox="0 0 10 10" refx="4.5" refy="5" markerunits="userSpaceOnUse" markerwidth="8" markerheight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewbox="0 0 10 10" refx="11" refy="5" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewbox="0 0 10 10" refx="-1" refy="5" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewbox="0 0 11 11" refx="12" refy="5.2" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewbox="0 0 11 11" refx="-1" refy="5.2" markerunits="userSpaceOnUse" markerwidth="11" markerheight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M1227.066,62L1227.066,66.167C1227.066,70.333,1227.066,78.667,1227.066,86.333C1227.066,94,1227.066,101,1227.066,104.5L1227.066,108" id="L_A_snt-post&amp;#95provisioning&amp;#95init_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1199.939,166L1195.752,170.167C1191.566,174.333,1183.193,182.667,1179.007,197.492C1174.82,212.317,1174.82,233.633,1174.82,244.292L1174.82,254.95" id="snt-post&amp;#95provisioning&amp;#95init-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1174.82,255.05L1174.82,267.708C1174.82,280.367,1174.82,305.683,1174.82,331C1174.82,356.317,1174.82,381.633,1174.82,394.292L1174.82,406.95" id="snt-post&amp;#95provisioning&amp;#95init-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1174.87,406.964L1192.277,394.303C1209.684,381.642,1244.498,356.321,1261.905,330.994C1279.313,305.667,1279.313,280.333,1279.313,257C1279.313,233.667,1279.313,212.333,1275.126,197.5C1270.94,182.667,1262.567,174.333,1258.381,170.167L1254.194,166" id="snt-post&amp;#95provisioning&amp;#95init-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1347.34,164.868L1367.59,169.223C1387.841,173.578,1428.342,182.289,1448.593,190.145C1468.844,198,1468.844,205,1468.844,208.5L1468.844,212" id="L_snt-post&amp;#95provisioning&amp;#95init_snt-networking&amp;#95setup&amp;#95post&amp;#95installation_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1314.313,284.47L1273.648,292.225C1232.984,299.98,1151.656,315.49,1110.992,335.903C1070.328,356.317,1070.328,381.633,1070.328,394.292L1070.328,406.95" id="snt-networking&amp;#95setup&amp;#95post&amp;#95installation-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1070.328,407.05L1070.328,419.708C1070.328,432.367,1070.328,457.683,1070.328,483C1070.328,508.317,1070.328,533.633,1070.328,546.292L1070.328,558.95" id="snt-networking&amp;#95setup&amp;#95post&amp;#95installation-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1070.378,558.988L1123.916,546.323C1177.453,533.659,1284.528,508.329,1338.066,482.998C1391.603,457.667,1391.603,432.333,1391.603,407C1391.603,381.667,1391.603,356.333,1397.87,337.5C1404.138,318.667,1416.672,306.333,1422.94,300.167L1429.207,294" id="snt-networking&amp;#95setup&amp;#95post&amp;#95installation-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1565.181,294L1580.414,300.167C1595.647,306.333,1626.112,318.667,1641.345,330.333C1656.578,342,1656.578,353,1656.578,358.5L1656.578,364" id="L_snt-networking&amp;#95setup&amp;#95post&amp;#95installation_snt-subscription&amp;#95manager&amp;#95registration_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1503.844,423.507L1412.1,433.423C1320.357,443.338,1136.87,463.169,1045.126,485.743C953.383,508.317,953.383,533.633,953.383,546.292L953.383,558.95" id="snt-subscription&amp;#95manager&amp;#95registration-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M953.383,559.05L953.383,575.708C953.383,592.367,953.383,625.683,953.383,657C953.383,688.317,953.383,717.633,953.383,732.292L953.383,746.95" id="snt-subscription&amp;#95manager&amp;#95registration-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M953.433,746.992L1045.027,732.327C1136.62,717.661,1319.808,688.331,1411.402,656.999C1502.995,625.667,1502.995,592.333,1502.995,563C1502.995,533.667,1502.995,508.333,1515.457,489.5C1527.919,470.667,1552.842,458.333,1565.304,452.167L1577.766,446" id="snt-subscription&amp;#95manager&amp;#95registration-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1737.74,446L1750.574,452.167C1763.407,458.333,1789.074,470.667,1801.907,482.333C1814.741,494,1814.741,505,1814.741,510.5L1814.741,516" id="L_snt-subscription&amp;#95manager&amp;#95registration_snt-configure&amp;#95time&amp;#95synchronization_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1672.233,573.442L1531.527,587.702C1390.822,601.962,1109.411,630.481,968.705,659.399C828,688.317,828,717.633,828,732.292L828,746.95" id="snt-configure&amp;#95time&amp;#95synchronization-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M828,747.05L828,765.708C828,784.367,828,821.683,828,861C828,900.317,828,941.633,828,962.292L828,982.95" id="snt-configure&amp;#95time&amp;#95synchronization-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M828.05,982.992L958.254,962.327C1088.458,941.661,1348.866,900.331,1479.07,860.999C1609.274,821.667,1609.274,784.333,1609.274,751C1609.274,717.667,1609.274,688.333,1630.163,663.5C1651.052,638.667,1692.831,618.333,1713.72,608.167L1734.609,598" id="snt-configure&amp;#95time&amp;#95synchronization-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1838.599,598L1844.819,608.167C1851.038,618.333,1863.477,638.667,1869.697,658.333C1875.916,678,1875.916,697,1875.916,706.5L1875.916,716" id="L_snt-configure&amp;#95time&amp;#95synchronization_snt-idm&amp;#95register_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1788.565,755.377L1608.471,772.647C1428.377,789.918,1068.188,824.459,888.094,862.388C708,900.317,708,941.633,708,962.292L708,982.95" id="snt-idm&amp;#95register-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M708,983.05L708,997.708C708,1012.367,708,1041.683,718.711,1069C729.423,1096.317,750.846,1121.633,761.557,1134.292L772.269,1146.95" id="snt-idm&amp;#95register-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M772.361,1146.996L924.963,1134.33C1077.566,1121.664,1382.77,1096.332,1535.373,1068.999C1687.975,1041.667,1687.975,1012.333,1687.975,977C1687.975,941.667,1687.975,900.333,1711.747,865.5C1735.52,830.667,1783.064,802.333,1806.837,788.167L1830.609,774" id="snt-idm&amp;#95register-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1895.972,774L1906.496,788.167C1917.019,802.333,1938.065,830.667,1948.589,858.333C1959.112,886,1959.112,913,1959.112,926.5L1959.112,940" id="L_snt-idm&amp;#95register_snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1827.721,991.433L1621.101,1004.694C1414.481,1017.955,1001.24,1044.478,794.62,1070.397C588,1096.317,588,1121.633,588,1134.292L588,1146.95" id="snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M588,1147.05L588,1161.708C588,1176.367,588,1205.683,622.576,1235.005C657.152,1264.326,726.304,1293.653,760.88,1308.316L795.456,1322.979" id="snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M795.556,1322.996L961.079,1308.33C1126.603,1293.664,1457.649,1264.332,1623.172,1234.999C1788.695,1205.667,1788.695,1176.333,1788.695,1149C1788.695,1121.667,1788.695,1096.333,1804.51,1075.5C1820.326,1054.667,1851.956,1038.333,1867.771,1030.167L1883.586,1022" id="snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M1990.463,1022L1997.028,1030.167C2003.594,1038.333,2016.724,1054.667,2023.289,1070.333C2029.854,1086,2029.854,1101,2029.854,1108.5L2029.854,1116" id="L_snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys_snt-ansible&amp;#95ssh&amp;#95keys_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M1923.37,1153L1680.808,1166.666C1438.246,1180.333,953.123,1207.667,710.562,1235.992C468,1264.317,468,1293.633,468,1308.292L468,1322.95" id="snt-ansible&amp;#95ssh&amp;#95keys-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M468,1323.05L468,1337.708C468,1352.367,468,1381.683,524.366,1411.006C580.733,1440.329,693.466,1469.658,749.832,1484.322L806.198,1498.987" id="snt-ansible&amp;#95ssh&amp;#95keys-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M806.298,1498.996L984.742,1484.33C1163.186,1469.664,1520.074,1440.332,1698.518,1410.999C1876.963,1381.667,1876.963,1352.333,1876.963,1323C1876.963,1293.667,1876.963,1264.333,1894.626,1239.5C1912.29,1214.667,1947.617,1194.333,1965.28,1184.167L1982.944,1174" id="snt-ansible&amp;#95ssh&amp;#95keys-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2048.56,1174L2055.604,1184.167C2062.648,1194.333,2076.735,1214.667,2083.779,1234.333C2090.823,1254,2090.823,1273,2090.823,1282.5L2090.823,1292" id="L_snt-ansible&amp;#95ssh&amp;#95keys_snt-enable&amp;#95epel_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M2003.885,1327.39L1727.904,1341.325C1451.923,1355.26,899.962,1383.13,623.981,1411.723C348,1440.317,348,1469.633,348,1484.292L348,1498.95" id="snt-enable&amp;#95epel-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M348,1499.05L348,1513.708C348,1528.367,348,1557.683,424.528,1589.007C501.056,1620.33,654.111,1653.659,730.639,1670.324L807.167,1686.989" id="snt-enable&amp;#95epel-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M807.267,1686.996L998.632,1670.33C1189.997,1653.664,1572.727,1620.332,1764.091,1588.999C1955.456,1557.667,1955.456,1528.333,1955.456,1499C1955.456,1469.667,1955.456,1440.333,1971.095,1415.5C1986.734,1390.667,2018.012,1370.333,2033.651,1360.167L2049.29,1350" id="snt-enable&amp;#95epel-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2111.367,1350L2119.104,1360.167C2126.84,1370.333,2142.312,1390.667,2150.048,1410.333C2157.784,1430,2157.784,1449,2157.784,1458.5L2157.784,1468" id="L_snt-enable&amp;#95epel_snt-luks&amp;#95encryption_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M2058.862,1503.511L1753.718,1517.426C1448.574,1531.341,838.287,1559.17,533.144,1589.743C228,1620.317,228,1653.633,228,1670.292L228,1686.95" id="snt-luks&amp;#95encryption-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M228,1687.05L228,1703.708C228,1720.367,228,1753.683,325.688,1787.007C423.376,1820.33,618.752,1853.661,716.44,1870.326L814.128,1886.991" id="snt-luks&amp;#95encryption-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M814.228,1886.996L1018.514,1870.33C1222.799,1853.664,1631.371,1820.332,1835.657,1786.999C2039.942,1753.667,2039.942,1720.333,2039.942,1687C2039.942,1653.667,2039.942,1620.333,2053.556,1593.5C2067.171,1566.667,2094.399,1546.333,2108.013,1536.167L2121.628,1526" id="snt-luks&amp;#95encryption-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2187.607,1526L2198.837,1536.167C2210.067,1546.333,2232.527,1566.667,2243.757,1586.333C2254.987,1606,2254.987,1625,2254.987,1634.5L2254.987,1644" id="L_snt-luks&amp;#95encryption_snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M2095.58,1694.425L1764.317,1709.854C1433.054,1725.283,770.527,1756.142,439.263,1788.229C108,1820.317,108,1853.633,108,1870.292L108,1886.95" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M108,1887.05L108,1901.708C108,1916.367,108,1945.683,231.889,1968.516C355.777,1991.349,603.554,2007.698,727.443,2015.872L851.331,2024.047" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M851.431,2024.048L1068.638,2015.873C1285.844,2007.699,1720.257,1991.349,1937.464,1968.508C2154.67,1945.667,2154.67,1916.333,2154.67,1885C2154.67,1853.667,2154.67,1820.333,2164.869,1793.5C2175.068,1766.667,2195.466,1746.333,2205.664,1736.167L2215.863,1726" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2294.11,1726L2304.309,1736.167C2314.508,1746.333,2334.905,1766.667,2345.104,1786.333C2355.303,1806,2355.303,1825,2355.303,1834.5L2355.303,1844" id="L_snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script_snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style="" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"></path><path d="M2321.946,1926L2314.961,1934.167C2307.977,1942.333,2294.007,1958.667,2287.022,1975C2280.037,1991.333,2280.037,2007.667,2280.037,2015.833L2280.037,2024" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service-cyclic-special-1" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2280.037,2024.1L2280.037,2034.267C2280.037,2044.433,2280.037,2064.767,2292.573,2085.102C2305.109,2105.436,2330.181,2125.773,2342.717,2135.941L2355.253,2146.109" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service-cyclic-special-mid" class=" edge-thickness-invisible edge-pattern-solid" style=""></path><path d="M2355.352,2146.1L2365.344,2135.933C2375.336,2125.767,2395.32,2105.433,2405.311,2085.092C2415.303,2064.75,2415.303,2044.4,2415.303,2026.05C2415.303,2007.7,2415.303,1991.35,2409.735,1975.008C2404.167,1958.667,2393.03,1942.333,2387.462,1934.167L2381.894,1926" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service-cyclic-special-2" class=" edge-thickness-invisible edge-pattern-solid" style=""></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(1174.8203125, 331)"><g class="label" transform="translate(-84.4921875, -12)"><foreignobject width="168.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Initializes error handling</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(1070.328125, 483)"><g class="label" transform="translate(-96.9453125, -12)"><foreignobject width="193.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Configures host networking</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(953.3828125, 659)"><g class="label" transform="translate(-105.3828125, -36)"><foreignobject width="210.765625" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Registers the system to the Satellite/Capsule;Determines if EPEL is activated in the AK</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(828, 859)"><g class="label" transform="translate(-100, -60)"><foreignobject width="200" height="120"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Configures /etc/ntp.conf (RHEL7) or /etc/chrony.conf (RHEL8+) with the bare minimum of options</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(708, 1071)"><g class="label" transform="translate(-100, -24)"><foreignobject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Registers the system to the appropriate IdM</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(588, 1235)"><g class="label" transform="translate(-100, -36)"><foreignobject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Creates the remote execution user and adds SSH keys to the user</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(468, 1411)"><g class="label" transform="translate(-100, -36)"><foreignobject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Create a user for Ansible automation and adds SSH keys to the user</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(348, 1587)"><g class="label" transform="translate(-100, -36)"><foreignobject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Enables EPEL again if it was found being enabled within the AK</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(228, 1787)"><g class="label" transform="translate(-100, -36)"><foreignobject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Adds a clevis-luks bind to an already created LUKS partition</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(108, 1975)"><g class="label" transform="translate(-100, -24)"><foreignobject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Contains the Ansible post provisioning script</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g><g class="edgeLabel" transform="translate(2280.036718754098, 2085.10000000149)"><g class="label" transform="translate(-100, -36)"><foreignobject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="edgeLabel "><p>Creates oneshot systemd service for Ansible post provisioning</p></span></div></foreignobject></g></g><g class="edgeLabel"><g class="label" transform="translate(0, 0)"><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignobject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(1227.06640625, 35)"><rect class="basic label-container" style="" x="-71.3515625" y="-27" width="142.703125" height="54"></rect><g class="label" style="" transform="translate(-41.3515625, -12)"><rect></rect><foreignobject width="82.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Start %post</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-post&amp;#95provisioning&amp;#95init-1" transform="translate(1227.06640625, 139)"><rect class="basic label-container" style="" x="-120.2734375" y="-27" width="240.546875" height="54"></rect><g class="label" style="" transform="translate(-90.2734375, -12)"><rect></rect><foreignobject width="180.546875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>snt-post_provisioning_init</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-networking&amp;#95setup&amp;#95post&amp;#95installation-3" transform="translate(1468.84375, 255)"><rect class="basic label-container" style="" x="-154.53125" y="-39" width="309.0625" height="78"></rect><g class="label" style="" transform="translate(-124.53125, -24)"><rect></rect><foreignobject width="249.0625" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-networking_setup_post_installation</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-subscription&amp;#95manager&amp;#95registration-5" transform="translate(1656.578125, 407)"><rect class="basic label-container" style="" x="-152.734375" y="-39" width="305.46875" height="78"></rect><g class="label" style="" transform="translate(-122.734375, -24)"><rect></rect><foreignobject width="245.46875" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-subscription_manager_registration</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-configure&amp;#95time&amp;#95synchronization-7" transform="translate(1814.7406250033528, 559)"><rect class="basic label-container" style="" x="-142.5078125" y="-39" width="285.015625" height="78"></rect><g class="label" style="" transform="translate(-112.5078125, -24)"><rect></rect><foreignobject width="225.015625" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-configure_time_synchronization</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-idm&amp;#95register-9" transform="translate(1875.9164062533528, 747)"><rect class="basic label-container" style="" x="-87.3515625" y="-27" width="174.703125" height="54"></rect><g class="label" style="" transform="translate(-57.3515625, -12)"><rect></rect><foreignobject width="114.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>snt-idm_register</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys-11" transform="translate(1959.1117187533528, 983)"><rect class="basic label-container" style="" x="-131.390625" y="-39" width="262.78125" height="78"></rect><g class="label" style="" transform="translate(-101.390625, -24)"><rect></rect><foreignobject width="202.78125" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-remote_execution_ssh_keys</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-ansible&amp;#95ssh&amp;#95keys-13" transform="translate(2029.8539062533528, 1147)"><rect class="basic label-container" style="" x="-106.484375" y="-27" width="212.96875" height="54"></rect><g class="label" style="" transform="translate(-76.484375, -12)"><rect></rect><foreignobject width="152.96875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>snt-ansible_ssh_keys</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-enable&amp;#95epel-15" transform="translate(2090.8226562533528, 1323)"><rect class="basic label-container" style="" x="-86.9375" y="-27" width="173.875" height="54"></rect><g class="label" style="" transform="translate(-56.9375, -12)"><rect></rect><foreignobject width="113.875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>snt-enable_epel</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-luks&amp;#95encryption-17" transform="translate(2157.7835937533528, 1499)"><rect class="basic label-container" style="" x="-98.921875" y="-27" width="197.84375" height="54"></rect><g class="label" style="" transform="translate(-68.921875, -12)"><rect></rect><foreignobject width="137.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>snt-luks_encryption</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script-19" transform="translate(2254.9867187533528, 1687)"><rect class="basic label-container" style="" x="-159.40625" y="-39" width="318.8125" height="78"></rect><g class="label" style="" transform="translate(-129.40625, -24)"><rect></rect><foreignobject width="258.8125" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-ansible_provisioning_callback_script</p></span></div></foreignobject></g></g><g class="node default  " id="flowchart-snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service-21" transform="translate(2355.3031250033528, 1887)"><rect class="basic label-container" style="" x="-165.6328125" y="-39" width="331.265625" height="78"></rect><g class="label" style="" transform="translate(-135.6328125, -24)"><rect></rect><foreignobject width="271.265625" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>snt-ansible_provisioning_callback_service</p></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-post&amp;#95provisioning&amp;#95init---snt-post&amp;#95provisioning&amp;#95init---1" transform="translate(1174.8203125, 255)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-post&amp;#95provisioning&amp;#95init---snt-post&amp;#95provisioning&amp;#95init---2" transform="translate(1174.8203125, 407)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-networking&amp;#95setup&amp;#95post&amp;#95installation---snt-networking&amp;#95setup&amp;#95post&amp;#95installation---1" transform="translate(1070.328125, 407)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-networking&amp;#95setup&amp;#95post&amp;#95installation---snt-networking&amp;#95setup&amp;#95post&amp;#95installation---2" transform="translate(1070.328125, 559)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-subscription&amp;#95manager&amp;#95registration---snt-subscription&amp;#95manager&amp;#95registration---1" transform="translate(953.3828125, 559)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-subscription&amp;#95manager&amp;#95registration---snt-subscription&amp;#95manager&amp;#95registration---2" transform="translate(953.3828125, 747)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-configure&amp;#95time&amp;#95synchronization---snt-configure&amp;#95time&amp;#95synchronization---1" transform="translate(828, 747)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-configure&amp;#95time&amp;#95synchronization---snt-configure&amp;#95time&amp;#95synchronization---2" transform="translate(828, 983)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-idm&amp;#95register---snt-idm&amp;#95register---1" transform="translate(708, 983)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-idm&amp;#95register---snt-idm&amp;#95register---2" transform="translate(772.3109375033528, 1147)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys---snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys---1" transform="translate(588, 1147)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys---snt-remote&amp;#95execution&amp;#95ssh&amp;#95keys---2" transform="translate(795.5062500033528, 1323)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95ssh&amp;#95keys---snt-ansible&amp;#95ssh&amp;#95keys---1" transform="translate(468, 1323)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95ssh&amp;#95keys---snt-ansible&amp;#95ssh&amp;#95keys---2" transform="translate(806.2484375033528, 1499)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-enable&amp;#95epel---snt-enable&amp;#95epel---1" transform="translate(348, 1499)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-enable&amp;#95epel---snt-enable&amp;#95epel---2" transform="translate(807.2171875033528, 1687)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-luks&amp;#95encryption---snt-luks&amp;#95encryption---1" transform="translate(228, 1687)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-luks&amp;#95encryption---snt-luks&amp;#95encryption---2" transform="translate(814.1781250033528, 1887)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script---snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script---1" transform="translate(108, 1887)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script---snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95script---2" transform="translate(851.3812500033528, 2024.050000000745)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service---snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service---1" transform="translate(2280.036718754098, 2024.050000000745)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g><g class="label edgeLabel" id="snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service---snt-ansible&amp;#95provisioning&amp;#95callback&amp;#95service---2" transform="translate(2355.3031250033528, 2146.150000002235)"><rect width="0.1" height="0.1"></rect><g class="label" style="" transform="translate(0, 0)"><rect></rect><foreignobject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 10px; text-align: center;"><span class="nodeLabel "></span></div></foreignobject></g></g></g></g></g></svg>
+
+<p>That’s quite a list, let’s go through them step by step.</p>
+<h4 id="template-pvt-provision">
+  
+  
+    Template: <code class="language-plaintext highlighter-rouge">pvt-provision</code> <a href="#template-pvt-provision">#</a>
+  
+  
+</h4>
+    
+
+<p>Before we dive into the Snippets, a couple of things happen in the Provision Template that are noteworthy.</p>
+
+<p>First, we switch to <a href="https://man7.org/linux/man-pages/man4/tty.4.html">TTY</a> 3 so that we can actually see something during provisioning <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20">.</p>
+
+<p>Moreover the following things happen (in between these steps various Snippets are run):</p>
+
+<ul>
+  <li>Import the GPG keys for RHEL to avoid an exit code of <code class="language-plaintext highlighter-rouge">dnf</code> and <code class="language-plaintext highlighter-rouge">yum</code> which signals an error (greater than 0)</li>
+  <li>Install some applications that I’d like to have on all of my systems (such as <code class="language-plaintext highlighter-rouge">systat</code>, <code class="language-plaintext highlighter-rouge">tmux</code> and <code class="language-plaintext highlighter-rouge">vim-enhanced</code>). I install them separately as they are in the RHEL AppStream
+repository and some time ago (I cannot recall in which RHEL minor and Satellite version exactly) it was not possible to enable more than one repository <em>before</em> Kickstart enters
+the <code class="language-plaintext highlighter-rouge">%post</code> section</li>
+  <li>Update all packages: That is important as we might have booted from an older RHEL minor release while the Content View might provide a later version of RHEL</li>
+  <li>Define <code class="language-plaintext highlighter-rouge">__NTP_SERVER</code> (more on that in <a href="#snippet-snt-configure_time_synchronization"><code class="language-plaintext highlighter-rouge">snt-configure_time_synchronization</code></a>)</li>
+  <li>Create the file <code class="language-plaintext highlighter-rouge">./autorelabel</code> to force relabeling of SELinux contexts</li>
+</ul>
+
+<p>.. and as mentioned it includes all the Snippets that we have seen in the flow chart in the <a href="#post-section-flow"><code class="language-plaintext highlighter-rouge">%post</code> section flow</a></p>
+<h4 id="snippet-snt-post_provisioning_init">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-post_provisioning_init</code> <a href="#snippet-snt-post_provisioning_init">#</a>
+  
+  
+</h4>
+    
+
+<p>This very first snippet is probably the most important one. It sets up a <a href="https://tldp.org/LDP/Bash-Beginners-Guide/html/sect_12_02.html">BASH exit trap</a> and ensures that whenever
+<strong>any</strong> command fails, the provisioning fails as well (<code class="language-plaintext highlighter-rouge">set -o errexit</code>). Exiting should also happen if a pipe is used (<code class="language-plaintext highlighter-rouge">|</code>) and any command in the complete pipe fails
+(<code class="language-plaintext highlighter-rouge">set -o pipefail</code>). To avoid that variables are referenced without being defined (something BASH does not care about by default), it ensures that unset variables are treated as
+an error (<code class="language-plaintext highlighter-rouge">set -o nounset</code>). Lastly, all of that should also apply to <a href="https://tldp.org/LDP/abs/html/subshells.html">sub-shells</a> (<code class="language-plaintext highlighter-rouge">set -o errtrace</code> and <code class="language-plaintext highlighter-rouge">set -o functrace</code>).</p>
+
+<p>Okay, but why all of that?</p>
+
+<p>This procedure guarantees that <strong>every</strong> provisioning was <strong>successful</strong>. Not partially successful, but <strong>completely successful</strong>.</p>
+
+<p>Of course, it requires that commands that are invoked ‘play nicely’ and exit with a proper exit code when they encounter an error.</p>
+
+<p>It also has (as with everything) a downside: You need to ensure that every command you invoke, every sub-shell you spawn and every process you invoke needs to <strong>succeed</strong>.
+Otherwise the installation <strong>will</strong> terminate.</p>
+
+<p>A good example of <em>bad behavior</em> is for instance <code class="language-plaintext highlighter-rouge">subscription-manager</code>. When you enable <a href="https://access.redhat.com/articles/simple-content-access">Simple Content Access (SCA)</a>
+for your Satellite, you don’t need a subscription and thus Satellite clients have no subscription assigned. <code class="language-plaintext highlighter-rouge">subscription-manager</code> considers this to be an error and when it exits,
+it exits with an exit code that indicates an error.</p>
+
+<p>So, how do you deal with a situation like this? Just let BASH know it’s okay if the process fails. See the following example:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code>subscription-manager register --name='<span class="cp">&lt;%=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span>' --org='<span class="cp">&lt;%=</span> <span class="n">subscription_manager_org</span> <span class="cp">%&gt;</span>' --activationkey='<span class="cp">&lt;%=</span> <span class="n">activation_key</span> <span class="cp">%&gt;</span>' || true
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">||</code> is a <a href="https://tldp.org/LDP/abs/html/comparison-ops.html">logical OR operator</a> that <em>guarantees</em> that the command does not fail. Everything that we put before the <code class="language-plaintext highlighter-rouge">||</code>
+will evaluate as <code class="language-plaintext highlighter-rouge">true</code>; Thus it is considered as <em>succeeded</em>.</p>
+
+<p>Let me try to explain that a bit more ‘understandable’ <img class="emoji" title=":speak_no_evil:" alt=":speak_no_evil:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f64a.png" height="20" width="20"></p>
+
+<p>Consider the following example code:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>command1 <span class="o">||</span> <span class="nb">true</span>
+</code></pre></div></div>
+
+<p>Using natural language this would translate to something like: “Run <code class="language-plaintext highlighter-rouge">command1</code> but if that fails, don’t worry, it’s fine anyway.”</p>
+
+<p>You can even do <code class="language-plaintext highlighter-rouge">false || true</code> and you’ll see with <code class="language-plaintext highlighter-rouge">echo $?</code> (which returns the last exit code) that BASH exited with 0 (which equals to <code class="language-plaintext highlighter-rouge">true</code> in BASH - unlike in <em>every</em> other
+language <img class="emoji" title=":see_no_evil:" alt=":see_no_evil:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f648.png" height="20" width="20"> ).</p>
+
+<p>Does that obsolete the use of the BASH options that have been implemented in the beginning?</p>
+
+<p>Yes, absolutely. But only for this <strong>one</strong> command. I think it’s better to be 99% sure that a system has been deployed successfully, compared to close to 0% (when not using the
+aforementioned BASH options).</p>
+
+<p>This ‘workaround’ can be used for every command you encounter that doesn’t ‘play nice’. <strong>But</strong>, remember, the more often you do it (maybe just to ‘make it work’) the less
+useful the BASH options are and with every use of <code class="language-plaintext highlighter-rouge">||</code> you can be less and less sure whether the system has really been deployed successfully.</p>
+
+<p>Obviously, this is a very strict way of deploying systems. And one could argue even cumbersome. You can do a post provisioning check with your preferred automation tool <em>after</em>
+provisioning.</p>
+
+<p>While that it is correct, I found my way more intuitive and more <em>‘fail-proof’</em>, compared to a post provisioning check, as I can rule out e.g. <code class="language-plaintext highlighter-rouge">DNS</code> issues due to a failed <code class="language-plaintext highlighter-rouge">IdM</code>
+enrollment (which would render my post provisioning check useless, as I am unable to reach it via <code class="language-plaintext highlighter-rouge">DNS</code>).</p>
+<h4 id="snippet-snt-networking_setup_post_installation">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-networking_setup_post_installation</code> <a href="#snippet-snt-networking_setup_post_installation">#</a>
+  
+  
+</h4>
+    
+
+<p>Next up we have the Snippet <code class="language-plaintext highlighter-rouge">snt-networking_setup_post_installation</code>. It is derived from the Snippets that Red Hat ships by default:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">kickstart_networking_setup</code></li>
+  <li><code class="language-plaintext highlighter-rouge">kickstart_ifcfg_get_identifier_names</code></li>
+  <li><code class="language-plaintext highlighter-rouge">kickstart_ifcfg_bond_interface</code></li>
+  <li><code class="language-plaintext highlighter-rouge">kickstart_ifcfg_bonded_interface</code></li>
+  <li><code class="language-plaintext highlighter-rouge">kickstart_ifcfg_generic_interface</code></li>
+</ul>
+
+<p>I decided to put everything into <em>one</em> Snippet instead of splitting it out like Red Hat did. The original ones <em>make sense</em>, don’t get me wrong, but since I have it highly
+customized on <em>my</em> use case, I don’t need to split the Snippets as I don’t reuse them anywhere else. The splitting <em>probably</em> happened with the initial thought
+of: “<em>I might be able to reuse it!</em>”. For me this is not necessary and introduces more complexity when troubleshooting (you need to switch between different Snippets all the
+time), so I merged all of them.</p>
+
+<p>Additionally, my customized version supports <code class="language-plaintext highlighter-rouge">VLANs</code>. Something that the original Snippets do not.</p>
+
+<p>Further, I modified it in such a way, that the Snippet is actually readable (with a few comments added as well), as I find the original one is hard to read and thus hard to
+troubleshoot should you encounter issues.</p>
+
+<p>Here is the thing: You can make Templates in Satellite with <code class="language-plaintext highlighter-rouge">ERB</code> readable in two ways. Either you indent the <code class="language-plaintext highlighter-rouge">ERB</code> code itself like so:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    # Loop 1.1: iterate over all managed slave interfaces of this bond
+  <span class="cp">&lt;%</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">interfaces_with_identifier</span><span class="p">(</span><span class="n">bond</span><span class="p">.</span><span class="nf">attached_devices_identifiers</span><span class="p">).</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">interface</span><span class="o">|</span> <span class="cp">-%&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">next</span> <span class="k">if</span> <span class="o">!</span><span class="n">interface</span><span class="p">.</span><span class="nf">managed?</span> <span class="cp">-%&gt;</span>
+
+    <span class="cp">&lt;%</span>
+    <span class="n">subnet</span> <span class="o">=</span> <span class="n">interface</span><span class="p">.</span><span class="nf">subnet</span>
+    <span class="n">virtual</span> <span class="o">=</span> <span class="n">interface</span><span class="p">.</span><span class="nf">virtual?</span>
+    <span class="n">vlan</span> <span class="o">=</span> <span class="n">virtual</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">subnet</span><span class="p">.</span><span class="nf">has_vlanid?</span> <span class="o">||</span> <span class="n">interface</span><span class="p">.</span><span class="nf">vlanid</span><span class="p">.</span><span class="nf">present?</span><span class="p">)</span>
+    <span class="n">alias_type</span> <span class="o">=</span> <span class="n">virtual</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">subnet</span><span class="p">.</span><span class="nf">nil?</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">subnet</span><span class="p">.</span><span class="nf">has_vlanid?</span> <span class="o">&amp;&amp;</span> <span class="n">interface</span><span class="p">.</span><span class="nf">identifier</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="s1">':'</span><span class="p">)</span>
+    <span class="n">dhcp</span> <span class="o">=</span> <span class="o">!</span><span class="n">subnet</span><span class="p">.</span><span class="nf">nil?</span> <span class="o">&amp;&amp;</span> <span class="n">subnet</span><span class="p">.</span><span class="nf">dhcp_boot_mode?</span>
+    <span class="cp">-%&gt;</span>
+</code></pre></div></div>
+
+<p>Or, you indent the code inside the <code class="language-plaintext highlighter-rouge">ERB</code> tags, like so:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;%-</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">bond_interfaces</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">bond</span><span class="o">|</span> <span class="cp">-%&gt;</span>
+<span class="cp">&lt;%-</span>   <span class="n">bonding_interfaces</span><span class="p">.</span><span class="nf">push</span><span class="p">(</span><span class="n">bond</span><span class="p">.</span><span class="nf">identifier</span><span class="p">)</span> <span class="cp">-%&gt;</span>
+<span class="cp">&lt;%=</span>   <span class="s2">"# </span><span class="si">#{</span><span class="n">bond</span><span class="p">.</span><span class="nf">identifier</span><span class="si">}</span><span class="s2"> interface"</span> <span class="cp">%&gt;</span>
+</code></pre></div></div>
+
+<p>The difference is, that Ruby, well <code class="language-plaintext highlighter-rouge">ERB</code>, does <em>not care</em> about indentation inside the <code class="language-plaintext highlighter-rouge">ERB</code> tags (<code class="language-plaintext highlighter-rouge">&lt;%- -%&gt;</code>, <code class="language-plaintext highlighter-rouge">&lt;%=  %&gt;</code>, etc.). This will result in a rendered file which has the
+beginning of each line at the very start without any spaces in front.</p>
+
+<p>If you chose my method (which I find more readable), you’ll end up with a <em>rendered</em> file (after <code class="language-plaintext highlighter-rouge">ERB</code> was processed) that looks like this:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">BOOTPROTO</span><span class="o">=</span>dhcp
+      <span class="nv">IPADDR</span><span class="o">=</span>172.31.3.254
+      <span class="nv">NETMASK</span><span class="o">=</span>255.255.255.0
+        <span class="nv">GATEWAY</span><span class="o">=</span>172.31.3.1
+
+    <span class="nv">DEVICE</span><span class="o">=</span>eno1
+    <span class="nv">ONBOOT</span><span class="o">=</span><span class="nb">yes
+    </span><span class="nv">PEERDNS</span><span class="o">=</span>no
+    <span class="nv">PEERROUTES</span><span class="o">=</span>no
+    <span class="nv">DEFROUTE</span><span class="o">=</span><span class="nb">yes
+    </span><span class="nv">TYPE</span><span class="o">=</span>Bond
+</code></pre></div></div>
+
+<p>This sometimes is a problem for the application that makes use of the rendered file ultimately (in this case <code class="language-plaintext highlighter-rouge">NetworkManager</code>), but more important, makes it hard to troubleshoot
+after deployment.</p>
+
+<p>To overcome situations like this, I simply use the following approach (within Kickstart):</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nb">sed</span> <span class="nt">-i</span> <span class="nt">-E</span> <span class="s1">'s/^[[:space:]]+//g'</span> <span class="s2">"</span><span class="k">${</span><span class="nv">file</span><span class="k">}</span><span class="s2">"</span>
+  <span class="nb">sed</span> <span class="nt">-i</span> <span class="s1">'/^$/d'</span> <span class="s2">"</span><span class="k">${</span><span class="nv">file</span><span class="k">}</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>The above <code class="language-plaintext highlighter-rouge">sed</code> commands will remove white spaces at the beginning (that happened due to indentation) and remove empty lines. Of course, this is an extra step that needs to be
+performed, during Kickstart. For me, though, the benefits outweigh the downsides of this. I can read and troubleshoot the Kickstart files in Satellite a lot better, as the
+indentation is simply correct.</p>
+<h4 id="snippet-snt-subscription_manager_registration">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-subscription_manager_registration</code> <a href="#snippet-snt-subscription_manager_registration">#</a>
+  
+  
+</h4>
+    
+
+<p>Next up is the Snippet <code class="language-plaintext highlighter-rouge">snt-subscription_manager_registration</code>. It is derived of <code class="language-plaintext highlighter-rouge">redhat_register</code> and has been overly simplified. It does <em>not</em> support an HTTP proxy, for
+instance, as I don’t need it.</p>
+
+<p>The one specialty I’d like to point out is that it checks for <a href="https://docs.fedoraproject.org/en-US/epel">Extra Packages for Enterprise Linux (<code class="language-plaintext highlighter-rouge">EPEL</code>)</a> repositories and disables
+them right after registering with Satellite.</p>
+
+<p>The responsible code Snippet is the following:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code>write_output "Trying to find out if EPEL is activated within the activation key <span class="cp">&lt;%=</span> <span class="n">host_param</span><span class="p">(</span><span class="s1">'kt_activation_keys'</span><span class="p">)</span> <span class="cp">%&gt;</span>" "INFO";
+__ORGANIZATION_NAME="<span class="cp">&lt;%=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">rhsm_organization_label</span> <span class="cp">%&gt;</span>"
+__PRODUCT_NAME="prd-fedora-epel"
+__REPOSITORY_NAME="repo-epel-latest-el-<span class="cp">&lt;%=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">operatingsystem</span><span class="p">.</span><span class="nf">major</span><span class="p">.</span><span class="nf">to_i</span> <span class="cp">%&gt;</span>"
+__REPOSITORY_ID="${__ORGANIZATION_NAME}_${__PRODUCT_NAME}_${__REPOSITORY_NAME}"
+
+write_output "Repository ID: ${__REPOSITORY_ID}" "INFO";
+
+# Also it is worth to update subscription-manager at this moment
+write_output "Updating subscription-manager" "INFO";
+${__PACKAGE_MANAGER} ${__PACKAGE_MANAGER_ARGUMENTS} update subscription-manager
+
+foundEpelRepositoryName=1
+foundEpelRepositoryId=1
+
+# go line-wise through enabled repositories
+while read -r subscriptionInformationLine; do
+    # we only care for repo ID and name
+    if [[ ! "${subscriptionInformationLine^^}" =~ ^REPO[[:space:]]ID|NAME: ]]; then
+        continue;
+    fi
+
+    # both repo ID and name need to be found
+    if [[ "${subscriptionInformationLine^^}" =~ ^REPO[[:space:]]ID:[[:space:]]+${__REPOSITORY_ID^^}$ ]]; then
+        foundEpelRepositoryId=0
+    elif [[ "${subscriptionInformationLine^^}" =~ ^REPO[[:space:]]NAME:[[:space:]]+${__REPOSITORY_NAME^^}$ ]]; then
+        foundEpelRepositoryName=0
+    fi
+done <span class="nt">&lt;</span> <span class="err">&lt;(</span><span class="na">subscription-manager</span> <span class="na">repos</span> <span class="na">--list-enabled</span><span class="err">)</span>
+
+<span class="na">if</span> <span class="err">[[</span> <span class="err">"${</span><span class="na">foundEpelRepositoryId</span><span class="err">}"</span> <span class="na">-eq</span> <span class="err">0</span> <span class="err">]]</span> <span class="err">&amp;&amp;</span> <span class="err">[[</span> <span class="err">"${</span><span class="na">foundEpelRepositoryName</span><span class="err">}"</span> <span class="na">-eq</span> <span class="err">0</span> <span class="err">]];</span> <span class="na">then</span>
+    <span class="na">write_output</span> <span class="err">"</span><span class="na">Found</span> <span class="na">enabled</span> <span class="na">EPEL</span> <span class="na">repository</span><span class="err">,</span> <span class="na">will</span> <span class="na">disable</span> <span class="na">it</span> <span class="na">for</span> <span class="na">now</span><span class="err">"</span> <span class="err">"</span><span class="na">INFO</span><span class="err">";</span>
+    <span class="na">subscription-manager</span> <span class="na">repos</span> <span class="na">--disable</span> <span class="err">"${</span><span class="na">__REPOSITORY_ID</span><span class="err">}"</span>
+<span class="na">fi</span>
+</code></pre></div></div>
+
+<p>You might have noticed that the <code class="language-plaintext highlighter-rouge">__PRODUCT_NAME</code> and <code class="language-plaintext highlighter-rouge">__REPOSITORY_NAME</code> is based on my naming concept for Satellite<sup id="fnref:naming_concept" role="doc-noteref"><a href="#fn:naming_concept" class="footnote" rel="footnote">4</a></sup>. The definition of the <code class="language-plaintext highlighter-rouge">__REPOSITORY_ID</code> on
+the other hand is Satellite’s default for custom repositories and is not influenced by me in any way.</p>
+
+<p>Now to the reason why this is important: There are situations where you’d like to have <code class="language-plaintext highlighter-rouge">EPEL</code> repositories enabled, but there is catch with that. <code class="language-plaintext highlighter-rouge">EPEL</code> often times contains more
+updated version of packages. This becomes an issue, when you mix and match the dependencies with packages from RHEL, as they are usually not meant to work with dependencies that
+have a newer version than what is shipped in RHEL (e.g. <code class="language-plaintext highlighter-rouge">EPEL</code>). To prevent issues right from the get-go, I disable <code class="language-plaintext highlighter-rouge">EPEL</code> before installing or updating any packages. After the
+provisioning has been done, the <code class="language-plaintext highlighter-rouge">EPEL</code> repository will be enabled again (that is done by the Snippet <a href="#snippet-snt-enable_epel"><code class="language-plaintext highlighter-rouge">snt-enable_epel</code></a>) if the <code class="language-plaintext highlighter-rouge">EPEL</code> repository is enabled
+within the Activation Key.</p>
+<h4 id="snippet-snt-configure_time_synchronization">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-configure_time_synchronization</code> <a href="#snippet-snt-configure_time_synchronization">#</a>
+  
+  
+</h4>
+    
+
+<p>The snippet <code class="language-plaintext highlighter-rouge">snt-configure_time_synchronization</code> has one job: Configuring the time synchronization either via <code class="language-plaintext highlighter-rouge">NTPd</code> (RHEL 7) or (RHEL 8 and above) <code class="language-plaintext highlighter-rouge">chronyd</code>. It deploys a
+<strong>minimalist</strong> configuration for either of the daemons to ensure that the time is correct before we register the system to Red Hat’s Identity Management (<code class="language-plaintext highlighter-rouge">IdM</code>). If the time deviates
+too much of the actual time, enrolling to <code class="language-plaintext highlighter-rouge">IdM</code> would fail (Microsoft Active Directory (AD) would refuse to add the system as well). This is because <code class="language-plaintext highlighter-rouge">LDAP</code> is (usually!) based on SSL
+and SSL needs to have correct date and time set otherwise it will not work properly.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">NTP</code> server to use, however, is determined way earlier in the Kickstart process. It is gathered in <a href="#template-pvt-provision"><code class="language-plaintext highlighter-rouge">pvt-provisioning</code></a> with the following code:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code>declare -r __NTP_SERVER="$(dig +short _ntp._udp.<span class="cp">&lt;%=</span> <span class="vi">@host</span><span class="p">.</span><span class="nf">domain</span> <span class="cp">-%&gt;</span> SRV | awk '{print $4}' | sed 's/\.$//')"
+</code></pre></div></div>
+
+<p>The above code snippet queries the <code class="language-plaintext highlighter-rouge">DNS</code> and asks for a <a href="https://en.wikipedia.org/wiki/SRV_record">service (<code class="language-plaintext highlighter-rouge">SRV</code>) record</a> at <code class="language-plaintext highlighter-rouge">_ntp._udp.example.com</code>. This means that you need to have
+an <code class="language-plaintext highlighter-rouge">SRV</code> record for <code class="language-plaintext highlighter-rouge">_ntp._udp.example.com</code> as otherwise the provisioning will fail (early in the Kickstart). Of course, you need to substitute <code class="language-plaintext highlighter-rouge">example.com</code> with the domain the
+host is going to be provisioned.</p>
+
+<p>To as why the <code class="language-plaintext highlighter-rouge">NTP</code> server is determined early in the Kickstart and not in this Snippet: In the beginning of the Kickstart (<em>almost</em> at start of the <code class="language-plaintext highlighter-rouge">%post</code> section), I determine
+everything that is required for the installation to proceed. Among these things is the <code class="language-plaintext highlighter-rouge">NTP</code> server. This is a benefit, because the installation will fail quicker and that way you
+save some time. <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h4 id="snippet-snt-idm_register">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-idm_register</code> <a href="#snippet-snt-idm_register">#</a>
+  
+  
+</h4>
+    
+
+<p>The Snippet <code class="language-plaintext highlighter-rouge">snt-idm_register</code> is derived by Red Hat’s Snippet <code class="language-plaintext highlighter-rouge">freeipa_register</code>. It is basically the same, but with removed support for any RHEL version prior to RHEL 7.</p>
+
+<p>It is important to note, that <em>before</em> we install the <code class="language-plaintext highlighter-rouge">ipa-client</code> we updated the system to the latest available version. It is important, because otherwise, we would install
+the latest available <code class="language-plaintext highlighter-rouge">ipa-client</code> on an older RHEL version, which <em>can</em> cause issues.</p>
+
+<p>Moreover, the
+<a href="https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/installing_identity_management/preparing-the-system-for-ipa-client-installation_installing-identity-management#installing-idm-client-packages-from-the-idm-client-stream_preparing-the-system-for-ipa-client-installation"><code class="language-plaintext highlighter-rouge">IdM</code> documentation</a>
+notes that installing the <code class="language-plaintext highlighter-rouge">ipa-client</code> on RHEL 8 should be done by enabling the respective <code class="language-plaintext highlighter-rouge">module</code> instead of installing the <code class="language-plaintext highlighter-rouge">ipa-client</code>:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dnf <span class="nt">-y</span> module <span class="nb">install </span>idm
+</code></pre></div></div>
+
+<p>Something, that is not part of the original Template. Maybe there is already a bug open for that which describes this issue or there might be a legitimate reason that it
+is done differently - I don’t know. I chose to use the way the <code class="language-plaintext highlighter-rouge">IdM</code> documentation outlines.</p>
+<h4 id="snippets-snt-remote_execution_ssh_keys-and-snt-ansible_ssh_keys">
+  
+  
+    Snippets: <code class="language-plaintext highlighter-rouge">snt-remote_execution_ssh_keys</code> and <code class="language-plaintext highlighter-rouge">snt-ansible_ssh_keys</code> <a href="#snippets-snt-remote_execution_ssh_keys-and-snt-ansible_ssh_keys">#</a>
+  
+  
+</h4>
+    
+
+<p>Both <code class="language-plaintext highlighter-rouge">snt-remote_execution_ssh_keys</code> and <code class="language-plaintext highlighter-rouge">snt-ansible_ssh_keys</code> are practically the same. Both create a <strong>local</strong> user and add the defined SSH keys to the user. That’s it,
+nothing special <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+<h4 id="snippet-snt-enable_epel">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-enable_epel</code> <a href="#snippet-snt-enable_epel">#</a>
+  
+  
+</h4>
+    
+
+<p>This snippet is pretty simple as well. It enabled <code class="language-plaintext highlighter-rouge">EPEL</code> again, when it is enabled within the Activation Key.</p>
+<h4 id="snippet-snt-luks_encryption">
+  
+  
+    Snippet: <code class="language-plaintext highlighter-rouge">snt-luks_encryption</code> <a href="#snippet-snt-luks_encryption">#</a>
+  
+  
+</h4>
+    
+
+<p>This Snippet is entirely custom-made and based on the documentation of
+<a href="https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#configuring-manual-enrollment-of-volumes-using-clevis_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption"><code class="language-plaintext highlighter-rouge">clevis luks bind</code></a>.
+This Snippet provides the possibility to use <a href="https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#network-bound-disk-encryption_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption">Network Bound Disk Encryption (<code class="language-plaintext highlighter-rouge">NBDE</code>)</a>
+and requires <strong>two</strong> installed and configured <a href="https://access.redhat.com/documentation/de-de/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening#deploying-a-tang-server-with-selinux-in-enforcing-mode_configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption">Tang servers</a>
+(to have a backup Tang server should one die).</p>
+<h4 id="snippets-snt-ansible_provisioning_callback_script-and-snt-ansible_provisioning_callback_service">
+  
+  
+    Snippets: <code class="language-plaintext highlighter-rouge">snt-ansible_provisioning_callback_script</code> and <code class="language-plaintext highlighter-rouge">snt-ansible_provisioning_callback_service</code> <a href="#snippets-snt-ansible_provisioning_callback_script-and-snt-ansible_provisioning_callback_service">#</a>
+  
+  
+</h4>
+    
+
+<p>These last two Snippets place a script on the server and create a <code class="language-plaintext highlighter-rouge">systemd service</code> that launches a specific Job Template in Ansible Automation Platform. That Job Template would
+usually configure the system initially; That would typically be such tasks as applying hardening, etc. This <code class="language-plaintext highlighter-rouge">systemd service</code> only runs <em>once</em> and disables itself afterwards.</p>
+<h3 id="the-different-post-sections">
+  
+  
+    The different <code class="language-plaintext highlighter-rouge">%post</code> sections <a href="#the-different-post-sections">#</a>
+  
+  
+</h3>
+    
+
+<p>With the Provisioning Template <code class="language-plaintext highlighter-rouge">pvt-provisioning</code> I included multiple <code class="language-plaintext highlighter-rouge">%post</code> sections. We have discussed the one that does the heavy lifting above. But there are three more <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20"></p>
+
+<p>They are defined as follows:</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">%post --interpreter=/bin/bash --nochroot --log=/mnt/sysimage/root/install.post.no.chroot.log</code></li>
+  <li>
+<code class="language-plaintext highlighter-rouge">%post --interpreter=/bin/bash --log=/root/install.post.log</code> - this is the one that we have been discussing</li>
+  <li><code class="language-plaintext highlighter-rouge">%post --nochroot --log=/mnt/sysimage/root/install.post.no.chroot.journal.log</code></li>
+  <li><code class="language-plaintext highlighter-rouge">%post --interpreter=/bin/bash --log=/root/install.post.notification.log</code></li>
+</ol>
+
+<p>The <code class="language-plaintext highlighter-rouge">%post</code> sections are evaluated from top to bottom. Even if one of them exited with an error the remaining <code class="language-plaintext highlighter-rouge">%post</code> sections will be evaluated.</p>
+
+<p>Let’s quickly talk about the different <code class="language-plaintext highlighter-rouge">%post</code> sections.</p>
+
+<ol>
+  <li>The first <code class="language-plaintext highlighter-rouge">%post</code> section merely copies <code class="language-plaintext highlighter-rouge">/etc/resolv.conf</code> to the environment we are going to <a href="https://linux.die.net/man/1/chroot"><code class="language-plaintext highlighter-rouge">chroot</code></a> into
+(<code class="language-plaintext highlighter-rouge">/mnt/sysimage/etc/resolv.conf</code>) so that we are able to do <code class="language-plaintext highlighter-rouge">DNS</code> resolution.</li>
+  <li>We have discussed the second <code class="language-plaintext highlighter-rouge">%post</code> section thoroughly.</li>
+  <li>The third <code class="language-plaintext highlighter-rouge">%post</code> section specifies the option <code class="language-plaintext highlighter-rouge">--nochroot</code>. This option is necessary, as we need control over <code class="language-plaintext highlighter-rouge">systemd</code> (which is not possible when being in a <code class="language-plaintext highlighter-rouge">chroot</code>). In
+this <code class="language-plaintext highlighter-rouge">%post</code> section we ensure that we don’t lose any <code class="language-plaintext highlighter-rouge">journald</code> logs by making them persistent.</li>
+  <li>This <code class="language-plaintext highlighter-rouge">%post</code> section is responsible for notifying the Satellite whether the installation went successful. It is determined that the installation failed when the file
+<code class="language-plaintext highlighter-rouge">/tmp/installation.successful</code> does not exist. The file <code class="language-plaintext highlighter-rouge">/tmp/installation.successful</code> is created as the very last step in the main <code class="language-plaintext highlighter-rouge">%post</code> section. As it is the last command
+that is executed in the main <code class="language-plaintext highlighter-rouge">%post</code> section, we can guarantee that the installation succeeded (due to the aforementioned BASH options).</li>
+</ol>
+<h3 id="pxelinux-templates">
+  
+  
+    <code class="language-plaintext highlighter-rouge">PXELinux</code> Templates <a href="#pxelinux-templates">#</a>
+  
+  
+</h3>
+    
+
+<p>Lastly, we need to talk about the two <code class="language-plaintext highlighter-rouge">PXELinux</code> Templates I have in my repository:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">pvt-pxelinux</code></li>
+  <li><code class="language-plaintext highlighter-rouge">pvt-pxelinux_default_local_boot</code></li>
+</ul>
+<h4 id="template-pvt-pxelinux">
+  
+  
+    Template: <code class="language-plaintext highlighter-rouge">pvt-pxelinux</code> <a href="#template-pvt-pxelinux">#</a>
+  
+  
+</h4>
+    
+
+<p>This Template will render the options which are passed to our clients when they boot via <code class="language-plaintext highlighter-rouge">PXE</code> and the host has a build scheduled (build mode is set to <code class="language-plaintext highlighter-rouge">true</code> for the Host in Satellite).
+It doesn’t look like much, but if you look closely, I include a Snippet: <code class="language-plaintext highlighter-rouge">snt-create_ip_config_string</code>
+This Snippet is where the heavy lifting is done. It will generate all the networking parameters that are required. It is derived from the <code class="language-plaintext highlighter-rouge">kickstart_kernel_options</code> Template, but
+again, heavily stripped down on what I need. On top, it fully supports <code class="language-plaintext highlighter-rouge">VLANs</code> and bonding. At the time I created my Snippet, that didn’t work with the original one. In the
+meanwhile, the original one also provides this functionality <img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+<h4 id="template-pvt-pxelinux_default_local_boot">
+  
+  
+    Template: <code class="language-plaintext highlighter-rouge">pvt-pxelinux_default_local_boot</code> <a href="#template-pvt-pxelinux_default_local_boot">#</a>
+  
+  
+</h4>
+    
+
+<p>The Template <code class="language-plaintext highlighter-rouge">pvt-pxelinux_default_local_boot</code> is derived from <code class="language-plaintext highlighter-rouge">PXELinux default local boot</code> and contains only one change: I set the timeout to 3 seconds instead of the
+default 20 seconds. I just got tired of waiting.</p>
+<h2 id="closing-thoughts">
+  
+  
+    Closing thoughts <a href="#closing-thoughts">#</a>
+  
+  
+</h2>
+    
+
+<p>There is one Template we haven’t talked about: <code class="language-plaintext highlighter-rouge">pvt-ipxe</code>. It is included because some time ago I used it. I no longer do, but I didn’t want to throw it away, in case I would
+need it at some point. It was used to build Host/Full Host images and use those images to install my systems. I switched over to <code class="language-plaintext highlighter-rouge">PXE</code> - it is just much more convenient
+<img class="emoji" title=":slightly_smiling_face:" alt=":slightly_smiling_face:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f642.png" height="20" width="20"></p>
+
+<p>We have been discussing <em>my</em> way of Kickstarting in this blog post. There are virtually unlimited ways of doing the same thing but different to this approach.</p>
+
+<p>Decide on your own, if such a highly customized Kickstart is worth the maintenance .. until next time <img class="emoji" title=":sunglasses:" alt=":sunglasses:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png" height="20" width="20"></p>
+<h2 id="change-log">
+  
+  
+    Change log <a href="#change-log">#</a>
+  
+  
+</h2>
+    
+<h3 id="2025-01-23">
+  
+  
+    2025-01-23 <a href="#2025-01-23">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>Fixing dead documentation links for kickstarting RHEL</li>
+</ul>
+<h3 id="2024-03-11">
+  
+  
+    2024-03-11 <a href="#2024-03-11">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+  <li>Spelling fixes</li>
+</ul>
+<h3 id="2024-03-09">
+  
+  
+    2024-03-09 <a href="#2024-03-09">#</a>
+  
+  
+</h3>
+    
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">markdownlint</code> fixes</li>
+</ul>
+<h2 id="footnotes">
+  
+  
+    Footnotes <a href="#footnotes">#</a>
+  
+  
+</h2>
+    
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:kickstart_changes" role="doc-endnote">
+      <p><strong>Typically</strong>, <em>major changes</em> to Kickstart are <em>not</em> introduced in a minor version of RHEL. This, however, is <em>not</em> guaranteed. <a href="#fnref:kickstart_changes" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:service" role="doc-endnote">
+      <p><a href="https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#definition-of-a-service">Read more about <em>my</em> definition of a <em>service</em> in Satellite</a> <a href="#fnref:service" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:host_params" role="doc-endnote">
+      <p>The section name <code class="language-plaintext highlighter-rouge">Supported host parameters</code> is actually a bit misleading. You can, of course, override the parameters on any level in Satellite (Global, Host Group, Host, etc.). <a href="#fnref:host_params" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:naming_concept" role="doc-endnote">
+      <p><a href="https://blog.scheib.me/2023/05/30/redhat-satellite-concept.html#naming-concept">Red Hat Satellite Naming Concept</a> <a href="#fnref:naming_concept" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div>
+
+  <script src="https://utteranc.es/client.js" repo="sscheib/sscheib.github.io-comments" issue-term="title" label="comment" theme="github-light" crossorigin="anonymous" async>
+  </script>
+
+  <a class="u-url" href="/2023/07/01/highly-customized-kickstart.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://blog.scheib.me/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+        <ul class="contact-list">
+          
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>This my personal blog, where I post about things that I do and find interesting. All posts and thoughts on this blog are solely my opinion and are not related to my employer.</p>
+      </div>
+    </div>
+
+    <div class="social-links">
+<ul class="social-media-list"><li><a href="https://github.com/sscheib"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">sscheib</span></a></li></ul>
+</div>
+    <div class="datenschutzerklaerung">
+    <a style="font-size:10px" href="https://blog.scheib.me/datenschutzerklaerung.html">Datenschutzerklärung</a> <a style="font-size:10px" href="https://blog.scheib.me/impressum.html">Impressum</a>
+    </div>
+
+  </div>
+</footer>
+</body>
+
+</html>
